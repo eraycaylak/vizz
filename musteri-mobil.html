@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIZZ — Müşteri App</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="vizz.css">
+<style>
+  html,body{height:100%}
+  body{background:#1c1b18;display:flex;justify-content:center}
+  .device{width:100%;max-width:430px;height:100%;background:var(--paper);position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .screen{flex:1;overflow-y:auto;position:relative}
+  .view{display:none}.view.active{display:block}
+  .hdr{background:var(--ink);color:#fff;padding:16px 18px 18px;border-radius:0 0 22px 22px;position:sticky;top:0;z-index:20}
+  .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .loc{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;background:#ffffff18;padding:7px 11px;border-radius:30px}
+  .search{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:12px 14px;color:var(--muted);font-size:14px}
+  .chips{display:flex;gap:9px;overflow-x:auto;padding:14px 16px}
+  .chip{flex:none;border:1.5px solid var(--line);background:#fff;font-weight:600;font-size:13px;padding:9px 14px;border-radius:30px;display:flex;gap:6px;align-items:center}
+  .chip.active{background:var(--honey);border-color:var(--honey);box-shadow:0 6px 14px rgba(242,169,0,.35)}
+  .promo{margin:4px 16px 8px;background:linear-gradient(120deg,var(--ink),#34301f);color:#fff;border-radius:18px;padding:16px;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
+  .promo:before{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:radial-gradient(var(--honey),transparent 70%);opacity:.5}
+  .promo h3{font-size:17px;margin-bottom:4px}.promo p{font-size:12px;color:#d9d4c4}.promo .bee{font-size:50px}
+  .sec{font-size:16px;font-weight:800;padding:10px 16px 6px;display:flex;justify-content:space-between;align-items:center}
+  .list{padding:4px 16px 16px;display:flex;flex-direction:column;gap:13px}
+  .rcard{background:#fff;border-radius:18px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line)}
+  .rcard .ph{height:128px;width:100%;object-fit:cover;display:block}
+  .rcard .phw{position:relative}.rcard .badge{position:absolute;top:10px;left:10px}
+  .rcard .body{padding:12px 14px}
+  .rcard .r1{display:flex;justify-content:space-between;align-items:center}
+  .rcard .name{font-weight:800;font-size:15px}.rcard .rate{background:#f1f8f2;color:var(--green);font-weight:800;font-size:12.5px;padding:3px 8px;border-radius:8px}
+  .rcard .meta{display:flex;gap:12px;color:var(--muted);font-size:12.5px;margin-top:7px}.rcard .meta b{color:var(--ink)}
+  /* menu */
+  .mhead{height:170px;position:relative}.mhead img{width:100%;height:100%;object-fit:cover}
+  .mhead .back{position:absolute;top:14px;left:14px;width:38px;height:38px;border-radius:50%;background:#fff;border:none;font-size:18px;box-shadow:var(--shadow)}
+  .minfo{background:#fff;margin:-26px 16px 0;border-radius:18px;padding:16px;box-shadow:var(--shadow);position:relative}
+  .minfo h2{font-size:19px}.minfo .tags{color:var(--muted);font-size:13px;margin-top:4px}
+  .item{display:flex;gap:12px;background:#fff;margin:10px 16px;border-radius:14px;padding:11px;box-shadow:var(--shadow-sm);align-items:center}
+  .item img{width:72px;height:72px;border-radius:12px;object-fit:cover;flex:none}
+  .item .t{flex:1}.item .t b{font-size:14px}.item .t p{font-size:11.5px;color:var(--muted);margin:2px 0 5px}.item .t .pr{font-weight:800;font-size:14.5px}
+  .add{width:38px;height:38px;border-radius:11px;border:none;background:var(--honey);color:var(--ink);font-size:22px;font-weight:700;box-shadow:0 6px 12px rgba(242,169,0,.4)}
+  /* cart */
+  .cwrap{padding:16px}
+  .ci{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:11px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
+  .ci img{width:52px;height:52px;border-radius:10px;object-fit:cover;flex:none}.ci .t{flex:1}.ci .t b{font-size:13.5px}.ci .t span{font-size:12px;color:var(--muted)}
+  .qty{display:flex;align-items:center;gap:9px;background:var(--paper);border-radius:30px;padding:4px}.qty button{width:27px;height:27px;border:none;border-radius:50%;background:var(--ink);color:#fff;font-size:15px}
+  .empty{text-align:center;color:var(--muted);padding:70px 30px}.empty .b{font-size:60px}
+  .summary{background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+  .srow{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}.srow.total{color:var(--ink);font-weight:800;font-size:17px;border-top:1px dashed var(--line);padding-top:10px}
+  .cta{width:100%;background:var(--honey);color:var(--ink);font-weight:800;font-size:15.5px;border:none;border-radius:14px;padding:15px;margin-top:12px;box-shadow:0 10px 22px rgba(242,169,0,.4)}
+  /* TRACKING — Domino's style */
+  .trk{padding:0 0 16px}
+  .trkmap{height:230px;position:relative}.trkmap #tMap{height:100%}
+  .eta{position:absolute;top:14px;left:14px;right:14px;background:rgba(20,19,15,.92);color:#fff;border-radius:14px;padding:12px 15px;z-index:500;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(6px)}
+  .eta b{font-size:24px;color:var(--honey)}.eta .s{font-size:11.5px;color:#cfcabb}
+  .stagebar{display:flex;padding:18px 16px 6px;gap:6px}
+  .stg{flex:1;text-align:center;position:relative}
+  .stg .bar{height:6px;border-radius:6px;background:var(--line)}
+  .stg.done .bar,.stg.now .bar{background:var(--honey)}
+  .stg .ic{font-size:22px;margin-top:8px;filter:grayscale(1);opacity:.4}
+  .stg.done .ic,.stg.now .ic{filter:none;opacity:1}
+  .stg.now .ic{animation:bob 1s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-4px)}}
+  .stg .lbl{font-size:10.5px;color:var(--muted);margin-top:4px;font-weight:600}.stg.now .lbl,.stg.done .lbl{color:var(--ink)}
+  .trkcard{background:#fff;margin:12px 16px;border-radius:16px;padding:14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px}
+  .trkcard .av{width:50px;height:50px;border-radius:50%;background:var(--honey-soft);display:grid;place-items:center;font-size:26px;flex:none}
+  .trkcard .t{flex:1}.trkcard .t b{font-size:15px;display:block}.trkcard .t span{font-size:12.5px;color:var(--muted)}
+  .trkcard .call{width:42px;height:42px;border-radius:50%;background:var(--ink);color:#fff;border:none;font-size:18px}
+  .ordsum{background:#fff;margin:0 16px;border-radius:16px;padding:14px;box-shadow:var(--shadow-sm)}
+  .ordsum .l{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--muted)}.ordsum .l b{color:var(--ink)}
+  /* tabbar */
+  .tabbar{height:70px;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;flex:none}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:11px;font-weight:600;background:none;border:none;position:relative}
+  .tab svg{width:23px;height:23px}.tab.active{color:var(--ink)}.tab.active svg{stroke:var(--honey-deep)}
+  .tab .cnt{position:absolute;top:-4px;right:8px;background:var(--honey);color:var(--ink);font-size:10px;font-weight:800;min-width:17px;height:17px;border-radius:10px;display:grid;place-items:center;padding:0 4px}
+</style></head><body>
+<div class="device">
+  <div class="screen">
+    <!-- HOME -->
+    <div class="view active" id="v-home">
+      <div class="hdr"><div class="hdr-top"><div class="vz-brand"><img id="logo" style="height:30px;width:30px" alt=""><b><i>V</i>IZZ</b></div>
+        <div class="loc">📍 Merkez, Yozgat ▾</div></div>
+        <div class="search" onclick="toast('🔎 Arama')">🔎 Ne yemek istersin?</div></div>
+      <div class="chips" id="chips"></div>
+      <div class="promo"><div><h3>İlk siparişe <span style="color:var(--honey)">vızz</span> indirim</h3><p>Bugün teslimat bizden 🐝</p></div><div class="bee">🐝</div></div>
+      <div class="sec">Yozgat'ta öne çıkanlar</div>
+      <div class="list" id="rlist"></div>
+    </div>
+    <!-- MENU -->
+    <div class="view" id="v-menu"></div>
+    <!-- CART -->
+    <div class="view" id="v-cart"></div>
+    <!-- TRACKING -->
+    <div class="view" id="v-track">
+      <div class="trk">
+        <div class="trkmap"><div class="eta"><div><div class="s">Tahmini varış</div><b id="etaMin">9 dk</b></div><div style="text-align:right"><div class="s">Sipariş</div><b style="font-size:15px;color:#fff">VZ-7742</b></div></div><div id="tMap"></div></div>
+        <div class="stagebar" id="stages">
+          <div class="stg done"><div class="bar"></div><div class="ic">✅</div><div class="lbl">Onaylandı</div></div>
+          <div class="stg done"><div class="bar"></div><div class="ic">👨‍🍳</div><div class="lbl">Hazırlanıyor</div></div>
+          <div class="stg now"><div class="bar"></div><div class="ic">🛵</div><div class="lbl">Yolda</div></div>
+          <div class="stg"><div class="bar"></div><div class="ic">📍</div><div class="lbl">Yaklaşıyor</div></div>
+          <div class="stg"><div class="bar"></div><div class="ic">🏠</div><div class="lbl">Teslim</div></div>
+        </div>
+        <div class="trkcard"><div class="av">🛵</div><div class="t"><b>Mehmet K. yolda</b><span>Çapanoğlu Köftecisi · ⭐ 4.9 · VIZZ kuryesi</span></div><button class="call" onclick="toast('📞 Kurye aranıyor…')">📞</button></div>
+        <div class="ordsum"><div class="l"><span>Izgara Köfte (8'li) ×1</span><b>₺165</b></div><div class="l"><span>Ayran ×2</span><b>₺60</b></div><div class="l"><span>Teslimat 🐝</span><b>Ücretsiz</b></div><div class="l" style="border-top:1px dashed var(--line);margin-top:4px;padding-top:8px"><span style="color:var(--ink);font-weight:800">Toplam</span><b style="font-size:16px">₺225</b></div></div>
+      </div>
+    </div>
+  </div>
+  <!-- tabbar -->
+  <div class="tabbar">
+    <button class="tab active" data-t="home" onclick="go('home')"><svg fill="none" stroke="#14130F" stroke-width="2" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Keşfet</button>
+    <button class="tab" data-t="track" onclick="go('track')"><svg fill="none" stroke="#7A766A" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Siparişler</button>
+    <button class="tab" data-t="cart" onclick="go('cart')"><svg fill="none" stroke="#7A766A" stroke-width="2" viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6 5 2H2"/></svg>Sepet<span class="cnt" id="tabCnt" style="display:none">0</span></button>
+    <button class="tab" data-t="profile" onclick="toast('👤 Profil')"><svg fill="none" stroke="#7A766A" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
+  </div>
+</div>
+<div class="vz-toast" id="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="vizz-data.js"></script>
+<script>
+document.getElementById('logo').src=VIZZ.LOGO;
+const R=VIZZ.RESTAURANTS;let cart=[],filter="Tümü",tMap=null;
+const cb=document.getElementById('chips');
+VIZZ.CATS.forEach(c=>{const b=document.createElement('button');b.className='chip'+(c==='Tümü'?' active':'');b.innerHTML=`<span>${VIZZ.CAT_EMOJI[c]}</span>${c}`;b.onclick=()=>{filter=c;[...cb.children].forEach(x=>x.classList.remove('active'));b.classList.add('active');rlist()};cb.appendChild(b)});
+function rlist(){document.getElementById('rlist').innerHTML=R.filter(r=>filter==='Tümü'||r.cat===filter).map(r=>`
+  <div class="rcard" onclick="openMenu(${r.id})"><div class="phw"><img class="ph" src="${VIZZ.IMG(r.cover)}" onerror="VIZZ.imgFallback(this,'${r.cover}')"><span class="pill badge">${r.badge}</span></div>
+   <div class="body"><div class="r1"><span class="name">${r.name}</span><span class="rate">★ ${r.rate}</span></div>
+   <div class="meta"><span>🕒 <b>${r.time} dk</b></span><span class="${r.fee==='Ücretsiz'?'tag-on':''}">🛵 ${r.fee==='Ücretsiz'?'Ücretsiz':'₺'+r.fee}</span><span>${r.zone}</span></div></div></div>`).join('');}
+rlist();
+function openMenu(id){const r=R.find(x=>x.id===id);document.getElementById('v-menu').innerHTML=`
+  <div class="mhead"><img src="${VIZZ.IMG(r.cover)}" onerror="VIZZ.imgFallback(this,'${r.cover}')"><button class="back" onclick="go('home')">←</button></div>
+  <div class="minfo"><h2>${r.name}</h2><div class="tags">${r.cat} • ${r.zone} • ⭐ ${r.rate} • ${r.time} dk • Min. ₺${r.min}</div></div>
+  <div class="sec">🐝 Menü</div>
+  ${r.menu.map(m=>`<div class="item"><img src="${VIZZ.IMG(m[2])}" onerror="VIZZ.imgFallback(this,'${m[2]}')"><div class="t"><b>${m[0]}</b><p>${m[1]}</p><span class="pr">₺${m[3]}</span></div><button class="add" onclick="addCart('${m[0].replace(/'/g,'')}',${m[3]},'${m[2]}')">+</button></div>`).join('')}<div style="height:16px"></div>`;go('menu');}
+function addCart(n,p,img){const e=cart.find(c=>c.name===n);if(e)e.q++;else cart.push({name:n,price:p,img,q:1});upd();toast('💛 Sepete eklendi: '+n);}
+function upd(){const n=cart.reduce((s,c)=>s+c.q,0);const t=document.getElementById('tabCnt');t.textContent=n;t.style.display=n?'grid':'none';}
+function renderCart(){const b=document.getElementById('v-cart');if(!cart.length){b.innerHTML='<div class="empty"><div class="b">🛒</div><p>Sepetin boş.<br>Hadi atıştır! 🐝</p></div>';return;}
+ const sub=cart.reduce((s,c)=>s+c.price*c.q,0),fee=sub>=150?0:19.9,tot=sub+fee;
+ b.innerHTML=`<div class="cwrap"><div class="sec" style="padding-left:0">Sepetim</div>
+  ${cart.map((c,i)=>`<div class="ci"><img src="${VIZZ.IMG(c.img)}" onerror="VIZZ.imgFallback(this,'${c.img}')"><div class="t"><b>${c.name}</b><br><span>₺${c.price}</span></div><div class="qty"><button onclick="chg(${i},-1)">−</button><b>${c.q}</b><button onclick="chg(${i},1)">+</button></div></div>`).join('')}
+  <div class="summary"><div class="srow"><span>Ara toplam</span><span>₺${sub.toFixed(2)}</span></div><div class="srow"><span>Teslimat (🐝 VIZZ filo)</span><span>${fee?'₺'+fee.toFixed(2):'Ücretsiz'}</span></div><div class="srow total"><span>Toplam</span><span>₺${tot.toFixed(2)}</span></div></div>
+  <button class="cta" onclick="go('track');toast('🎉 Siparişin alındı!')">Siparişi Onayla • ₺${tot.toFixed(2)}</button></div>`;}
+function chg(i,d){cart[i].q+=d;if(cart[i].q<=0)cart.splice(i,1);upd();renderCart();}
+function go(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('v-'+v).classList.add('active');document.querySelector('.screen').scrollTop=0;
+ if(v==='cart')renderCart();if(v==='track')initTrack();
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));const tb=document.querySelector(`.tab[data-t="${v}"]`);if(tb)tb.classList.add('active');}
+let tt;function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),1800);}
+// tracking mini-map: courier (Çapanoğlu) -> home (Fatih) following roads
+function initTrack(){
+ if(tMap){setTimeout(()=>tMap.invalidateSize(),120);return;}
+ const Z=VIZZ.YOZGAT.zones, rest=Z.find(z=>z.n==='Çapanoğlu').c, home=Z.find(z=>z.n==='Fatih').c;
+ tMap=L.map('tMap',{zoomControl:false,attributionControl:false}).setView([(rest[0]+home[0])/2,(rest[1]+home[1])/2],14.5);
+ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(tMap);
+ L.marker(home,{icon:L.divIcon({html:'<div style="font-size:26px">🏠</div>',className:'',iconSize:[26,26],iconAnchor:[13,13]})}).addTo(tMap);
+ L.marker(rest,{icon:L.divIcon({html:'<div style="font-size:22px">🍽️</div>',className:'',iconSize:[22,22],iconAnchor:[11,11]})}).addTo(tMap);
+ const bee=L.marker(rest.slice(),{icon:L.divIcon({html:'<div class="vz-courier" style="font-size:26px">🛵</div>',className:'',iconSize:[26,26],iconAnchor:[13,13]})}).addTo(tMap);
+ (async()=>{let path;try{const u=`https://router.project-osrm.org/route/v1/driving/${rest[1]},${rest[0]};${home[1]},${home[0]}?overview=full&geometries=geojson`;const j=await (await fetch(u)).json();path=j.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);}catch(e){path=[rest,home];}
+   L.polyline(path,{color:'#F2A900',weight:4,opacity:.8}).addTo(tMap);tMap.fitBounds(L.polyline(path).getBounds(),{padding:[40,40]});
+   let i=0;const N=path.length;const iv=setInterval(()=>{i++;if(i>=N){i=N-1;clearInterval(iv);document.getElementById('etaMin').textContent='Kapında! 🎉';}bee.setLatLng(path[i]);const left=Math.max(0,Math.round(9*(1-i/N)));document.getElementById('etaMin').textContent=(left||0)+' dk';},Math.max(120,9000/N));})();
+ setTimeout(()=>tMap.invalidateSize(),200);
+}
+</script>
+</body></html>

@@ -1,0 +1,57 @@
+/* VIZZ shared design system — sarı/siyah arı teması */
+:root{
+  --honey:#FFC400; --honey-deep:#F2A900; --honey-soft:#FFF3D0;
+  --ink:#14130F; --ink-2:#1F1D17; --ink-3:#2B2820;
+  --paper:#FAF7EF; --card:#FFFFFF; --line:#ECE6D6; --line-2:#E2DBC8;
+  --muted:#7A766A; --green:#1FAE5A; --red:#E5484D; --blue:#3B82F6;
+  --shadow:0 14px 40px rgba(20,19,15,.13); --shadow-sm:0 4px 14px rgba(20,19,15,.07);
+  --radius:18px; --radius-lg:24px;
+  --font:'Segoe UI',Roboto,system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#d8d2c2;border-radius:8px}
+
+/* brand */
+.vz-brand{display:flex;align-items:center;gap:10px}
+.vz-brand img{height:38px;width:38px;border-radius:10px;object-fit:cover;background:#000}
+.vz-brand b{font-style:italic;font-size:22px;letter-spacing:.5px}
+.vz-brand b i{color:var(--honey);font-style:italic}
+
+/* buttons */
+.btn{border:none;border-radius:12px;font-weight:700;transition:.16s;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn:active{transform:scale(.97)}
+.btn-honey{background:var(--honey);color:var(--ink);padding:11px 20px;box-shadow:0 8px 18px rgba(242,169,0,.35)}
+.btn-honey:hover{transform:translateY(-2px)}
+.btn-dark{background:var(--ink);color:#fff;padding:11px 18px}
+.btn-ghost{background:rgba(255,255,255,.08);color:#fff;padding:10px 16px}
+.btn-ghost:hover{background:rgba(255,255,255,.16)}
+.btn-out{background:#fff;border:1.5px solid var(--line-2);color:var(--ink);padding:10px 16px}
+
+/* pills / badges */
+.pill{background:var(--honey);color:var(--ink);font-weight:800;font-size:12px;padding:5px 11px;border-radius:20px;display:inline-block}
+.tag-on{color:var(--green)}.tag-warn{color:var(--honey-deep)}.tag-bad{color:var(--red)}
+.dotpulse{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 0 0 rgba(31,174,90,.6);animation:dp 1.4s infinite}
+@keyframes dp{70%{box-shadow:0 0 0 7px rgba(31,174,90,0)}100%{box-shadow:0 0 0 0 rgba(31,174,90,0)}}
+
+/* food image tile */
+.food{background-size:cover;background-position:center;background-color:var(--honey-soft)}
+
+/* leaflet courier markers */
+.vz-courier{font-size:22px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45));transition:transform .2s}
+.vz-zonelbl{background:rgba(20,19,15,.82);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;white-space:nowrap;border:none}
+.vz-rest{font-size:20px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+.leaflet-container{background:#e9e4d6;font-family:var(--font)}
+
+/* device frames (presentation) */
+.frame-phone{width:380px;height:780px;background:#0c0c0c;border-radius:44px;padding:12px;box-shadow:0 30px 70px rgba(0,0,0,.4);position:relative}
+.frame-phone .scr{width:100%;height:100%;border-radius:33px;overflow:hidden;background:#fff;position:relative}
+.frame-laptop{width:100%;max-width:1100px;background:#0c0c0c;border-radius:18px 18px 0 0;padding:12px 12px 0;box-shadow:var(--shadow)}
+.frame-laptop .scr{width:100%;height:640px;border-radius:8px;overflow:hidden;background:#fff}
+.frame-laptop .base{height:16px;background:linear-gradient(#222,#111);border-radius:0 0 14px 14px;margin:0 -12px}
+
+/* toast */
+.vz-toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;font-weight:600;font-size:14px;opacity:0;transition:.3s;z-index:9999;display:flex;gap:8px;align-items:center;box-shadow:var(--shadow)}
+.vz-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}

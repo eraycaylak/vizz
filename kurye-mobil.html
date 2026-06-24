@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="tr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIZZ — Kurye App</title>
+<link rel="stylesheet" href="vizz.css">
+<style>
+  html,body{height:100%}
+  body{background:#000;display:flex;justify-content:center}
+  .device{width:100%;max-width:430px;height:100%;background:#0e0d0b;color:#ece9e0;position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .screen{flex:1;overflow-y:auto;position:relative}
+  .view{display:none;padding:18px}.view.active{display:block}
+  .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .hdr .vz-brand b{color:#fff}
+  .hdr .av{width:40px;height:40px;border-radius:50%;background:#211f18;display:grid;place-items:center;font-size:20px}
+  /* online toggle */
+  .online-card{background:linear-gradient(135deg,#1b1915,#26231a);border:1px solid #ffffff10;border-radius:22px;padding:22px;text-align:center;margin-bottom:16px}
+  .bigtog{width:130px;height:130px;border-radius:50%;margin:6px auto 14px;display:grid;place-items:center;cursor:pointer;border:none;font-weight:800;font-size:16px;transition:.25s;position:relative}
+  .bigtog.on{background:radial-gradient(circle at 50% 40%,#FFD23F,#F2A900);color:#14130F;box-shadow:0 0 0 8px rgba(242,169,0,.18),0 14px 30px rgba(242,169,0,.4)}
+  .bigtog.off{background:#211f18;color:#8c887c;border:2px solid #ffffff14}
+  .bigtog .em{font-size:40px;display:block}
+  .online-card .stt{font-size:14px;font-weight:700}.online-card .stt.on{color:var(--honey)}.online-card .stt.off{color:#8c887c}
+  /* stats */
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  .stat{background:#1b1915;border:1px solid #ffffff0d;border-radius:16px;padding:15px}
+  .stat .l{font-size:11.5px;color:#8c887c}.stat .v{font-size:24px;font-weight:800;color:#fff;margin-top:4px}
+  /* cuma card */
+  .cuma{background:linear-gradient(120deg,#FFC400,#F2A900);color:#14130F;border-radius:18px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .cuma .l{font-size:12px;font-weight:700;opacity:.8}.cuma .v{font-size:26px;font-weight:800}
+  .cuma .cd{text-align:right}.cuma .cd b{font-size:20px}.cuma .cd span{font-size:11px;display:block;opacity:.8}
+  .waiting{background:#1b1915;border:1px dashed #ffffff1a;border-radius:16px;padding:24px;text-align:center;color:#8c887c}
+  .waiting .p{font-size:34px;animation:rot 2.5s linear infinite}@keyframes rot{to{transform:rotate(360deg)}}
+  .simbtn{width:100%;background:#211f18;color:#cfcabb;border:1px solid #ffffff14;border-radius:14px;padding:13px;font-weight:700;margin-top:10px}
+  /* task invite */
+  .invite{position:absolute;inset:0;background:rgba(8,8,6,.82);backdrop-filter:blur(4px);z-index:200;display:none;flex-direction:column;justify-content:flex-end;padding:16px}
+  .invite.show{display:flex;animation:fade .2s}@keyframes fade{from{opacity:0}}
+  .invite .card{background:#1b1915;border:1px solid #ffffff14;border-radius:24px;padding:20px;animation:up .25s}@keyframes up{from{transform:translateY(30px)}}
+  .invite h3{color:#fff;font-size:18px;text-align:center;margin-bottom:4px}
+  .invite .timer{height:6px;background:#332f22;border-radius:6px;overflow:hidden;margin:12px 0}.invite .timer i{display:block;height:100%;background:var(--honey);width:100%;transition:width 1s linear}
+  .invite .row{display:flex;justify-content:space-between;background:#211f18;border-radius:12px;padding:12px;margin-bottom:8px;font-size:13px}.invite .row b{color:#fff}
+  .invite .earn{text-align:center;font-size:30px;font-weight:800;color:var(--honey);margin:10px 0}
+  .invite .acts{display:flex;gap:10px;margin-top:6px}
+  .invite .acts button{flex:1;border:none;border-radius:14px;padding:15px;font-weight:800;font-size:15px}
+  .rej{background:#211f18;color:#cfcabb}.acc{background:var(--honey);color:#14130F}
+  /* active task */
+  .step{background:#1b1915;border:1px solid #ffffff0d;border-radius:16px;padding:15px;margin-bottom:11px;display:flex;align-items:center;gap:13px;opacity:.45}
+  .step.act{opacity:1;border-color:var(--honey)}.step.don{opacity:.7}
+  .step .n{width:34px;height:34px;border-radius:50%;background:#211f18;display:grid;place-items:center;font-size:16px;flex:none}
+  .step.act .n{background:var(--honey);color:#14130F}.step.don .n{background:var(--green);color:#fff}
+  .step .t{flex:1}.step .t b{color:#fff;font-size:14.5px}.step .t span{font-size:12px;color:#8c887c}
+  .step .go{background:var(--honey);color:#14130F;border:none;border-radius:10px;padding:9px 13px;font-weight:700;font-size:12.5px}
+  .navline{background:#1b1915;border:1px solid #ffffff0d;border-radius:14px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .navline b{color:#fff}.navline .km{color:var(--honey);font-weight:800}
+  /* earnings list */
+  .erow{display:flex;justify-content:space-between;padding:12px;background:#1b1915;border:1px solid #ffffff0d;border-radius:13px;margin-bottom:9px;font-size:13.5px}.erow b{color:#fff}.erow .p{color:var(--honey);font-weight:800}
+  /* perf */
+  .perf{background:#1b1915;border:1px solid #ffffff0d;border-radius:16px;padding:16px;margin-bottom:12px}
+  .perf .pr{display:flex;justify-content:space-between;font-size:13px;margin-bottom:11px}.perf .pr b{color:#fff}
+  .pbar{height:8px;background:#211f18;border-radius:8px;overflow:hidden;margin-top:5px}.pbar i{display:block;height:100%;background:var(--honey)}
+  .badges{display:flex;gap:10px;flex-wrap:wrap}.bdg{background:#211f18;border:1px solid #ffffff14;border-radius:12px;padding:10px 13px;font-size:12px;color:#cfcabb;display:flex;gap:7px;align-items:center}
+  /* tabbar */
+  .tabbar{height:66px;background:#141310;border-top:1px solid #ffffff10;display:flex;justify-content:space-around;align-items:center;flex:none}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:#6f6c63;font-size:11px;font-weight:600;background:none;border:none}.tab svg{width:22px;height:22px}.tab.active{color:#fff}.tab.active svg{stroke:var(--honey)}
+  h2.t{font-size:19px;color:#fff;margin-bottom:14px}
+</style></head><body>
+<div class="device">
+  <div class="screen">
+    <!-- AVAILABILITY -->
+    <div class="view active" id="v-home">
+      <div class="hdr"><div class="vz-brand"><img id="logo" style="height:30px;width:30px" alt=""><b><i>V</i>IZZ</b> <span style="font-size:12px;color:#8c887c">Kurye</span></div><div class="av">🪖</div></div>
+      <div class="online-card">
+        <button class="bigtog off" id="tog" onclick="toggleOnline()"><span><span class="em" id="togEm">⏸</span><span id="togTx">ÇEVRİMDIŞI</span></span></button>
+        <div class="stt off" id="stt">Çevrimiçi ol, görev almaya başla</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="l">📦 Bugün teslimat</div><div class="v" id="sToday">0</div></div>
+        <div class="stat"><div class="l">💵 Bugün kazanç</div><div class="v" id="sEarn">₺0</div></div>
+      </div>
+      <div class="cuma"><div><div class="l">🐝 Bu hafta biriken</div><div class="v" id="weekly">₺1.840</div></div>
+        <div class="cd"><b id="cumaDay">Cuma</b><span id="cumaTxt">ödeme günü</span></div></div>
+      <div id="waitBox"></div>
+    </div>
+    <!-- ACTIVE TASK -->
+    <div class="view" id="v-task"></div>
+    <!-- EARNINGS -->
+    <div class="view" id="v-earn">
+      <h2 class="t">💵 Kazanç</h2>
+      <div class="cuma"><div><div class="l">Bu hafta biriken</div><div class="v">₺1.840</div></div><div class="cd"><b id="cumaDay2">Cuma</b><span>IBAN'a yatacak</span></div></div>
+      <div style="font-size:13px;color:#8c887c;margin:6px 0 10px">Bugünün teslimatları</div>
+      <div id="earnList"></div>
+    </div>
+    <!-- PERFORMANCE -->
+    <div class="view" id="v-perf">
+      <h2 class="t">📊 Performans</h2>
+      <div class="perf">
+        <div class="pr"><span>⭐ Müşteri puanı</span><b>4.9 / 5</b></div><div class="pbar"><i style="width:98%"></i></div>
+        <div class="pr" style="margin-top:14px"><span>✅ Kabul oranı</span><b>%92</b></div><div class="pbar"><i style="width:92%"></i></div>
+        <div class="pr" style="margin-top:14px"><span>⏱ Zamanında teslim</span><b>%96</b></div><div class="pbar"><i style="width:96%"></i></div>
+      </div>
+      <div style="font-size:13px;color:#8c887c;margin-bottom:10px">🏅 Rozetlerin</div>
+      <div class="badges"><span class="bdg">⚡ Hız Canavarı</span><span class="bdg">🐝 100 Teslimat</span><span class="bdg">🌧️ Yağmur Kahramanı</span><span class="bdg">⭐ 5 Yıldız Kulübü</span></div>
+    </div>
+  </div>
+  <div class="tabbar">
+    <button class="tab active" data-t="home" onclick="go('home')"><svg fill="none" stroke="#6f6c63" stroke-width="2" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Görev</button>
+    <button class="tab" data-t="earn" onclick="go('earn')"><svg fill="none" stroke="#6f6c63" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Kazanç</button>
+    <button class="tab" data-t="perf" onclick="go('perf')"><svg fill="none" stroke="#6f6c63" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="13" y="6" width="3" height="11"/></svg>Performans</button>
+    <button class="tab" data-t="prof" onclick="toast('👤 Profil & Belgeler: ehliyet, MYK, SRC, sigorta — geçerli ✓')"><svg fill="none" stroke="#6f6c63" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
+  </div>
+  <!-- task invite -->
+  <div class="invite" id="invite"><div class="card">
+    <h3>🔔 Yeni Görev!</h3>
+    <div class="timer"><i id="timerBar"></i></div>
+    <div class="row"><span>🍽 Restoran</span><b id="iv-rest">Çapanoğlu Köftecisi</b></div>
+    <div class="row"><span>📍 Teslimat</span><b id="iv-zone">Fatih Mah.</b></div>
+    <div class="row"><span>🛣 Mesafe</span><b id="iv-dist">2.4 km</b></div>
+    <div class="earn" id="iv-earn">+₺38</div>
+    <div class="acts"><button class="rej" onclick="rejectTask()">Reddet</button><button class="acc" onclick="acceptTask()">Kabul Et ✓</button></div>
+  </div></div>
+</div>
+<div class="vz-toast" id="toast"></div>
+<script src="vizz-data.js"></script>
+<script>
+document.getElementById('logo').src=VIZZ.LOGO;
+let onlineState=false, today=0, earn=0, taskStep=0;
+const Z=VIZZ.YOZGAT.zones;
+// cuma countdown
+(function(){const d=new Date();const dow=d.getDay();const toFri=((5-dow)+7)%7;
+ const txt=toFri===0?'Bugün!':toFri===1?'Yarın':toFri+' gün sonra';
+ document.getElementById('cumaTxt').textContent=txt;})();
+function toggleOnline(){onlineState=!onlineState;const t=document.getElementById('tog');
+ t.className='bigtog '+(onlineState?'on':'off');
+ document.getElementById('togEm').textContent=onlineState?'🟢':'⏸';
+ document.getElementById('togTx').textContent=onlineState?'ÇEVRİMİÇİ':'ÇEVRİMDIŞI';
+ const s=document.getElementById('stt');s.className='stt '+(onlineState?'on':'off');
+ s.textContent=onlineState?'Müsaitsin — görev aranıyor…':'Çevrimiçi ol, görev almaya başla';
+ renderWait();
+ if(onlineState)setTimeout(showInvite,2200);
+}
+function renderWait(){const w=document.getElementById('waitBox');
+ if(!onlineState){w.innerHTML='';return;}
+ w.innerHTML=`<div class="waiting"><div class="p">🐝</div><p style="margin-top:8px">Sana en yakın sipariş aranıyor…</p></div>
+  <button class="simbtn" onclick="showInvite()">▶︎ Görev daveti gönder (demo)</button>`;}
+let timer=null;
+function showInvite(){if(!onlineState)return;
+ const z=Z[Math.floor(Math.random()*8)];const dist=(1+Math.random()*3).toFixed(1);const e=Math.round(28+dist*6);
+ document.getElementById('iv-zone').textContent=z.n+' Mah.';document.getElementById('iv-dist').textContent=dist+' km';document.getElementById('iv-earn').textContent='+₺'+e;
+ window._taskEarn=e;document.getElementById('invite').classList.add('show');
+ let w=100;document.getElementById('timerBar').style.width='100%';
+ clearInterval(timer);timer=setInterval(()=>{w-=100/12;document.getElementById('timerBar').style.width=Math.max(0,w)+'%';if(w<=0){clearInterval(timer);rejectTask();}},1000);
+}
+function rejectTask(){clearInterval(timer);document.getElementById('invite').classList.remove('show');toast('Görev reddedildi (performansa yansır, ceza yok)');}
+function acceptTask(){clearInterval(timer);document.getElementById('invite').classList.remove('show');taskStep=0;renderTask();go('task');}
+function renderTask(){const steps=[
+  ['🏪','Restorana git','Çapanoğlu Köftecisi · 0.8 km','Yola çıktım'],
+  ['📦','Paketi al','Siparişi teslim al','Paketi aldım'],
+  ['🛵','Müşteriye git','Fatih Mah. · 2.4 km','Yola çıktım'],
+  ['🏠','Teslim et','Kapıya teslim','Teslim ettim'],
+  ['💵','Tahsilat','Online ödendi ✓','Tamamla']];
+ document.getElementById('v-task').innerHTML=`<h2 class="t">🛵 Aktif Görev · VZ-77${40+today}</h2>
+  <div class="navline"><b>📍 Sıradaki nokta</b><span class="km">${steps[taskStep][2]}</span></div>
+  ${steps.map((s,i)=>`<div class="step ${i<taskStep?'don':i===taskStep?'act':''}">
+    <div class="n">${i<taskStep?'✓':s[0]}</div><div class="t"><b>${s[1]}</b><span>${s[2]}</span></div>
+    ${i===taskStep?`<button class="go" onclick="nextStep()">${s[3]} →</button>`:''}</div>`).join('')}`;
+}
+function nextStep(){taskStep++;if(taskStep>=5){completeTask();return;}renderTask();}
+function completeTask(){today++;earn+=window._taskEarn||38;
+ document.getElementById('sToday').textContent=today;document.getElementById('sEarn').textContent='₺'+earn;
+ renderEarn();toast('🎉 Teslimat tamam! +₺'+(window._taskEarn||38));go('home');renderWait();}
+function renderEarn(){const el=document.getElementById('earnList');
+ if(!today){el.innerHTML='<div style="color:#6f6c63;text-align:center;padding:30px">Bugün henüz teslimat yok</div>';return;}
+ let h='';for(let i=today;i>=1;i--)h+=`<div class="erow"><div><b>VZ-77${40+i}</b><br><span style="color:#8c887c;font-size:12px">${Z[i%8].n} · paket başı</span></div><span class="p">+₺${30+i*3}</span></div>`;
+ el.innerHTML=h;}
+renderEarn();
+function go(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('v-'+v).classList.add('active');
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));const tb=document.querySelector(`.tab[data-t="${v}"]`);if(tb)tb.classList.add('active');document.querySelector('.screen').scrollTop=0;}
+let tt;function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2000);}
+</script>
+</body></html>

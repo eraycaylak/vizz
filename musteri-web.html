@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="tr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIZZ — Yozgat'ın yemeği kapında</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="vizz.css">
+<style>
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+  nav{position:sticky;top:0;z-index:50;background:var(--ink);color:#fff}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .nlinks{display:flex;gap:26px;font-size:14.5px;font-weight:600;color:#d9d4c4}
+  .nlinks a:hover{color:var(--honey)}
+  .nact{display:flex;gap:12px;align-items:center}
+  .cartbtn{position:relative}
+  .cartbtn .cnt{position:absolute;top:-7px;right:-7px;background:var(--honey);color:var(--ink);font-size:11px;font-weight:800;min-width:19px;height:19px;border-radius:10px;display:grid;place-items:center}
+  .hero{background:var(--ink);color:#fff;position:relative;overflow:hidden;padding:42px 0 60px}
+  .hero:before{content:"";position:absolute;right:-120px;top:-120px;width:460px;height:460px;background:radial-gradient(var(--honey),transparent 65%);opacity:.18}
+  .hero .wrap{display:grid;grid-template-columns:1.02fr .98fr;gap:38px;align-items:center;position:relative}
+  .htext h1{font-size:52px;line-height:1.05;letter-spacing:-1px}.htext h1 i{color:var(--honey);font-style:normal}
+  .htext p{color:#cfcabb;font-size:17px;margin:18px 0 24px;max-width:440px;line-height:1.5}
+  .searchbar{display:flex;background:#fff;border-radius:16px;padding:7px;box-shadow:var(--shadow);max-width:480px}
+  .searchbar input{flex:1;border:none;outline:none;padding:0 16px;font-size:15px;color:var(--ink);background:none}
+  .searchbar button{background:var(--ink);color:#fff;border:none;padding:13px 22px;border-radius:11px;font-weight:700}
+  .trust{display:flex;gap:26px;margin-top:22px;flex-wrap:wrap}
+  .trust b{font-size:22px;color:var(--honey)}.trust span{display:block;font-size:12.5px;color:#cfcabb}
+  /* live map card */
+  .mapcard{background:#211f18;border-radius:22px;padding:14px;box-shadow:var(--shadow);border:1px solid #ffffff14;position:relative}
+  .mapcard .mtop{display:flex;justify-content:space-between;align-items:center;color:#fff;padding:4px 6px 12px}
+  .mapcard .mtop b{font-size:14px}.mapcard .mtop .live{background:var(--green);color:#fff;font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:20px;display:flex;gap:7px;align-items:center}
+  #heroMap{height:300px;border-radius:14px;overflow:hidden}
+  .mfoot{display:flex;justify-content:space-between;color:#cfcabb;font-size:12px;padding:10px 6px 2px}
+  .mfoot b{color:var(--honey)}
+  .cats{display:flex;gap:13px;padding:24px 0 4px;overflow-x:auto}
+  .catpill{flex:none;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:13px 18px;display:flex;gap:9px;align-items:center;font-weight:700;font-size:14.5px}
+  .catpill span{font-size:21px}.catpill:hover{border-color:var(--honey);transform:translateY(-2px)}
+  .catpill.active{background:var(--honey);border-color:var(--honey);box-shadow:0 8px 18px rgba(242,169,0,.3)}
+  section{padding:28px 0}
+  .shead{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px}
+  .shead h2{font-size:27px;letter-spacing:-.5px}.shead p{color:var(--muted);font-size:14px;margin-top:4px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+  .card{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:.2s;border:1px solid var(--line)}
+  .card:hover{transform:translateY(-6px);box-shadow:0 22px 50px rgba(20,19,15,.2)}
+  .card .ph{height:158px;width:100%;object-fit:cover;display:block}
+  .card .phw{position:relative}
+  .card .badge{position:absolute;top:12px;left:12px}
+  .card .body{padding:14px 16px}
+  .card .r1{display:flex;justify-content:space-between;align-items:center}
+  .card .name{font-weight:800;font-size:16px}
+  .card .rate{background:#f1f8f2;color:var(--green);font-weight:800;font-size:13px;padding:3px 9px;border-radius:8px}
+  .card .cat{color:var(--muted);font-size:13px;margin-top:3px}
+  .card .meta{display:flex;gap:14px;color:var(--muted);font-size:13px;margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+  .card .meta b{color:var(--ink)}
+  .band{background:var(--ink);color:#fff;margin-top:14px}
+  .band .wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;padding:44px 24px}
+  .vitem{display:flex;gap:14px}.vitem .ic{width:50px;height:50px;flex:none;background:var(--honey);color:var(--ink);border-radius:14px;display:grid;place-items:center;font-size:24px}
+  .vitem b{font-size:17px}.vitem p{color:#cfcabb;font-size:13.5px;margin-top:5px;line-height:1.5}
+  footer{background:#0d0c09;color:#8c887c;padding:30px 0;font-size:13.5px}
+  .foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+  /* modal */
+  .ov{position:fixed;inset:0;background:rgba(12,11,8,.6);backdrop-filter:blur(3px);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}
+  .ov.show{display:flex}
+  .modal{background:var(--paper);width:100%;max-width:540px;max-height:86vh;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  .mtop2{height:170px;position:relative;flex:none}.mtop2 img{width:100%;height:100%;object-fit:cover}
+  .mtop2 .close{position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;background:#fff;border:none;font-size:18px;box-shadow:var(--shadow)}
+  .mtop2 h3{position:absolute;bottom:14px;left:18px;color:#fff;font-size:24px;text-shadow:0 2px 12px rgba(0,0,0,.7)}
+  .mbody{overflow-y:auto;padding:18px}
+  .mitem{display:flex;gap:14px;background:#fff;border-radius:14px;padding:13px;margin-bottom:11px;align-items:center;box-shadow:var(--shadow-sm)}
+  .mitem img{width:74px;height:74px;border-radius:12px;object-fit:cover;flex:none}
+  .mitem .t{flex:1}.mitem .t b{font-size:15px}.mitem .t p{font-size:12.5px;color:var(--muted);margin:3px 0 6px}.mitem .t .pr{font-weight:800}
+  .mitem .add{background:var(--honey);color:var(--ink);border:none;width:40px;height:40px;border-radius:12px;font-size:22px;font-weight:700;box-shadow:0 6px 12px rgba(242,169,0,.35)}
+  /* drawer */
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:90vw;background:#fff;z-index:110;box-shadow:-20px 0 60px rgba(0,0,0,.3);transform:translateX(105%);transition:.3s;display:flex;flex-direction:column}
+  .drawer.show{transform:none}
+  .dhead{background:var(--ink);color:#fff;padding:20px;display:flex;justify-content:space-between;align-items:center}
+  .dhead button{background:none;border:none;color:#fff;font-size:22px}
+  .dbody{flex:1;overflow-y:auto;padding:16px;background:var(--paper)}
+  .dempty{text-align:center;color:var(--muted);padding:80px 20px}.dempty .b{font-size:60px}
+  .ci{display:flex;gap:12px;background:#fff;border-radius:14px;padding:11px;margin-bottom:10px;align-items:center;box-shadow:var(--shadow-sm)}
+  .ci img{width:50px;height:50px;border-radius:10px;object-fit:cover;flex:none}
+  .ci .t{flex:1}.ci .t b{font-size:13.5px}.ci .t span{font-size:12.5px;color:var(--muted)}
+  .qty{display:flex;align-items:center;gap:9px;background:var(--paper);border-radius:30px;padding:3px}
+  .qty button{width:26px;height:26px;border:none;border-radius:50%;background:var(--ink);color:#fff;font-size:15px}
+  .dfoot{padding:18px;border-top:1px solid var(--line);background:#fff}
+  .srow{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);margin-bottom:7px}
+  .srow.total{color:var(--ink);font-weight:800;font-size:18px;margin-top:8px}
+  .checkout{width:100%;background:var(--honey);color:var(--ink);border:none;border-radius:13px;padding:15px;font-weight:800;font-size:15.5px;margin-top:12px;box-shadow:0 10px 22px rgba(242,169,0,.4)}
+  @media(max-width:900px){.hero .wrap{grid-template-columns:1fr}.htext h1{font-size:38px}.grid{grid-template-columns:repeat(2,1fr)}.band .wrap{grid-template-columns:1fr}.nlinks{display:none}}
+</style></head><body>
+
+<nav><div class="wrap nav">
+  <div class="vz-brand"><img id="logo" alt="VIZZ"><b><i>V</i>IZZ</b></div>
+  <div class="nlinks"><a>Anasayfa</a><a onclick="scrollTo({top:640,behavior:'smooth'})">Restoranlar</a><a onclick="toast('İşletmeni ekle — düşük komisyon 🐝')">İşletmeni Ekle</a><a onclick="toast('Kurye ol — Cuma ödemeli 🛵')">Kurye Ol</a></div>
+  <div class="nact"><button class="btn btn-ghost" onclick="toast('Giriş yakında')">Giriş Yap</button>
+    <button class="btn btn-honey cartbtn" onclick="openDrawer()">Sepet <span class="cnt" id="navCnt" style="display:none">0</span></button></div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="htext">
+    <h1>Yozgat'ın yemeği <i>kapında</i> 🐝</h1>
+    <p>Şehrin en sevilen restoranları tek yerde. Kendi kurye filomuzla, gerçek zamanlı takiple ve garantili teslimat süresiyle — sıcacık gelir.</p>
+    <div class="searchbar"><input id="q" placeholder="Mahalle, restoran veya yemek ara…"><button onclick="doSearch()">🔎 Ara</button></div>
+    <div class="trust"><div><b>120+</b><span>Yozgat restoranı</span></div><div><b>~28 dk</b><span>ort. teslimat</span></div><div><b>4.8★</b><span>müşteri puanı</span></div></div>
+  </div>
+  <div class="mapcard">
+    <div class="mtop"><b>🗺️ Yozgat — canlı kurye ağı</b><span class="live"><span class="dotpulse" style="background:#fff"></span> CANLI</span></div>
+    <div id="heroMap"></div>
+    <div class="mfoot"><span>Bölge: Merkez · Çapanoğlu · Köseoğlu · Fatih…</span><span><b id="liveCount">12</b> kurye sahada</span></div>
+  </div>
+</div></header>
+
+<div class="wrap"><div class="cats" id="cats"></div></div>
+<div class="wrap"><section>
+  <div class="shead"><div><h2 id="secTitle">Yozgat'ta öne çıkan restoranlar</h2><p>Tıkla, menüyü gör, sepete ekle — gerçek akış</p></div>
+    <button class="btn btn-dark" onclick="toast('Filtreler yakında')">Filtrele ▾</button></div>
+  <div class="grid" id="grid"></div>
+</section></div>
+
+<div class="band"><div class="wrap">
+  <div class="vitem"><div class="ic">🛵</div><div><b>Kendi kurye filomuz</b><p>Eğitimli VIZZ kuryeleri, canlı konum, garantili süre. Geç kalırsak telafi.</p></div></div>
+  <div class="vitem"><div class="ic">🍯</div><div><b>Yerel ve şeffaf</b><p>Yozgat esnafına düşük komisyon. Herkes ne ödediğini/kazandığını kuruşuna görür.</p></div></div>
+  <div class="vitem"><div class="ic">⚡</div><div><b>Akıllı atama</b><p>Mesafe, yoğunluk ve performansa göre en uygun kurye saniyeler içinde atanır.</p></div></div>
+</div></div>
+
+<footer><div class="wrap foot">
+  <div class="vz-brand"><img id="logo2" style="height:32px;width:32px" alt=""><b style="color:#fff"><i style="color:var(--honey);font-style:italic">V</i>IZZ</b></div>
+  <div>© 2026 VIZZ · Yozgat merkez · Tüm hakları saklıdır</div>
+  <div style="display:flex;gap:10px"><span class="btn btn-ghost" onclick="toast('App Store')"> App Store</span><span class="btn btn-ghost" onclick="toast('Google Play')">▶ Google Play</span></div>
+</div></footer>
+
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<div class="drawer" id="drawer"><div class="dhead"><b>🛒 Sepetim</b><button onclick="closeDrawer()">✕</button></div>
+  <div class="dbody" id="dbody"></div><div class="dfoot" id="dfoot"></div></div>
+<div class="vz-toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="vizz-data.js"></script>
+<script src="vizz-map.js"></script>
+<script>
+document.getElementById('logo').src=VIZZ.LOGO; document.getElementById('logo2').src=VIZZ.LOGO;
+const R=VIZZ.RESTAURANTS; let cart=[], filter="Tümü";
+const ph=(slug,cls)=>`<img class="${cls}" src="${VIZZ.IMG(slug)}" onerror="VIZZ.imgFallback(this,'${slug}')" alt="">`;
+
+const catBox=document.getElementById('cats');
+VIZZ.CATS.forEach(c=>{const d=document.createElement('div');d.className='catpill'+(c==='Tümü'?' active':'');
+ d.innerHTML=`<span>${VIZZ.CAT_EMOJI[c]}</span>${c}`;d.onclick=()=>{filter=c;[...catBox.children].forEach(x=>x.classList.remove('active'));d.classList.add('active');
+  document.getElementById('secTitle').textContent=c==='Tümü'?"Yozgat'ta öne çıkan restoranlar":c+" • Yozgat";renderGrid()};catBox.appendChild(d)});
+
+function renderGrid(){
+ document.getElementById('grid').innerHTML=R.filter(r=>filter==='Tümü'||r.cat===filter).map(r=>`
+  <div class="card" onclick="openModal(${r.id})">
+    <div class="phw"><img class="ph" src="${VIZZ.IMG(r.cover)}" onerror="VIZZ.imgFallback(this,'${r.cover}')" alt=""><span class="pill badge">${r.badge}</span></div>
+    <div class="body"><div class="r1"><span class="name">${r.name}</span><span class="rate">★ ${r.rate}</span></div>
+      <div class="cat">${r.cat} • ${r.zone}, Yozgat</div>
+      <div class="meta"><span>🕒 <b>${r.time} dk</b></span><span class="${r.fee==='Ücretsiz'?'tag-on':''}">🛵 ${r.fee==='Ücretsiz'?'Ücretsiz':'₺'+r.fee}</span></div>
+    </div></div>`).join('');
+}
+renderGrid();
+
+function doSearch(){const q=document.getElementById('q').value.trim().toLowerCase();if(!q)return toast('Bir şeyler yaz 🙂');
+ const hit=R.find(r=>r.name.toLowerCase().includes(q)||r.cat.toLowerCase().includes(q)||r.menu.some(m=>m[0].toLowerCase().includes(q)));
+ hit?openModal(hit.id):toast('"'+q+'" için sonuç yok');}
+
+function openModal(id){const r=R.find(x=>x.id===id);
+ document.getElementById('modal').innerHTML=`
+  <div class="mtop2"><img src="${VIZZ.IMG(r.cover)}" onerror="VIZZ.imgFallback(this,'${r.cover}')"><button class="close" onclick="closeModal()">✕</button><h3>${r.name}</h3></div>
+  <div class="mbody"><p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">${r.cat} • ★ ${r.rate} (1200+ puan) • ${r.time} dk • 🛵 ${r.fee==='Ücretsiz'?'Ücretsiz':'₺'+r.fee} • Min. ₺${r.min}</p>
+  ${r.menu.map(m=>`<div class="mitem"><img src="${VIZZ.IMG(m[2])}" onerror="VIZZ.imgFallback(this,'${m[2]}')">
+     <div class="t"><b>${m[0]}</b><p>${m[1]}</p><span class="pr">₺${m[3]}</span></div>
+     <button class="add" onclick="addCart('${m[0].replace(/'/g,'')}',${m[3]},'${m[2]}')">+</button></div>`).join('')}</div>`;
+ document.getElementById('ov').classList.add('show');
+}
+function closeModal(){document.getElementById('ov').classList.remove('show')}
+document.getElementById('ov').onclick=e=>{if(e.target.id==='ov')closeModal()};
+function addCart(n,p,img){const e=cart.find(c=>c.name===n);if(e)e.q++;else cart.push({name:n,price:p,img,q:1});upd();toast('💛 Sepete eklendi: '+n);renderDrawer();}
+function upd(){const n=cart.reduce((s,c)=>s+c.q,0);const t=document.getElementById('navCnt');t.textContent=n;t.style.display=n?'grid':'none';}
+function openDrawer(){renderDrawer();document.getElementById('drawer').classList.add('show')}
+function closeDrawer(){document.getElementById('drawer').classList.remove('show')}
+function renderDrawer(){const b=document.getElementById('dbody'),f=document.getElementById('dfoot');
+ if(!cart.length){b.innerHTML='<div class="dempty"><div class="b">🛒</div><p>Sepetin boş.<br>Yozgat lezzetlerini keşfet! 🐝</p></div>';f.innerHTML='';return;}
+ const sub=cart.reduce((s,c)=>s+c.price*c.q,0),fee=sub>=150?0:19.9,tot=sub+fee;
+ b.innerHTML=cart.map((c,i)=>`<div class="ci"><img src="${VIZZ.IMG(c.img)}" onerror="VIZZ.imgFallback(this,'${c.img}')">
+   <div class="t"><b>${c.name}</b><br><span>₺${c.price}</span></div>
+   <div class="qty"><button onclick="chg(${i},-1)">−</button><b>${c.q}</b><button onclick="chg(${i},1)">+</button></div></div>`).join('');
+ f.innerHTML=`<div class="srow"><span>Ara toplam</span><span>₺${sub.toFixed(2)}</span></div>
+   <div class="srow"><span>Teslimat 🐝</span><span>${fee?'₺'+fee.toFixed(2):'Ücretsiz'}</span></div>
+   <div class="srow total"><span>Toplam</span><span>₺${tot.toFixed(2)}</span></div>
+   <button class="checkout" onclick="toast('🎉 Siparişin alındı! Kurye yola çıkıyor 🛵');cart=[];upd();renderDrawer();closeDrawer()">Siparişi Tamamla • ₺${tot.toFixed(2)}</button>`;
+}
+function chg(i,d){cart[i].q+=d;if(cart[i].q<=0)cart.splice(i,1);upd();renderDrawer();}
+let tt;function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),1900);}
+// live Yozgat map with roaming couriers
+VIZZ.initMap('heroMap',{all:true,max:14,speed:1.1});
+</script>
+</body></html>

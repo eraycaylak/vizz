@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIZZ — İşletme Mobil</title>
+<link rel="stylesheet" href="vizz.css">
+<style>
+  html,body{height:100%}
+  body{background:#1c1b18;display:flex;justify-content:center}
+  .device{width:100%;max-width:430px;height:100%;background:var(--paper);position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .hdr{background:var(--ink);color:#fff;padding:16px 18px}
+  .hdr .top{display:flex;align-items:center;justify-content:space-between}
+  .hdr .biz{display:flex;align-items:center;gap:10px}.hdr .biz img{width:36px;height:36px;border-radius:9px;object-fit:cover}
+  .hdr .biz b{font-size:15px}.hdr .biz span{font-size:11px;color:#cfcabb;display:block}
+  .switch{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700}
+  .toggle{width:42px;height:24px;background:var(--green);border-radius:30px;position:relative}.toggle:after{content:"";position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#fff}
+  .daystat{display:flex;gap:10px;margin-top:14px}
+  .ds{flex:1;background:#ffffff12;border-radius:13px;padding:11px}.ds .l{font-size:10.5px;color:#cfcabb}.ds .v{font-size:19px;font-weight:800;margin-top:2px}
+  .tabs{display:flex;padding:12px 14px 0;gap:8px}
+  .tb{flex:1;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px;font-weight:700;font-size:12.5px;color:var(--muted);position:relative}
+  .tb.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .tb .n{position:absolute;top:-6px;right:-4px;background:var(--honey);color:var(--ink);font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center}
+  .screen{flex:1;overflow-y:auto;padding:14px}
+  .ord{background:#fff;border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:11px;box-shadow:var(--shadow-sm)}
+  .ord.flash{animation:fl 1.4s ease}@keyframes fl{0%,100%{box-shadow:0 0 0 0 rgba(242,169,0,0)}40%{box-shadow:0 0 0 4px rgba(242,169,0,.4)}}
+  .ord .o1{display:flex;justify-content:space-between;align-items:center}.ord .id{font-weight:800;font-size:14.5px}
+  .chan{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px}
+  .ch-vizz{background:#FFF3D0;color:#B8860B}.ch-phone{background:#E8F0FE;color:#3B82F6}.ch-ys{background:#FFE8E8;color:#E5484D}
+  .ord .cust{font-size:12.5px;color:var(--muted);margin:6px 0}.ord .items{font-size:13px;margin-bottom:10px}
+  .ord .o2{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.ord .o2 b{font-size:16px}.ord .o2 .st{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+  .st-prep{background:#FFF3D0;color:#B8860B}.st-way{background:#E6F6EC;color:var(--green)}
+  .ord button{width:100%;border:none;border-radius:11px;padding:12px;font-weight:800;font-size:13.5px;background:var(--ink);color:#fff}
+  .ord button.honey{background:var(--honey);color:var(--ink)}
+  .ord .courier{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);background:var(--paper);padding:9px 11px;border-radius:11px}
+  .alertbtn{position:absolute;bottom:16px;left:14px;right:14px;background:var(--honey);color:var(--ink);border:none;border-radius:14px;padding:14px;font-weight:800;box-shadow:0 10px 24px rgba(242,169,0,.45)}
+  .empty{text-align:center;color:var(--muted);padding:50px 20px}.empty .b{font-size:54px}
+</style></head><body>
+<div class="device">
+  <div class="hdr">
+    <div class="top"><div class="biz"><img src="img/izgara-kofte.jpg" onerror="VIZZ.imgFallback(this,'izgara-kofte')"><div><b>Çapanoğlu Köftecisi</b><span>VIZZ Pazaryeri ✓</span></div></div>
+      <div class="switch"><span class="toggle"></span> Açık</div></div>
+    <div class="daystat"><div class="ds"><div class="l">Bugün sipariş</div><div class="v" id="dOrd">47</div></div><div class="ds"><div class="l">Ciro</div><div class="v">₺6.840</div></div><div class="ds"><div class="l">Ort. hazırlık</div><div class="v">17dk</div></div></div>
+  </div>
+  <div class="tabs">
+    <button class="tb active" data-t="new" onclick="tab('new')">🆕 Yeni <span class="n" id="cn-new">0</span></button>
+    <button class="tb" data-t="prep" onclick="tab('prep')">👨‍🍳 Hazırlanan</button>
+    <button class="tb" data-t="way" onclick="tab('way')">🛵 Kuryede</button>
+  </div>
+  <div class="screen" id="screen"></div>
+  <button class="alertbtn" onclick="newOrder()">🔔 Yeni sipariş (demo)</button>
+</div>
+<div class="vz-toast" id="toast"></div>
+<script src="vizz-data.js"></script>
+<script>
+document.getElementById('toast');
+let cur='new', nc=7742;
+let orders=[
+ {id:"VZ-7741",chan:"vizz",cl:"VIZZ",cust:"A. Demir · Fatih Mah.",items:"1× Izgara Köfte (8'li), 2× Ayran",total:225,st:"new",min:18},
+ {id:"VZ-7740",chan:"phone",cl:"Telefon",cust:"K. Öz · Köseoğlu",items:"1× Çapanoğlu Special",total:210,st:"new",min:15},
+ {id:"VZ-7738",chan:"ys",cl:"Yemeksepeti",cust:"M. Yıldız · Medrese",items:"2× Künefe",total:190,st:"prep",min:8},
+ {id:"VZ-7731",chan:"vizz",cl:"VIZZ",cust:"E. Şahin · Çapanoğlu",items:"1× Izgara Köfte, 1× Ayran",total:195,st:"way",courier:"Mehmet K."},
+];
+function chanCls(c){return c==='vizz'?'ch-vizz':c==='phone'?'ch-phone':'ch-ys';}
+function counts(){document.getElementById('cn-new').textContent=orders.filter(o=>o.st==='new').length;}
+function render(){counts();const box=document.getElementById('screen');const list=orders.filter(o=>o.st===cur);
+ if(!list.length){box.innerHTML='<div class="empty"><div class="b">🐝</div><p>Bu kolonda sipariş yok</p></div>';return;}
+ box.innerHTML=list.map(o=>`<div class="ord" id="o-${o.id}">
+   <div class="o1"><span class="id">${o.id}</span><span class="chan ${chanCls(o.chan)}">${o.cl}</span></div>
+   <div class="cust">${o.cust}</div><div class="items">${o.items}</div>
+   <div class="o2">${o.st==='new'?'<span></span>':`<span class="st st-${o.st==='prep'?'prep':'way'}">${o.st==='prep'?'Hazırlanıyor':'Yolda'}</span>`}<b>₺${o.total}</b></div>
+   ${o.courier?`<div class="courier">🛵 ${o.courier} · sana 5 dk</div>`:
+     o.st==='new'?`<button class="honey" onclick="adv('${o.id}','prep')">👨‍🍳 Hazırlamaya Başla · ${o.min} dk</button>`:
+     o.st==='prep'?`<button onclick="adv('${o.id}','way')">🛵 VIZZ Kurye Çağır</button>`:''}
+ </div>`).join('');
+}
+function adv(id,to){const o=orders.find(x=>x.id===id);o.st=to;if(to==='way')o.courier='Otomatik atandı';
+ toast(to==='prep'?'👨‍🍳 Hazırlanıyor':'🛵 VIZZ kuryesi çağrıldı');render();}
+function tab(t){cur=t;document.querySelectorAll('.tb').forEach(x=>x.classList.toggle('active',x.dataset.t===t));render();}
+function newOrder(){nc++;const m=VIZZ.RESTAURANTS[0].menu;const it=m[Math.floor(Math.random()*m.length)];
+ orders.unshift({id:"VZ-"+nc,chan:['vizz','phone','ys'][Math.floor(Math.random()*3)],cl:['VIZZ','Telefon','Yemeksepeti'][Math.floor(Math.random()*3)],cust:"Yeni müşteri · "+VIZZ.YOZGAT.zones[Math.floor(Math.random()*8)].n+" Mah.",items:"1× "+it[0],total:it[3],st:"new",min:Math.floor(Math.random()*12)+10});
+ document.getElementById('dOrd').textContent=parseInt(document.getElementById('dOrd').textContent)+1;
+ cur='new';document.querySelectorAll('.tb').forEach(x=>x.classList.toggle('active',x.dataset.t==='new'));render();
+ const el=document.getElementById('o-VZ-'+nc);if(el)el.classList.add('flash');toast('🔔 Yeni sipariş geldi!');}
+render();
+let tt;function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),1800);}
+</script>
+</body></html>

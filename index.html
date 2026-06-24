@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIZZ — Tasarım Sunumu</title>
+<link rel="stylesheet" href="vizz.css">
+<style>
+  body{background:radial-gradient(circle at 50% -10%,#26231a,#0f0e0b 60%);color:#ece9e0;min-height:100vh}
+  .wrap{max-width:1180px;margin:0 auto;padding:30px 24px 60px}
+  header{text-align:center;padding:30px 0 34px}
+  header .vz-brand{justify-content:center;margin-bottom:18px}
+  header .vz-brand img{height:64px;width:64px;border-radius:16px;box-shadow:0 10px 30px rgba(242,169,0,.3)}
+  header .vz-brand b{font-size:38px;color:#fff}
+  header h1{font-size:30px;color:#fff;letter-spacing:-.5px}
+  header h1 span{color:var(--honey)}
+  header p{color:#9c988c;font-size:15px;margin-top:10px;max-width:620px;margin-inline:auto;line-height:1.5}
+  .meta{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+  .meta span{background:#ffffff0c;border:1px solid #ffffff14;padding:8px 14px;border-radius:30px;font-size:12.5px;color:#cfcabb}
+  .sech{display:flex;align-items:center;gap:10px;margin:26px 4px 14px;color:#cfcabb;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+  .sech:after{content:"";flex:1;height:1px;background:#ffffff14}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{background:#1b1915;border:1px solid #ffffff12;border-radius:22px;overflow:hidden;cursor:pointer;transition:.22s;display:flex;flex-direction:column}
+  .card:hover{transform:translateY(-6px);border-color:var(--honey);box-shadow:0 24px 50px rgba(0,0,0,.5)}
+  .thumb{height:172px;position:relative;display:grid;place-items:center;overflow:hidden}
+  .thumb.web{background:linear-gradient(135deg,#211f18,#34301f)}
+  .thumb.ops{background:linear-gradient(135deg,#2a2412,#3d3110)}
+  .thumb .ic{font-size:62px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45));z-index:2}
+  .thumb .glow{position:absolute;width:200px;height:200px;background:radial-gradient(var(--honey),transparent 65%);opacity:.18;border-radius:50%}
+  .thumb .dev{position:absolute;bottom:10px;right:12px;background:#0c0c0c;color:#cfcabb;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:20px;border:1px solid #ffffff14;z-index:3}
+  .thumb .mini{position:absolute;inset:0;opacity:.32;background-size:cover;background-position:center top;filter:saturate(.9)}
+  .card .body{padding:15px 17px}
+  .card .body .tag{font-size:11px;font-weight:800;color:var(--honey);letter-spacing:.6px}
+  .card .body h3{color:#fff;font-size:17px;margin:5px 0 5px}
+  .card .body p{color:#9c988c;font-size:12.5px;line-height:1.45}
+  .card .body .open{margin-top:11px;color:var(--honey);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px}
+  footer{text-align:center;color:#6f6c63;font-size:12.5px;margin-top:40px}
+  /* overlay viewer */
+  .viewer{position:fixed;inset:0;background:rgba(8,8,6,.92);backdrop-filter:blur(6px);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:18px}
+  .viewer.show{display:flex}
+  .vbar{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:1180px;margin-bottom:14px}
+  .vbar .vt{color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
+  .vbar .va{display:flex;gap:10px}
+  .vbar button{background:#ffffff12;color:#fff;border:none;border-radius:11px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer}
+  .vbar button:hover{background:#ffffff22}
+  .vbar button.cls{background:var(--honey);color:#14130F}
+  .stage{flex:1;width:100%;display:flex;align-items:center;justify-content:center;min-height:0}
+  /* laptop frame */
+  .lap{width:min(1160px,96vw);max-height:100%;display:flex;flex-direction:column;align-items:center}
+  .lap .bezel{width:100%;background:#0c0c0c;border-radius:16px 16px 0 0;padding:10px 10px 0;border:1px solid #2a2a2a}
+  .lap .bar{display:flex;gap:6px;padding:0 4px 9px}.lap .bar i{width:11px;height:11px;border-radius:50%;display:block}
+  .lap iframe{width:100%;height:min(660px,72vh);border:none;border-radius:6px;background:#fff;display:block}
+  .lap .base{width:108%;height:15px;background:linear-gradient(#1e1e1e,#0c0c0c);border-radius:0 0 16px 16px}
+  /* phone frame */
+  .ph{height:min(800px,86vh);aspect-ratio:392/800;background:#0c0c0c;border-radius:42px;padding:11px;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+  .ph iframe{width:100%;height:100%;border:none;border-radius:32px;background:#000;display:block}
+  @media(max-width:820px){.grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="wrap">
+  <header>
+    <div class="vz-brand"><img id="logo" alt="VIZZ"><b><i style="color:var(--honey);font-style:italic">V</i>IZZ</b></div>
+    <h1>Tasarım <span>Sunumu</span></h1>
+    <p>Yozgat yerel yemek sipariş + teslimat platformu — 6 yüzeyin tıklanabilir prototipi. Bir karta tıkla, cihaz çerçevesinde canlı aç. <b style="color:#cfcabb">%80 operasyon · %20 son kullanıcı.</b></p>
+    <div class="meta"><span>🐝 Sarı-siyah arı kimliği</span><span>🗺️ Gerçek Yozgat haritası</span><span>📸 Başlığa uyan görseller</span><span>🇹🇷 Türkçe arayüz</span></div>
+  </header>
+
+  <div class="sech">🏢 Operasyon & Yönetim (%80)</div>
+  <div class="grid">
+    <div class="card" onclick="openV('kurye-panel.html','lap','🛰️ Operasyon Merkezi (Dispatcher)')">
+      <div class="thumb ops"><div class="glow"></div><div class="ic">🛰️</div><span class="dev">🖥️ Web / Masaüstü</span></div>
+      <div class="body"><div class="tag">KURYE · OPERASYON</div><h3>Operasyon Merkezi</h3><p>Canlı Yozgat komuta haritası, 15 kurye, görev atama, SLA, Cuma ödeme.</p><div class="open">Canlı aç →</div></div>
+    </div>
+    <div class="card" onclick="openV('restoran-panel.html','lap','🍽️ İşletme Paneli')">
+      <div class="thumb ops"><div class="glow"></div><div class="ic">🍽️</div><span class="dev">🖥️ Web / Masaüstü</span></div>
+      <div class="body"><div class="tag">RESTORANT</div><h3>İşletme Paneli</h3><p>Canlı sipariş panosu (kanban), menü yönetimi + stok, kurye çağır, rapor.</p><div class="open">Canlı aç →</div></div>
+    </div>
+    <div class="card" onclick="openV('musteri-web.html','lap','🌐 Müşteri Web')">
+      <div class="thumb web"><div class="glow"></div><div class="ic">🌐</div><span class="dev">🖥️ Web</span></div>
+      <div class="body"><div class="tag">WEB</div><h3>Müşteri Web</h3><p>Yozgat haritalı vitrin, restoran keşfi, menü, sepet, sipariş.</p><div class="open">Canlı aç →</div></div>
+    </div>
+  </div>
+
+  <div class="sech">📱 Mobil Uygulamalar</div>
+  <div class="grid">
+    <div class="card" onclick="openV('musteri-mobil.html','ph','📱 Müşteri App')">
+      <div class="thumb web"><div class="glow"></div><div class="ic">📱</div><span class="dev">📱 iOS / Android</span></div>
+      <div class="body"><div class="tag">MOBİL</div><h3>Müşteri App</h3><p>Keşfet, sepet, Domino's tarzı canlı sipariş takibi + harita.</p><div class="open">Canlı aç →</div></div>
+    </div>
+    <div class="card" onclick="openV('kurye-mobil.html','ph','🛵 Kurye App')">
+      <div class="thumb ops"><div class="glow"></div><div class="ic">🛵</div><span class="dev">📱 iOS / Android</span></div>
+      <div class="body"><div class="tag">KURYE MOBİL</div><h3>Kurye App</h3><p>Çevrimiçi/çevrimdışı, görev kabul, navigasyon, kazanç + Cuma sayacı.</p><div class="open">Canlı aç →</div></div>
+    </div>
+    <div class="card" onclick="openV('restoran-mobil.html','ph','🧾 İşletme Mobil')">
+      <div class="thumb ops"><div class="glow"></div><div class="ic">🧾</div><span class="dev">📱 iOS / Android</span></div>
+      <div class="body"><div class="tag">RESTORANT MOBİL</div><h3>İşletme Mobil</h3><p>Cepten sipariş panosu, yeni sipariş bildirimi, kurye çağır.</p><div class="open">Canlı aç →</div></div>
+    </div>
+  </div>
+  <footer>VIZZ © 2026 · Yozgat merkez pilot · tüm yüzeyler tıklanabilir prototiptir 🐝</footer>
+</div>
+
+<div class="viewer" id="viewer">
+  <div class="vbar">
+    <div class="vt" id="vtitle">—</div>
+    <div class="va"><button onclick="openTab()">↗ Yeni sekmede</button><button class="cls" onclick="closeV()">✕ Kapat</button></div>
+  </div>
+  <div class="stage" id="stage"></div>
+</div>
+<script src="vizz-data.js"></script>
+<script>
+document.getElementById('logo').src=VIZZ.LOGO;
+let curUrl='';
+function openV(url,type,title){curUrl=url;document.getElementById('vtitle').textContent=title;
+ const stage=document.getElementById('stage');
+ if(type==='lap'){stage.innerHTML=`<div class="lap"><div class="bezel"><div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div><iframe src="${url}"></iframe></div><div class="base"></div></div>`;}
+ else{stage.innerHTML=`<div class="ph"><iframe src="${url}"></iframe></div>`;}
+ document.getElementById('viewer').classList.add('show');
+}
+function closeV(){document.getElementById('viewer').classList.remove('show');document.getElementById('stage').innerHTML='';}
+function openTab(){window.open(curUrl,'_blank');}
+document.getElementById('viewer').addEventListener('click',e=>{if(e.target.id==='viewer')closeV();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeV();});
+</script>
+</body></html>
