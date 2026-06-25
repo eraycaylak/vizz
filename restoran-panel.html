@@ -1,154 +1,524 @@
 <!DOCTYPE html>
 <html lang="tr"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIZZ — İşletme Paneli</title>
-<link rel="stylesheet" href="vizz.css">
+<title>VIZZ — Çapanoğlu Köftecisi · Operasyon</title>
+<link rel="stylesheet" href="vizz-pro.css">
 <style>
-  body{background:#f1ede2;overflow:hidden}
-  .app{display:grid;grid-template-columns:78px 1fr;height:100vh}
-  .side{background:#171511;display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:6px}
-  .side .lg{width:46px;height:46px;border-radius:12px;object-fit:cover;margin-bottom:14px;background:#000}
-  .nav-i{width:56px;height:52px;border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#8c887c;font-size:9.5px;font-weight:600;cursor:pointer}
-  .nav-i svg{width:20px;height:20px}.nav-i:hover{background:#ffffff0c;color:#fff}
-  .nav-i.active{background:var(--honey);color:var(--ink)}.nav-i.active svg{stroke:var(--ink)}
-  .main{display:flex;flex-direction:column;overflow:hidden}
-  .top{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px}
-  .top .biz{display:flex;align-items:center;gap:12px}.top .biz .av{width:42px;height:42px;border-radius:11px;object-fit:cover}
-  .top .biz b{font-size:16px}.top .biz span{font-size:12px;color:var(--muted);display:block}
-  .top .r{display:flex;align-items:center;gap:14px}
-  .switch{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
-  .toggle{width:46px;height:26px;background:var(--green);border-radius:30px;position:relative;cursor:pointer}
-  .toggle:after{content:"";position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
-  .content{flex:1;overflow:auto;padding:20px}
-  .view{display:none}.view.active{display:block}
-  h2.t{font-size:20px;margin-bottom:4px}.sub{color:var(--muted);font-size:13px;margin-bottom:16px}
-  /* kanban */
-  .kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-  .col{background:#fff;border-radius:16px;border:1px solid var(--line);display:flex;flex-direction:column;max-height:calc(100vh - 150px)}
-  .col .ch{padding:13px 15px;font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
-  .col .ch .n{background:var(--ink);color:#fff;font-size:11px;width:22px;height:22px;border-radius:11px;display:grid;place-items:center}
-  .col.new .ch{color:var(--honey-deep)}.col.new .ch .n{background:var(--honey);color:var(--ink)}
-  .col .b{padding:11px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
-  .ord{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:12px}
-  .ord.flash{animation:fl 1.4s ease}@keyframes fl{0%,100%{box-shadow:0 0 0 0 rgba(242,169,0,0)}40%{box-shadow:0 0 0 4px rgba(242,169,0,.4)}}
-  .ord .o1{display:flex;justify-content:space-between;align-items:center}.ord .id{font-weight:800;font-size:13.5px}
-  .chan{font-size:10px;font-weight:700;padding:3px 7px;border-radius:20px}
-  .ch-vizz{background:#FFF3D0;color:#B8860B}.ch-phone{background:#E8F0FE;color:#3B82F6}.ch-ys{background:#FFE8E8;color:#E5484D}
-  .ord .items{font-size:12px;color:var(--muted);margin:7px 0 9px;line-height:1.5}
-  .ord .o2{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:9px}.ord .o2 b{font-size:14px}
-  .ord button{width:100%;border:none;border-radius:10px;padding:9px;font-size:12.5px;font-weight:700;background:var(--ink);color:#fff}
-  .ord button.honey{background:var(--honey);color:var(--ink)}
-  /* menu mgmt */
-  .mlist{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-  .mrow{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;align-items:center;gap:13px}
-  .mrow img{width:62px;height:62px;border-radius:11px;object-fit:cover;flex:none}
-  .mrow .t{flex:1}.mrow .t b{font-size:14.5px}.mrow .t span{font-size:12px;color:var(--muted);display:block}.mrow .t .pr{color:var(--ink);font-weight:800;font-size:14px;margin-top:3px}
-  .stk{display:flex;flex-direction:column;align-items:center;gap:5px}
-  .sw{width:42px;height:24px;background:var(--green);border-radius:30px;position:relative;cursor:pointer;transition:.2s}
-  .sw:after{content:"";position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
-  .sw.off{background:#c9c4b6}.sw.off:after{right:21px}
-  .stk span{font-size:10.5px;font-weight:700;color:var(--green)}.stk.off span{color:var(--muted)}
-  /* kpis */
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
-  .kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px}
-  .kpi .l{font-size:12px;color:var(--muted)}.kpi .v{font-size:26px;font-weight:800;margin-top:4px}.kpi .d{font-size:11.5px;color:var(--green);margin-top:2px}
-  .hide{display:none!important}
+  .app{display:grid;grid-template-columns:64px 1fr;height:100vh;overflow:hidden}
+  /* rail */
+  .rail{background:var(--s1);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px}
+  .rail .lg{width:40px;height:40px;border-radius:11px;object-fit:cover;background:#000;margin-bottom:10px}
+  .rail .ni{width:48px;height:46px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--tx-3);font-size:8.5px;font-weight:600;transition:.14s;border:none;background:transparent;position:relative}
+  .rail .ni:hover{background:var(--s3);color:var(--tx)}
+  .rail .ni.on{background:var(--y-soft);color:var(--y)}
+  .rail .ni.on::before{content:"";position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--y);border-radius:3px}
+  .rail .ni .ic{width:19px;height:19px}
+  .rail .ni .cnt{position:absolute;top:5px;right:7px;min-width:15px;height:15px;padding:0 4px;border-radius:9px;background:var(--y);color:#15140F;font-size:9px;font-weight:800;display:grid;place-items:center;line-height:1}
+  .rail .sp{flex:1}
+
+  /* main */
+  .main{display:flex;flex-direction:column;overflow:hidden;min-width:0}
+  .top{height:54px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line);background:var(--s1)}
+  .top .brand{display:flex;align-items:center;gap:11px;min-width:0}
+  .top .brand .lg{width:32px;height:32px;border-radius:9px;object-fit:cover;background:#000;flex:none}
+  .top .brand .nm{font-size:14px;font-weight:700;line-height:1.1;white-space:nowrap}
+  .top .brand .nm .sub{display:block;color:var(--tx-3);font-weight:500;font-size:11px;margin-top:1px}
+  .top .r{display:flex;align-items:center;gap:9px}
+  .chip{display:flex;align-items:center;gap:7px;background:var(--s3);border:1px solid var(--line);border-radius:30px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--tx-2)}
+  .chip b{color:var(--tx)} .chip .ic{color:var(--tx-3)}
+  /* açık/kapalı toggle */
+  .openTgl{display:inline-flex;align-items:center;gap:9px;background:var(--s3);border:1px solid var(--line-2);border-radius:30px;padding:5px 8px 5px 13px;font-size:12px;font-weight:700;color:var(--ok)}
+  .openTgl.closed{color:var(--bad)}
+  .sw{width:38px;height:21px;border-radius:30px;background:var(--ok);border:none;position:relative;flex:none;transition:.18s;cursor:pointer}
+  .openTgl.closed .sw{background:var(--s4)}
+  .sw i{position:absolute;top:2px;left:19px;width:17px;height:17px;border-radius:50%;background:#10120f;transition:.18s}
+  .openTgl.closed .sw i{left:2px;background:var(--tx-3)}
+
+  .content{flex:1;overflow:hidden;position:relative}
+  .view{position:absolute;inset:0;overflow:auto;padding:16px;display:none}
+  .view.on{display:block}
+
+  .rhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:14px;flex-wrap:wrap}
+  .rhead h2{font-size:18px;font-weight:800}.rhead p{font-size:12px;color:var(--tx-3);margin-top:2px}
+
+  /* ---------- KDS KANBAN ---------- */
+  #v-pano{display:none;grid-template-rows:auto 1fr;gap:13px;padding:16px;position:absolute;inset:0;overflow:hidden}
+  #v-pano.on{display:grid}
+  .kstrip{display:grid;grid-template-columns:repeat(5,1fr);gap:11px}
+  .kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;min-height:0;overflow:hidden}
+  .kcol{background:var(--s1);border:1px solid var(--line);border-radius:var(--r-lg);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+  .kcol-h{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-bottom:1px solid var(--line)}
+  .kcol-h .t{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+  .kcol-h .t .dotc{width:8px;height:8px;border-radius:50%}
+  .kcol-h .n{font-size:11px;font-weight:800;color:var(--tx-3);background:var(--s3);border-radius:20px;padding:2px 8px;min-width:22px;text-align:center}
+  .kscroll{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:9px}
+  .kscroll.empty-soft{justify-content:center}
+  .kempty{text-align:center;color:var(--tx-4);font-size:11.5px;padding:20px 8px;border:1px dashed var(--line-2);border-radius:var(--r);line-height:1.6}
+
+  /* sipariş kartı */
+  .oc{background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:11px 12px;transition:.16s;position:relative;overflow:hidden}
+  .oc:hover{border-color:var(--line-3)}
+  .oc.flash{animation:flashIn .9s cubic-bezier(.16,1,.3,1)}
+  @keyframes flashIn{0%{transform:translateY(-8px) scale(.97);box-shadow:0 0 0 2px var(--y)}55%{box-shadow:0 0 0 2px var(--y-line)}100%{transform:none;box-shadow:0 0 0 0 transparent}}
+  .oc .r1{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+  .oc .id{font-weight:800;color:var(--tx);font-size:13px;letter-spacing:.2px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .oc .cust{font-size:11px;color:var(--tx-3);font-weight:500;margin-top:3px}
+  .oc .items{margin:8px 0;display:flex;flex-direction:column;gap:4px}
+  .oc .it{display:flex;gap:7px;font-size:12px;color:var(--tx-2);align-items:baseline}
+  .oc .it .q{color:var(--y);font-weight:800;min-width:18px;font-variant-numeric:tabular-nums}
+  .oc .it .nm{flex:1;color:var(--tx)}
+  .oc .it .note{display:block;color:var(--tx-3);font-size:10.5px;margin-top:1px}
+  .oc .ftr{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+  .oc .tot{font-weight:800;color:var(--tx);font-size:13px}
+  .oc .cd{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;padding:3px 8px;border-radius:20px;border:1px solid transparent;white-space:nowrap}
+  .cd.ok{color:var(--ok);background:var(--ok-bg);border-color:rgba(38,194,129,.25)}
+  .cd.warn{color:var(--warn);background:var(--warn-bg);border-color:rgba(245,166,35,.25)}
+  .cd.bad{color:var(--bad);background:var(--bad-bg);border-color:rgba(255,90,82,.25);animation:pulse 1.4s infinite}
+  .oc .adv{width:100%;margin-top:9px}
+  .oc .courier-line{display:flex;align-items:center;gap:8px;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-size:11.5px;color:var(--tx-2)}
+  .oc .courier-line .av{width:24px;height:24px;border-radius:7px;font-size:9px}
+  /* kanal rozeti */
+  .ch{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:6px;letter-spacing:.3px;text-transform:uppercase}
+  .ch .ic{width:11px;height:11px;stroke-width:2.4}
+  .ch-vizz{background:var(--y-soft);color:var(--y);border:1px solid var(--y-line)}
+  .ch-tel{background:var(--info-bg);color:var(--info);border:1px solid rgba(76,141,255,.25)}
+  .ch-ys{background:rgba(169,139,255,.13);color:var(--purple);border:1px solid rgba(169,139,255,.25)}
+
+  /* ---------- MENÜ ---------- */
+  .menuwrap{display:grid;grid-template-columns:200px 1fr;gap:14px;align-items:start}
+  .catlist{display:flex;flex-direction:column;gap:5px;position:sticky;top:0}
+  .catlist button{display:flex;align-items:center;justify-content:space-between;gap:8px;background:transparent;border:1px solid transparent;border-radius:var(--r);padding:10px 13px;font-size:12.5px;font-weight:600;color:var(--tx-2);text-align:left;transition:.14s}
+  .catlist button:hover{background:var(--s2);color:var(--tx)}
+  .catlist button.on{background:var(--y-soft);border-color:var(--y-line);color:var(--y)}
+  .catlist button .c{font-size:11px;font-weight:800;color:var(--tx-3)}
+  .catlist button.on .c{color:var(--y)}
+  .menucard{display:flex;gap:13px;padding:12px;align-items:center}
+  .menucard.off{opacity:.55}
+  .menucard .ph{width:74px;height:74px;border-radius:var(--r);object-fit:cover;flex:none;background:var(--s4)}
+  .menucard .info{flex:1;min-width:0}
+  .menucard .info h4{font-size:13.5px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .menucard .info .ds{font-size:11.5px;color:var(--tx-3);margin-top:3px}
+  .menucard .info .px{font-size:14px;font-weight:800;color:var(--y);margin-top:7px}
+  .menucard .ctl{display:flex;flex-direction:column;align-items:flex-end;gap:9px;flex:none}
+  /* toggle (stok/86) */
+  .t86{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--ok);background:none;border:none}
+  .t86.off{color:var(--tx-3)}
+  .t86 .sw{width:36px;height:20px;background:var(--ok)}
+  .t86 .sw i{left:18px;width:16px;height:16px;background:#06130d}
+  .t86.off .sw{background:var(--s4)} .t86.off .sw i{left:2px;background:var(--tx-3)}
+
+  /* ---------- KURYE ---------- */
+  .crow{display:flex;align-items:center;gap:13px;padding:13px 15px}
+  .crow .info{flex:1;min-width:0}
+  .crow .info b{color:var(--tx);font-size:13px}
+  .crow .info .sub{color:var(--tx-3);font-size:11.5px;margin-top:2px}
+  .stepper{display:flex;align-items:center;gap:0;margin:6px 0 2px}
+  .stepper .st{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;position:relative}
+  .stepper .st .bub{width:26px;height:26px;border-radius:50%;background:var(--s3);border:1.5px solid var(--line-2);display:grid;place-items:center;color:var(--tx-3);z-index:2}
+  .stepper .st .bub .ic{width:13px;height:13px}
+  .stepper .st.done .bub{background:var(--ok);border-color:var(--ok);color:#06130d}
+  .stepper .st.act .bub{background:var(--y);border-color:var(--y);color:#15140F;box-shadow:0 0 0 4px var(--y-glow)}
+  .stepper .st .lb{font-size:10px;font-weight:600;color:var(--tx-3)}
+  .stepper .st.done .lb,.stepper .st.act .lb{color:var(--tx)}
+  .stepper .st::before{content:"";position:absolute;top:13px;left:-50%;width:100%;height:2px;background:var(--line-2);z-index:1}
+  .stepper .st:first-child::before{display:none}
+  .stepper .st.done::before,.stepper .st.act::before{background:var(--ok)}
+
+  /* ---------- RAPORLAR ---------- */
+  .rgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:13px}
+  .rgrid .card{display:flex;flex-direction:column}
+  .chart{width:100%;flex:1;min-height:0}
+  .col-4{grid-column:span 4}.col-6{grid-column:span 6}.col-8{grid-column:span 8}
+
+  /* ---------- AYARLAR ---------- */
+  .setgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:900px}
+  .setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .setrow:last-child{border-bottom:none}
+  .setrow .lab{font-size:12.5px;font-weight:600;color:var(--tx)}
+  .setrow .lab .ds{display:block;font-size:11px;color:var(--tx-3);font-weight:400;margin-top:2px}
+  .swp{width:42px;height:23px;border-radius:30px;background:var(--ok);border:none;position:relative;flex:none;cursor:pointer;transition:.16s}
+  .swp i{position:absolute;top:2px;left:21px;width:19px;height:19px;border-radius:50%;background:#06130d;transition:.16s}
+  .swp.off{background:var(--s4)} .swp.off i{left:2px;background:var(--tx-3)}
+
+  @media(max-width:1240px){.kanban{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:980px){.menuwrap{grid-template-columns:1fr}.catlist{flex-direction:row;flex-wrap:wrap;position:static}.setgrid{grid-template-columns:1fr}.kstrip{grid-template-columns:repeat(2,1fr)}}
 </style></head><body>
 <div class="app">
-  <aside class="side">
+  <!-- RAIL -->
+  <aside class="rail">
     <img class="lg" id="logo" alt="VIZZ">
-    <div class="nav-i active" data-v="panel" onclick="nav('panel')"><svg fill="none" stroke="#8c887c" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Sipariş</div>
-    <div class="nav-i" data-v="menu" onclick="nav('menu')"><svg fill="none" stroke="#8c887c" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Menü</div>
-    <div class="nav-i" data-v="rapor" onclick="nav('rapor')"><svg fill="none" stroke="#8c887c" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="13" y="6" width="3" height="11"/></svg>Rapor</div>
-    <div class="nav-i" data-v="ayar" onclick="toast('⚙️ Ayarlar: çalışma saati, bölge, pazaryeri aç/kapa')"><svg fill="none" stroke="#8c887c" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg>Ayar</div>
+    <button class="ni on" data-v="pano" title="Sipariş Panosu"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Panel<span class="cnt" id="railCnt">5</span></button>
+    <button class="ni" data-v="menu" title="Menü"><svg class="ic" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h12"/></svg>Menü</button>
+    <button class="ni" data-v="kurye" title="Kurye"><svg class="ic" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8m6.5 6 2-6h2.5"/></svg>Kurye</button>
+    <button class="ni" data-v="raporlar" title="Raporlar"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="9" width="3" height="8" rx="1"/><rect x="13" y="5" width="3" height="12" rx="1"/></svg>Rapor</button>
+    <div class="sp"></div>
+    <button class="ni" data-v="ayarlar" title="Ayarlar"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 2.6 14H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4 8.4a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 4.6V4a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V10a2 2 0 1 1 0 4h-.1Z"/></svg>Ayar</button>
   </aside>
+
+  <!-- MAIN -->
   <div class="main">
     <div class="top">
-      <div class="biz"><img class="av" src="img/izgara-kofte.jpg" onerror="VIZZ.imgFallback(this,'izgara-kofte')"><div><b>Çapanoğlu Köftecisi</b><span>Çapanoğlu Mah. · Yozgat · VIZZ Pazaryeri ✓</span></div></div>
-      <div class="r"><span class="switch"><span class="toggle"></span> Açık</span>
-        <button class="btn btn-honey" onclick="newOrder()">🔔 Yeni sipariş (demo)</button>
-        <div class="vz-brand"><img id="logo2" style="height:30px;width:30px" alt=""></div></div>
+      <div class="brand">
+        <img class="lg" id="logo2" alt="">
+        <div class="nm">Çapanoğlu Köftecisi <span class="sub" id="viewName">· Sipariş Panosu</span></div>
+      </div>
+      <div class="r">
+        <button class="openTgl" id="openTgl"><span id="openLab">Açık</span><span class="sw"><i></i></span></button>
+        <span class="chip"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b id="clock">--:--</b></span>
+        <button class="btn btn-y" id="demoBtn"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Yeni Sipariş (demo)</button>
+      </div>
     </div>
+
     <div class="content">
-      <!-- PANEL -->
-      <div class="view active" id="v-panel">
-        <h2 class="t">Canlı Sipariş Panosu</h2><div class="sub">Kanallardan gelen siparişler — sürükle değil, tek tıkla ilerlet 🐝</div>
-        <div class="kanban">
-          <div class="col new"><div class="ch">🆕 Yeni <span class="n" id="n-new">0</span></div><div class="b" id="c-new"></div></div>
-          <div class="col"><div class="ch">👨‍🍳 Hazırlanıyor <span class="n" id="n-prep">0</span></div><div class="b" id="c-prep"></div></div>
-          <div class="col"><div class="ch">🛵 Kuryede <span class="n" id="n-way">0</span></div><div class="b" id="c-way"></div></div>
-          <div class="col"><div class="ch">✅ Tamamlandı <span class="n" id="n-done">0</span></div><div class="b" id="c-done"></div></div>
-        </div>
-      </div>
-      <!-- MENU -->
-      <div class="view" id="v-menu">
-        <h2 class="t">Menü Yönetimi</h2><div class="sub">Stoğu biten ürünü kapat → pazaryeri vitrinine anında yansır</div>
-        <div class="mlist" id="mlist"></div>
-      </div>
-      <!-- RAPOR -->
-      <div class="view" id="v-rapor">
-        <h2 class="t">Raporlar</h2><div class="sub">Bugünün özeti — şeffaf finans</div>
-        <div class="kpis">
-          <div class="kpi"><div class="l">🧾 Bugünkü sipariş</div><div class="v">47</div><div class="d">▲ %18 dün</div></div>
-          <div class="kpi"><div class="l">💳 Ciro</div><div class="v">₺6.840</div><div class="d">▲ %12</div></div>
-          <div class="kpi"><div class="l">🛵 Ödenen teslimat</div><div class="v">₺470</div><div class="d" style="color:var(--muted)">VIZZ filo</div></div>
-          <div class="kpi"><div class="l">⏱ Ort. hazırlık</div><div class="v">17 dk</div><div class="d">hedefte</div></div>
-        </div>
-        <div class="kpis" style="grid-template-columns:1fr 1fr">
-          <div class="kpi"><div class="l">🏆 En çok satan</div><div class="v" style="font-size:18px">Izgara Köfte (8'li)</div><div class="d" style="color:var(--muted)">bugün 31 adet</div></div>
-          <div class="kpi"><div class="l">💰 Pazaryeri komisyonu</div><div class="v" style="font-size:18px">₺410 <span style="font-size:12px;color:var(--muted)">(%6)</span></div><div class="d" style="color:var(--muted)">kuruşuna şeffaf</div></div>
-        </div>
-      </div>
+      <!-- ============ SİPARİŞ PANOSU (KDS KANBAN) ============ -->
+      <section id="v-pano" class="on">
+        <div class="kstrip" id="kpis"></div>
+        <div class="kanban" id="kanban"></div>
+      </section>
+
+      <!-- ============ MENÜ YÖNETİMİ ============ -->
+      <section id="v-menu" class="view"></section>
+
+      <!-- ============ KURYE ============ -->
+      <section id="v-kurye" class="view"></section>
+
+      <!-- ============ RAPORLAR ============ -->
+      <section id="v-raporlar" class="view">
+        <div class="rhead"><div><h2>Raporlar</h2><p>Çapanoğlu Köftecisi · bugünün operasyon karnesi</p></div>
+          <div class="seg"><button class="on">Bugün</button><button>7 gün</button><button>30 gün</button></div></div>
+        <div class="kstrip" id="repKpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px"></div>
+        <div id="reportGrid" class="rgrid"></div>
+      </section>
+
+      <!-- ============ AYARLAR ============ -->
+      <section id="v-ayarlar" class="view"></section>
     </div>
   </div>
 </div>
-<div class="vz-toast" id="toast"></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script src="vizz-data.js"></script>
 <script>
-document.getElementById('logo').src=VIZZ.LOGO;document.getElementById('logo2').src=VIZZ.LOGO;
-const REST=VIZZ.RESTAURANTS[0];
-let orders=[
- {id:"VZ-7741",chan:"vizz",cl:"VIZZ",cust:"A. Demir · Fatih",items:"1× Izgara Köfte (8'li), 2× Ayran",total:225,st:"new",min:18},
- {id:"VZ-7738",chan:"phone",cl:"Telefon",cust:"S. Kaya · Köseoğlu",items:"1× Çapanoğlu Special",total:210,st:"prep",min:12},
- {id:"VZ-7735",chan:"ys",cl:"Yemeksepeti",cust:"M. Yıldız · Medrese",items:"2× Künefe",total:190,st:"prep",min:8},
- {id:"VZ-7731",chan:"vizz",cl:"VIZZ",cust:"E. Şahin · Çapanoğlu",items:"1× Izgara Köfte, 1× Ayran",total:195,st:"way",min:5,courier:"Mehmet K."},
- {id:"VZ-7724",chan:"phone",cl:"Telefon",cust:"Z. Aydın · Fatih",items:"2× Çapanoğlu Special",total:420,st:"done"},
+(function(){
+const $ = s => document.querySelector(s);
+const D = window.VIZZ;
+const R = D.RESTAURANTS[0];           // Çapanoğlu Köftecisi
+document.getElementById('logo').src = D.LOGO;
+document.getElementById('logo2').src = D.LOGO;
+
+const C = { y:'#FFC400', y2:'#F2A900', ok:'#26C281', warn:'#F5A623', bad:'#FF5A52', info:'#4C8DFF', purple:'#A98BFF',
+  tx2:'#A4AAB3', tx3:'#70767E', line:'rgba(255,255,255,.07)', s3:'#1C2026', s4:'#252A31' };
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const charts=[]; function mkChart(id){const c=echarts.init(document.getElementById(id),null,{renderer:'canvas'});charts.push(c);return c;}
+window.addEventListener('resize',()=>charts.forEach(c=>c.resize()));
+const axisBase={axisLine:{lineStyle:{color:C.line}},axisTick:{show:false},splitLine:{lineStyle:{color:C.line}},axisLabel:{color:C.tx3,fontSize:10},nameTextStyle:{color:C.tx3}};
+const baseTip={backgroundColor:'#1C2026',borderColor:'rgba(255,255,255,.12)',textStyle:{color:'#E9EBEE',fontSize:12},padding:[8,11]};
+
+/* ---------- toast ---------- */
+let tt; function toast(m){ const e=$('#toast'); e.innerHTML='<svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m9 11 3 3L22 4"/></svg>'+m; e.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>e.classList.remove('on'),2400); }
+
+/* ---------- saat ---------- */
+function clock(){const d=new Date();$('#clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+clock(); setInterval(clock,15000);
+
+/* ---------- açık/kapalı ---------- */
+let isOpen=true;
+$('#openTgl').onclick=function(){ isOpen=!isOpen; this.classList.toggle('closed',!isOpen);
+  $('#openLab').textContent=isOpen?'Açık':'Kapalı';
+  toast(isOpen?'Restoran <b>açık</b> — yeni siparişler kabul ediliyor':'Restoran <b>kapatıldı</b> — vitrinde "kapalı" görünüyor'); };
+
+/* ===================================================================
+   SİPARİŞ PANOSU — KDS KANBAN
+   aşamalar: yeni → hazirlaniyor → hazir → kuryede → tamamlandi
+   =================================================================== */
+const STAGES=[
+  {k:'yeni',        t:'Yeni',         col:C.bad,  next:'Hazırla',      nextK:'hazirlaniyor'},
+  {k:'hazirlaniyor',t:'Hazırlanıyor', col:C.warn, next:'Hazır',        nextK:'hazir'},
+  {k:'hazir',       t:'Hazır',        col:C.info, next:'Kurye Çağır',  nextK:'kuryede'},
+  {k:'kuryede',     t:'Kuryede',      col:C.y,    next:'Teslim Edildi',nextK:'tamamlandi'},
+  {k:'tamamlandi',  t:'Tamamlandı',   col:C.ok,   next:null,           nextK:null},
 ];
-function chanCls(c){return c==='vizz'?'ch-vizz':c==='phone'?'ch-phone':'ch-ys';}
-function render(){
- ['new','prep','way','done'].forEach(s=>{
-  const box=document.getElementById('c-'+s);const list=orders.filter(o=>o.st===s);
-  document.getElementById('n-'+s).textContent=list.length;
-  box.innerHTML=list.map(o=>`<div class="ord" id="o-${o.id}">
-    <div class="o1"><span class="id">${o.id}</span><span class="chan ${chanCls(o.chan)}">${o.cl}</span></div>
-    <div class="items">${o.cust}<br>${o.items}</div>
-    <div class="o2"><span>${o.courier?'🛵 '+o.courier:(s==='new'?'⏱ yeni geldi':'')}</span><b>₺${o.total}</b></div>
-    ${s==='new'?`<button class="honey" onclick="adv('${o.id}','prep')">👨‍🍳 Hazırlamaya Başla (${o.min} dk)</button>`:
-      s==='prep'?`<button onclick="adv('${o.id}','way')">🛵 Kurye Çağır</button>`:
-      s==='way'?`<button onclick="adv('${o.id}','done')">✅ Teslim Edildi</button>`:
-      `<button style="background:#e8e3d6;color:var(--muted)">Tamamlandı</button>`}
-  </div>`).join('')||'<div style="color:var(--muted);font-size:12.5px;text-align:center;padding:20px">—</div>';
- });
+const CH={ vizz:{c:'ch-vizz',t:'VIZZ',i:'<path d="M3 3l9 18 2.5-7.5L22 11 3 3Z"/>'},
+  tel:{c:'ch-tel',t:'Telefon',i:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.5 2.8a2 2 0 0 1-.6 1.9L7.9 9.5a16 16 0 0 0 6 6l1.1-1.1a2 2 0 0 1 1.9-.6l2.8.5a2 2 0 0 1 1.7 2Z"/>'},
+  ys:{c:'ch-ys',t:'Yemeksepeti',i:'<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8M12 8v8"/>'} };
+
+/* mock canlı siparişler — Çapanoğlu menüsünden */
+const M = R.menu; // [ad,desc,slug,fiyat]
+let seq=7752;
+let ORD=[
+  {id:'VZ-7741',stage:'yeni',ch:'vizz',cust:'A. Demir · Fatih',sla:235,items:[[2,M[0][0]],[1,M[2][0],'Az şerbet']],tot:425},
+  {id:'VZ-7748',stage:'yeni',ch:'tel',cust:'Telefon · Cumhuriyet',sla:55,items:[[1,M[1][0]],[2,M[3][0]]],tot:270},
+  {id:'VZ-7746',stage:'hazirlaniyor',ch:'vizz',cust:'H. Çelik · Çapanoğlu',sla:410,items:[[3,M[0][0]],[1,M[1][0]]],tot:705},
+  {id:'VZ-7745',stage:'hazirlaniyor',ch:'ys',cust:'Z. Aydın · Medrese',sla:125,items:[[1,M[1][0]],[2,M[2][0]]],tot:400},
+  {id:'VZ-7743',stage:'hazir',ch:'vizz',cust:'S. Kaya · Köseoğlu',sla:90,items:[[2,M[1][0]]],tot:420,ready:true},
+  {id:'VZ-7740',stage:'kuryede',ch:'ys',cust:'K. Öz · Köseoğlu',sla:540,items:[[1,M[0][0]],[1,M[3][0]]],tot:195,courier:'Mehmet K.',cmin:7},
+  {id:'VZ-7738',stage:'tamamlandi',ch:'vizz',cust:'E. Şahin · Şehitler',sla:0,items:[[2,M[0][0]],[2,M[2][0]]],tot:520,courier:'Caner T.'},
+  {id:'VZ-7736',stage:'tamamlandi',ch:'tel',cust:'Telefon · Çapanoğlu',sla:0,items:[[1,M[1][0]]],tot:110,courier:'Emre B.'},
+];
+
+function fmtSec(s){ if(s<=0) return '0:00'; const m=Math.floor(s/60); return m+':'+String(s%60).padStart(2,'0'); }
+function cdLabel(o){
+  if(o.stage==='kuryede') return {cls:'warn',ic:'<circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/>',txt:o.cmin+' dk yolda'};
+  if(o.stage==='tamamlandi') return {cls:'ok',ic:'<path d="M5 12l4 4L19 6"/>',txt:'Teslim edildi'};
+  if(o.stage==='hazir') return {cls:'ok',ic:'<path d="M5 12l5 5L20 7"/>',txt:'Pakette · bekliyor'};
+  const cls=o.sla<=60?'bad':o.sla<=150?'warn':'ok';
+  return {cls,ic:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 1.5"/>',txt:fmtSec(o.sla)};
 }
-function adv(id,to){const o=orders.find(x=>x.id===id);o.st=to;if(to==='way')o.courier='Otomatik atandı';
- render();toast(to==='prep'?'👨‍🍳 Hazırlanıyor':to==='way'?'🛵 VIZZ kuryesi çağrıldı':'✅ Teslim edildi');}
-let nc=7742;
-function newOrder(){nc++;const m=VIZZ.RESTAURANTS[0].menu;const it=m[Math.floor(Math.random()*m.length)];
- orders.unshift({id:"VZ-"+nc,chan:['vizz','phone','ys'][Math.floor(Math.random()*3)],cl:['VIZZ','Telefon','Yemeksepeti'][Math.floor(Math.random()*3)],cust:"Yeni müşteri · "+VIZZ.YOZGAT.zones[Math.floor(Math.random()*8)].n,items:"1× "+it[0],total:it[3],st:"new",min:Math.floor(Math.random()*12)+10});
- render();const el=document.getElementById('o-VZ-'+nc);if(el)el.classList.add('flash');toast('🔔 Yeni sipariş geldi!');}
-render();
-// menu mgmt
-let stock={};REST.menu.forEach((m,i)=>stock[i]=true);
-function renderMenu(){document.getElementById('mlist').innerHTML=REST.menu.map((m,i)=>`
-  <div class="mrow"><img src="${VIZZ.IMG(m[2])}" onerror="VIZZ.imgFallback(this,'${m[2]}')">
-   <div class="t"><b>${m[0]}</b><span>${m[1]}</span><div class="pr">₺${m[3]}</div></div>
-   <div class="stk ${stock[i]?'':'off'}" id="stk-${i}"><span>${stock[i]?'Stokta':'Tükendi'}</span><div class="sw ${stock[i]?'':'off'}" onclick="tog(${i})"></div></div>
-  </div>`).join('');}
-function tog(i){stock[i]=!stock[i];renderMenu();toast(stock[i]?'✅ '+REST.menu[i][0]+' açıldı':'⛔ '+REST.menu[i][0]+' kapatıldı — vitrine yansıdı');}
-renderMenu();
-function nav(v){document.querySelectorAll('.nav-i').forEach(n=>n.classList.toggle('active',n.dataset.v===v));
- document.querySelectorAll('.view').forEach(p=>p.classList.remove('active'));
- const el=document.getElementById('v-'+v);if(el)el.classList.add('active');}
-let tt;function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),1900);}
+
+function card(o){
+  const ch=CH[o.ch]; const st=STAGES.find(s=>s.k===o.stage); const cd=cdLabel(o);
+  const items=o.items.map(it=>`<div class="it"><span class="q">${it[0]}×</span><span class="nm">${it[1]}${it[2]?`<span class="note">${it[2]}</span>`:''}</span></div>`).join('');
+  const courier = o.courier ? `<div class="courier-line"><div class="av busy">${o.courier.split(' ').map(p=>p[0]).join('')}</div><span><b style="color:var(--tx)">${o.courier}</b>${o.cmin?` · ${o.cmin} dk`:' · teslim etti'}</span></div>` : '';
+  const adv = st.next ? `<button class="btn ${o.stage==='kuryede'||o.stage==='hazir'?'btn-y':''} adv" onclick="RP.advance('${o.id}')">
+      <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>${st.next}</button>` : '';
+  return `<div class="oc" id="oc-${o.id}">
+    <div class="r1"><div><div class="id">${o.id}<span class="ch ${ch.c}"><svg class="ic" viewBox="0 0 24 24">${ch.i}</svg>${ch.t}</span></div><div class="cust">${o.cust}</div></div>
+      <span class="cd ${cd.cls}"><svg class="ic" style="width:12px;height:12px" viewBox="0 0 24 24">${cd.ic}</svg>${cd.txt}</span></div>
+    <div class="items">${items}</div>
+    <div class="ftr"><span class="dim" style="font-size:11px">${o.items.reduce((a,b)=>a+b[0],0)} ürün</span><span class="tot">₺${o.tot}</span></div>
+    ${courier}${adv}
+  </div>`;
+}
+
+function renderKanban(){
+  $('#kanban').innerHTML = STAGES.map(s=>{
+    const list=ORD.filter(o=>o.stage===s.k);
+    const cards=list.map(card).join('') || `<div class="kempty">Bu kolonda<br>sipariş yok</div>`;
+    return `<div class="kcol"><div class="kcol-h"><div class="t"><span class="dotc" style="background:${s.col}"></span>${s.t}</div><span class="n">${list.length}</span></div>
+      <div class="kscroll ${list.length?'':'empty-soft'}">${cards}</div></div>`;
+  }).join('');
+  const live=ORD.filter(o=>o.stage!=='tamamlandi').length;
+  $('#railCnt').textContent=live; $('#railCnt').style.display=live?'grid':'none';
+  renderKpis();
+}
+
+/* tek-tik ileri */
+function advance(id){
+  const o=ORD.find(x=>x.id===id); if(!o) return;
+  const st=STAGES.find(s=>s.k===o.stage); if(!st.nextK) return;
+  o.stage=st.nextK;
+  if(o.stage==='kuryede'){ // kurye çağrıldı → otomatik ata
+    const free=D.COURIERS.filter(c=>c.status==='online'); const k=free[Math.floor(Math.random()*free.length)]||D.COURIERS[1];
+    o.courier=k.name; o.cmin=Math.floor(rnd(5,12));
+    toast(`<b>${id}</b> hazır → kurye <b>${k.name}</b> çağrıldı (en yakın)`);
+  } else if(o.stage==='hazir'){ o.ready=true; toast(`<b>${id}</b> pakete hazır — kurye atanmayı bekliyor`); }
+  else if(o.stage==='tamamlandi'){ o.cmin=0; toast(`<b>${id}</b> teslim edildi · tebrikler`); }
+  else if(o.stage==='hazirlaniyor'){ toast(`<b>${id}</b> mutfağa düştü — hazırlanıyor`); }
+  renderKanban();
+  const el=$('#oc-'+id); if(el){ el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),900); }
+}
+
+/* yeni sipariş (demo) */
+const DEMO_CUST=['B. Yılmaz · Cumhuriyet','N. Arslan · Bahçelievler','T. Koç · Eskipazar','F. Şen · Karatepe','D. Ünal · Şehitler'];
+function newOrder(){
+  if(!isOpen){ toast('Restoran kapalı — yeni sipariş alınamıyor'); return; }
+  seq++; const id='VZ-'+seq;
+  const ch=['vizz','tel','ys'][Math.floor(Math.random()*3)];
+  const n=1+Math.floor(Math.random()*2); const picks=[]; let tot=0;
+  for(let i=0;i<n+1;i++){ const m=M[Math.floor(Math.random()*M.length)]; const q=1+Math.floor(Math.random()*2); picks.push([q,m[0]]); tot+=q*m[3]; }
+  const who=DEMO_CUST[Math.floor(Math.random()*DEMO_CUST.length)];
+  const o={id,stage:'yeni',ch,cust:ch==='tel'?'Telefon ·'+who.split('·')[1]:who,sla:300,items:picks,tot};
+  ORD=[o,...ORD]; renderKanban();
+  const el=$('#oc-'+id); if(el && $('#v-pano').classList.contains('on')){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}
+  toast(`<b>${id}</b> · ${CH[ch].t} kanalından yeni sipariş · ₺${tot}`);
+}
+$('#demoBtn').onclick=newOrder;
+
+/* canlı countdown */
+setInterval(()=>{ let dirty=false;
+  ORD.forEach(o=>{ if((o.stage==='yeni'||o.stage==='hazirlaniyor') && o.sla>0){o.sla=Math.max(0,o.sla-1);dirty=true;} });
+  if(dirty && $('#v-pano').classList.contains('on')){
+    ORD.forEach(o=>{ if(o.stage==='yeni'||o.stage==='hazirlaniyor'){ const el=$('#oc-'+o.id); if(el){const cd=cdLabel(o);const b=el.querySelector('.cd');if(b){b.className='cd '+cd.cls;b.innerHTML=`<svg class="ic" style="width:12px;height:12px" viewBox="0 0 24 24">${cd.ic}</svg>${cd.txt}`;}} } });
+  }
+},1000);
+
+/* KDS üst KPI şeridi */
+function renderKpis(){
+  const live=ORD.filter(o=>o.stage!=='tamamlandi').length;
+  const prep=ORD.filter(o=>o.stage==='hazirlaniyor').length;
+  const ready=ORD.filter(o=>o.stage==='hazir').length;
+  const done=ORD.filter(o=>o.stage==='tamamlandi').length;
+  const ciro=ORD.reduce((a,o)=>a+o.tot,0);
+  const K=[
+   {lab:'Aktif Sipariş',val:live,sub:'<span class="up">▲</span> mutfakta'},
+   {lab:'Hazırlanıyor',val:prep,sub:'<span class="flat">ort. 14 dk</span>'},
+   {lab:'Pakette Hazır',val:ready,sub:ready?'<span class="up">kurye bekliyor</span>':'<span class="flat">—</span>'},
+   {lab:'Tamamlanan',val:done,sub:'<span class="up">▲ 23</span> bugün'},
+   {lab:'Bugünkü Ciro',val:'₺'+(ciro/1000).toFixed(1)+'K',sub:'<span class="up">▲ %14</span> dün'},
+  ];
+  $('#kpis').innerHTML=K.map(k=>`<div class="kpi"><div class="lab">${k.lab}</div><div class="val num">${k.val}</div><div class="sub">${k.sub}</div></div>`).join('');
+}
+
+/* ===================================================================
+   MENÜ YÖNETİMİ
+   =================================================================== */
+const CATS=[{n:'Köfte & Tabak',idx:[0,1]},{n:'Tatlı',idx:[2]},{n:'İçecek',idx:[3]}];
+const menuState=M.map(()=>({on:true}));
+let curCat=0;
+function buildMenu(){
+  $('#v-menu').innerHTML=`<div class="rhead"><div><h2>Menü Yönetimi</h2><p>${M.length} ürün · stok/86 anında vitrine yansır</p></div>
+    <button class="btn btn-y" onclick="RP.toast('Yeni ürün formu (demo)')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Yeni Ürün</button></div>
+    <div class="menuwrap"><div class="catlist" id="catlist"></div><div id="menuItems" style="display:flex;flex-direction:column;gap:11px"></div></div>`;
+  renderCats(); renderMenuItems();
+}
+function renderCats(){
+  $('#catlist').innerHTML=CATS.map((c,i)=>`<button class="${i===curCat?'on':''}" onclick="RP.cat(${i})">${c.n}<span class="c">${c.idx.length}</span></button>`).join('');
+}
+function renderMenuItems(){
+  const idx=CATS[curCat].idx;
+  $('#menuItems').innerHTML=idx.map(i=>{
+    const m=M[i]; const s=menuState[i];
+    return `<div class="card menucard ${s.on?'':'off'}" id="mi-${i}">
+      <img class="ph" src="${D.IMG(m[2])}" onerror="VIZZ.imgFallback(this,'${m[2]}')" alt="${m[0]}">
+      <div class="info"><h4>${m[0]} ${s.on?'':'<span class="badge b-bad" style="font-size:10px;padding:2px 7px">86 · Tükendi</span>'}</h4>
+        <div class="ds">${m[1]}</div>
+        <div class="px">₺${m[3]}</div></div>
+      <div class="ctl">
+        <button class="t86 ${s.on?'':'off'}" onclick="RP.toggle86(${i})"><span>${s.on?'Stokta':'Kapalı'}</span><span class="sw"><i></i></span></button>
+        <button class="btn btn-ghost btn-icon" onclick="RP.toast('${m[0]} düzenle (demo)')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg></button>
+      </div></div>`;
+  }).join('');
+}
+function cat(i){ curCat=i; renderCats(); renderMenuItems(); }
+function toggle86(i){
+  menuState[i].on=!menuState[i].on; renderMenuItems();
+  toast(menuState[i].on ? `<b>${M[i][0]}</b> stoğa alındı → vitrine yansıdı` : `<b>${M[i][0]}</b> "86" yapıldı → vitrinden gizlendi`);
+}
+
+/* ===================================================================
+   KURYE
+   =================================================================== */
+function buildKurye(){
+  const enRoute=ORD.filter(o=>o.stage==='kuryede');
+  const ready=ORD.filter(o=>o.stage==='hazir');
+  const free=D.COURIERS.filter(c=>c.status==='online').slice(0,6);
+  $('#v-kurye').innerHTML=`<div class="rhead"><div><h2>Kurye</h2><p>VIZZ esnaf filosu · paket hazırsa tek tıkla çağır</p></div>
+    <button class="btn btn-y" onclick="RP.callCourier()"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/></svg>Kurye Çağır</button></div>
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;align-items:start">
+    <div class="card"><div class="card-h"><div class="t"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/></svg> Atanan Kuryeler — Canlı</div><span class="badge b-y">${enRoute.length} yolda</span></div>
+      <div id="courierTrack">${enRoute.length?enRoute.map(courierTrack).join(''):'<div class="dim" style="padding:30px;text-align:center;font-size:12px">Şu an yolda paket yok</div>'}</div></div>
+    <div class="card"><div class="card-h"><div class="t"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg> Yakındaki Müsait Kurye</div><span class="badge b-ok">${free.length} müsait</span></div>
+      ${ready.length?`<div style="padding:11px 13px;border-bottom:1px solid var(--line);background:var(--y-soft)"><div style="font-size:11.5px;font-weight:700;color:var(--y);display:flex;align-items:center;gap:7px"><svg class="ic ic-sm" viewBox="0 0 24 24" style="color:var(--y)"><path d="M5 12l5 5L20 7"/></svg>${ready.length} paket hazır · kurye bekliyor</div></div>`:''}
+      ${free.map(freeCourier).join('')}</div>
+  </div>`;
+}
+function courierTrack(o){
+  const steps=[['Çağrıldı','done'],['Restoranda','done'],['Yolda','act'],['Teslim','']];
+  return `<div style="border-bottom:1px solid var(--line)">
+    <div class="crow"><div class="av busy">${o.courier.split(' ').map(p=>p[0]).join('')}</div>
+      <div class="info"><b>${o.courier}</b><div class="sub">${o.id} ·${o.cust.split('·')[1]||' '+o.cust} · ₺${o.tot}</div></div>
+      <span class="cd warn"><svg class="ic" style="width:12px;height:12px" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 1.5"/></svg>${o.cmin} dk</span></div>
+    <div style="padding:0 15px 13px"><div class="stepper">${steps.map(s=>`<div class="st ${s[1]}"><div class="bub"><svg class="ic" viewBox="0 0 24 24">${s[1]==='done'?'<path d="M5 12l4 4L19 6"/>':'<circle cx="12" cy="12" r="3"/>'}</svg></div><div class="lb">${s[0]}</div></div>`).join('')}</div></div></div>`;
+}
+function freeCourier(c){
+  return `<div class="crow" style="border-bottom:1px solid var(--line)">
+    <div class="av on">${c.name.split(' ').map(p=>p[0]).join('')}</div>
+    <div class="info"><b>${c.name}</b><div class="sub">${c.zone} · ${(rnd(0.4,1.8)).toFixed(1)} km · puan ${c.rate}</div></div>
+    <button class="btn" onclick="RP.toast('${c.name} çağrıldı — yola çıkıyor')">Çağır</button></div>`;
+}
+function callCourier(){
+  const ready=ORD.filter(o=>o.stage==='hazir');
+  if(!ready.length){ toast('Pakete hazır sipariş yok — önce siparişi "Hazır" yap'); return; }
+  advance(ready[0].id); buildKurye();
+}
+
+/* ===================================================================
+   RAPORLAR
+   =================================================================== */
+let reportsBuilt=false;
+function buildReports(){
+  const done=ORD.filter(o=>o.stage==='tamamlandi').length;
+  const ciro=ORD.reduce((a,o)=>a+o.tot,0);
+  const RK=[
+   {lab:'Bugün Sipariş',val:ORD.length,sub:'<span class="up">▲ 18</span> dün'},
+   {lab:'Bugünkü Ciro',val:'₺'+(ciro/1000).toFixed(1)+'K',sub:'<span class="up">▲ %14</span> dün',accent:true},
+   {lab:'Ort. Hazırlık',val:'14<small> dk</small>',sub:'<span class="up">▼ hedef altı</span>'},
+   {lab:'İptal',val:'%2.1',sub:'<span class="down">▼</span> 1 iptal'},
+  ];
+  $('#repKpis').innerHTML=RK.map(k=>`<div class="kpi${k.accent?' accent':''}"><div class="lab">${k.lab}</div><div class="val num">${k.val}</div><div class="sub">${k.sub}</div></div>`).join('');
+
+  if(reportsBuilt){ setTimeout(()=>charts.forEach(c=>c.resize()),60); return; }
+  reportsBuilt=true;
+  const cards=[
+    {id:'r-rev',col:8,t:'Ciro Trendi — bugün (saatlik)',s:'gün içi gelir akışı',h:200},
+    {id:'r-mix',col:4,t:'Kanal Dağılımı',s:'sipariş kaynağı',h:200},
+    {id:'r-prep',col:6,t:'Hazırlık Süresi',s:'mutfak çıktı hızı (saatlik dk)',h:200},
+    {id:'r-pareto',col:6,t:'En Çok Satan Menü (Pareto)',s:'adet + birikimli %',h:200},
+  ];
+  $('#reportGrid').innerHTML=cards.map(c=>`<div class="card col-${c.col}"><div class="card-h"><div class="t">${c.t}</div><span class="dim" style="font-size:11px">${c.s}</span></div><div style="padding:10px 12px 12px;flex:1;display:flex"><div class="chart" id="${c.id}" style="height:${c.h}px"></div></div></div>`).join('');
+
+  // Ciro trend (line)
+  mkChart('r-rev').setOption({tooltip:{trigger:'axis',...baseTip,formatter:p=>p[0].name+':00 → <b>₺'+(p[0].value*1000).toLocaleString('tr')+'</b>'},grid:{left:6,right:14,top:14,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:['10','11','12','13','14','15','16','17','18','19','20'],...axisBase},
+    yAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:'₺{value}K'}},
+    series:[{type:'line',smooth:true,symbol:'none',data:[0.8,1.6,3.4,4.1,2.2,1.5,1.9,2.8,3.9,4.6,3.1],lineStyle:{color:C.y,width:2.5},
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(255,196,0,.30)'},{offset:1,color:'rgba(255,196,0,0)'}])}}]});
+  // Kanal dağılımı (donut)
+  mkChart('r-mix').setOption({tooltip:{...baseTip,formatter:p=>p.name+': <b>%'+p.percent+'</b> ('+p.value+' sipariş)'},
+    series:[{type:'pie',radius:['52%','78%'],center:['50%','52%'],avoidLabelOverlap:false,itemStyle:{borderColor:'#15181D',borderWidth:3},
+      label:{show:true,position:'center',formatter:'{total|'+(ORD.length*9)+'}\n{sub|bugün}',rich:{total:{fontSize:24,fontWeight:800,color:'#E9EBEE'},sub:{fontSize:10,color:C.tx3}}},
+      labelLine:{show:false},
+      data:[{value:54,name:'VIZZ',itemStyle:{color:C.y}},{value:28,name:'Telefon',itemStyle:{color:C.info}},{value:18,name:'Yemeksepeti',itemStyle:{color:C.purple}}]}]});
+  // Hazırlık süresi (bar)
+  mkChart('r-prep').setOption({tooltip:{trigger:'axis',...baseTip,formatter:p=>p[0].name+':00 → <b>'+p[0].value+' dk</b>'},grid:{left:6,right:14,top:14,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:['11','12','13','14','17','18','19','20'],...axisBase},yAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:'{value}dk'}},
+    series:[{type:'bar',data:[10,13,18,16,11,15,19,14].map(v=>({value:v,itemStyle:{color:v>=16?C.bad:v>=13?C.warn:C.ok,borderRadius:[3,3,0,0]}})),barWidth:'56%',
+      markLine:{symbol:'none',data:[{yAxis:15,name:'hedef'}],label:{color:C.tx3,fontSize:9,formatter:'hedef 15dk'},lineStyle:{color:C.tx3,type:'dashed'}}}]});
+  // En çok satan pareto
+  const pn=['Izgara Köfte','Çapanoğlu Spc.','Künefe','Ayran'],pv=[64,38,29,22];
+  let acc=0,tot=pv.reduce((a,b)=>a+b,0),cum=pv.map(v=>Math.round((acc+=v)/tot*100));
+  mkChart('r-pareto').setOption({tooltip:{trigger:'axis',...baseTip},grid:{left:6,right:34,top:14,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:pn,...axisBase,axisLabel:{...axisBase.axisLabel,rotate:14,fontSize:9}},
+    yAxis:[{type:'value',...axisBase},{type:'value',max:100,...axisBase,axisLabel:{...axisBase.axisLabel,formatter:'{value}%'}}],
+    series:[{type:'bar',data:pv.map((v,i)=>({value:v,itemStyle:{color:i===0?C.y:'#3a4048',borderRadius:[3,3,0,0]}})),barWidth:'54%',label:{show:true,position:'top',color:C.tx2,fontSize:10}},
+      {type:'line',yAxisIndex:1,data:cum,smooth:true,symbol:'circle',symbolSize:5,lineStyle:{color:C.info,width:2},itemStyle:{color:C.info}}]});
+  setTimeout(()=>charts.forEach(c=>c.resize()),60);
+}
+
+/* ===================================================================
+   AYARLAR
+   =================================================================== */
+function buildAyarlar(){
+  $('#v-ayarlar').innerHTML=`<div class="rhead"><div><h2>Ayarlar</h2><p>restoran profili · operasyon kuralları</p></div></div>
+  <div class="setgrid">
+    <div class="card" style="padding:6px 16px"><div class="t" style="margin:12px 0;font-weight:700">Restoran</div>
+      <div class="setrow"><div class="lab">Çalışma saatleri<span class="ds">Açık · 10:00 – 23:30</span></div><button class="btn btn-ghost" onclick="RP.toast('Saat düzenle (demo)')">Düzenle</button></div>
+      <div class="setrow"><div class="lab">Ortalama hazırlık süresi<span class="ds">Müşteriye gösterilen tahmini</span></div><div class="seg"><button onclick="RP.seg(this)">10 dk</button><button class="on" onclick="RP.seg(this)">15 dk</button><button onclick="RP.seg(this)">20 dk</button></div></div>
+      <div class="setrow"><div class="lab">Minimum sepet<span class="ds">VIZZ teslimat için</span></div><b class="hl num">₺120</b></div>
+      <div class="setrow"><div class="lab">Otomatik sipariş kabul<span class="ds">Yeni siparişi manuel onaysız al</span></div><button class="swp" onclick="RP.flip(this,'Otomatik kabul')"><i></i></button></div>
+    </div>
+    <div class="card" style="padding:6px 16px"><div class="t" style="margin:12px 0;font-weight:700">Operasyon & Bildirim</div>
+      <div class="setrow"><div class="lab">Yeni sipariş sesi<span class="ds">Mutfak ekranında çan</span></div><button class="swp" onclick="RP.flip(this,'Sipariş sesi')"><i></i></button></div>
+      <div class="setrow"><div class="lab">Kurye otomatik çağır<span class="ds">Sipariş "hazır" olunca anında ata</span></div><button class="swp off" onclick="RP.flip(this,'Otomatik kurye')"><i></i></button></div>
+      <div class="setrow"><div class="lab">Stok bitince "86" uyarısı<span class="ds">Tükenen ürünü vitrinden gizle</span></div><button class="swp" onclick="RP.flip(this,'86 uyarısı')"><i></i></button></div>
+      <div class="setrow"><div class="lab">Yoğun saat modu<span class="ds">+10 dk hazırlık tamponu</span></div><button class="swp off" onclick="RP.flip(this,'Yoğun saat modu')"><i></i></button></div>
+    </div>
+  </div>`;
+}
+function flip(el,name){ el.classList.toggle('off'); toast(`<b>${name}</b> ${el.classList.contains('off')?'kapatıldı':'açıldı'}`); }
+function seg(el){ el.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); el.classList.add('on'); toast('Hazırlık süresi: <b>'+el.textContent+'</b>'); }
+
+/* ===================================================================
+   GÖRÜNÜM YÖNETİMİ
+   =================================================================== */
+const names={pano:'Sipariş Panosu',menu:'Menü Yönetimi',kurye:'Kurye',raporlar:'Raporlar',ayarlar:'Ayarlar'};
+const built={};
+function go(v){
+  document.querySelectorAll('.rail .ni').forEach(n=>n.classList.toggle('on',n.dataset.v===v));
+  document.querySelectorAll('.content > section').forEach(s=>s.classList.remove('on'));
+  $('#v-'+v).classList.add('on'); $('#viewName').textContent='· '+names[v];
+  if(v==='raporlar') buildReports();
+  if(v==='kurye') buildKurye();
+  if(!built[v]){ built[v]=true; ({menu:buildMenu,ayarlar:buildAyarlar}[v]||(()=>{}))(); }
+  setTimeout(()=>charts.forEach(c=>c.resize()),80);
+}
+document.querySelectorAll('.rail .ni').forEach(n=>n.onclick=()=>go(n.dataset.v));
+
+/* init */
+renderKanban();
+window.RP={advance,toggle86,cat,callCourier,flip,seg,toast};
+})();
 </script>
 </body></html>

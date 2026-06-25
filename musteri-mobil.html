@@ -1,162 +1,780 @@
 <!DOCTYPE html>
 <html lang="tr"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIZZ — Müşteri App</title>
+<title>VIZZ — Yemek Siparişi</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="vizz.css">
+<link rel="stylesheet" href="vizz-pro.css">
 <style>
-  html,body{height:100%}
-  body{background:#1c1b18;display:flex;justify-content:center}
-  .device{width:100%;max-width:430px;height:100%;background:var(--paper);position:relative;overflow:hidden;display:flex;flex-direction:column}
-  .screen{flex:1;overflow-y:auto;position:relative}
-  .view{display:none}.view.active{display:block}
-  .hdr{background:var(--ink);color:#fff;padding:16px 18px 18px;border-radius:0 0 22px 22px;position:sticky;top:0;z-index:20}
-  .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-  .loc{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;background:#ffffff18;padding:7px 11px;border-radius:30px}
-  .search{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:12px 14px;color:var(--muted);font-size:14px}
-  .chips{display:flex;gap:9px;overflow-x:auto;padding:14px 16px}
-  .chip{flex:none;border:1.5px solid var(--line);background:#fff;font-weight:600;font-size:13px;padding:9px 14px;border-radius:30px;display:flex;gap:6px;align-items:center}
-  .chip.active{background:var(--honey);border-color:var(--honey);box-shadow:0 6px 14px rgba(242,169,0,.35)}
-  .promo{margin:4px 16px 8px;background:linear-gradient(120deg,var(--ink),#34301f);color:#fff;border-radius:18px;padding:16px;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
-  .promo:before{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;background:radial-gradient(var(--honey),transparent 70%);opacity:.5}
-  .promo h3{font-size:17px;margin-bottom:4px}.promo p{font-size:12px;color:#d9d4c4}.promo .bee{font-size:50px}
-  .sec{font-size:16px;font-weight:800;padding:10px 16px 6px;display:flex;justify-content:space-between;align-items:center}
-  .list{padding:4px 16px 16px;display:flex;flex-direction:column;gap:13px}
-  .rcard{background:#fff;border-radius:18px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line)}
-  .rcard .ph{height:128px;width:100%;object-fit:cover;display:block}
-  .rcard .phw{position:relative}.rcard .badge{position:absolute;top:10px;left:10px}
-  .rcard .body{padding:12px 14px}
-  .rcard .r1{display:flex;justify-content:space-between;align-items:center}
-  .rcard .name{font-weight:800;font-size:15px}.rcard .rate{background:#f1f8f2;color:var(--green);font-weight:800;font-size:12.5px;padding:3px 8px;border-radius:8px}
-  .rcard .meta{display:flex;gap:12px;color:var(--muted);font-size:12.5px;margin-top:7px}.rcard .meta b{color:var(--ink)}
-  /* menu */
-  .mhead{height:170px;position:relative}.mhead img{width:100%;height:100%;object-fit:cover}
-  .mhead .back{position:absolute;top:14px;left:14px;width:38px;height:38px;border-radius:50%;background:#fff;border:none;font-size:18px;box-shadow:var(--shadow)}
-  .minfo{background:#fff;margin:-26px 16px 0;border-radius:18px;padding:16px;box-shadow:var(--shadow);position:relative}
-  .minfo h2{font-size:19px}.minfo .tags{color:var(--muted);font-size:13px;margin-top:4px}
-  .item{display:flex;gap:12px;background:#fff;margin:10px 16px;border-radius:14px;padding:11px;box-shadow:var(--shadow-sm);align-items:center}
-  .item img{width:72px;height:72px;border-radius:12px;object-fit:cover;flex:none}
-  .item .t{flex:1}.item .t b{font-size:14px}.item .t p{font-size:11.5px;color:var(--muted);margin:2px 0 5px}.item .t .pr{font-weight:800;font-size:14.5px}
-  .add{width:38px;height:38px;border-radius:11px;border:none;background:var(--honey);color:var(--ink);font-size:22px;font-weight:700;box-shadow:0 6px 12px rgba(242,169,0,.4)}
-  /* cart */
-  .cwrap{padding:16px}
-  .ci{display:flex;align-items:center;gap:12px;background:#fff;border-radius:14px;padding:11px;margin-bottom:10px;box-shadow:var(--shadow-sm)}
-  .ci img{width:52px;height:52px;border-radius:10px;object-fit:cover;flex:none}.ci .t{flex:1}.ci .t b{font-size:13.5px}.ci .t span{font-size:12px;color:var(--muted)}
-  .qty{display:flex;align-items:center;gap:9px;background:var(--paper);border-radius:30px;padding:4px}.qty button{width:27px;height:27px;border:none;border-radius:50%;background:var(--ink);color:#fff;font-size:15px}
-  .empty{text-align:center;color:var(--muted);padding:70px 30px}.empty .b{font-size:60px}
-  .summary{background:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow)}
-  .srow{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}.srow.total{color:var(--ink);font-weight:800;font-size:17px;border-top:1px dashed var(--line);padding-top:10px}
-  .cta{width:100%;background:var(--honey);color:var(--ink);font-weight:800;font-size:15.5px;border:none;border-radius:14px;padding:15px;margin-top:12px;box-shadow:0 10px 22px rgba(242,169,0,.4)}
-  /* TRACKING — Domino's style */
-  .trk{padding:0 0 16px}
-  .trkmap{height:230px;position:relative}.trkmap #tMap{height:100%}
-  .eta{position:absolute;top:14px;left:14px;right:14px;background:rgba(20,19,15,.92);color:#fff;border-radius:14px;padding:12px 15px;z-index:500;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(6px)}
-  .eta b{font-size:24px;color:var(--honey)}.eta .s{font-size:11.5px;color:#cfcabb}
-  .stagebar{display:flex;padding:18px 16px 6px;gap:6px}
-  .stg{flex:1;text-align:center;position:relative}
-  .stg .bar{height:6px;border-radius:6px;background:var(--line)}
-  .stg.done .bar,.stg.now .bar{background:var(--honey)}
-  .stg .ic{font-size:22px;margin-top:8px;filter:grayscale(1);opacity:.4}
-  .stg.done .ic,.stg.now .ic{filter:none;opacity:1}
-  .stg.now .ic{animation:bob 1s ease-in-out infinite}
-  @keyframes bob{50%{transform:translateY(-4px)}}
-  .stg .lbl{font-size:10.5px;color:var(--muted);margin-top:4px;font-weight:600}.stg.now .lbl,.stg.done .lbl{color:var(--ink)}
-  .trkcard{background:#fff;margin:12px 16px;border-radius:16px;padding:14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px}
-  .trkcard .av{width:50px;height:50px;border-radius:50%;background:var(--honey-soft);display:grid;place-items:center;font-size:26px;flex:none}
-  .trkcard .t{flex:1}.trkcard .t b{font-size:15px;display:block}.trkcard .t span{font-size:12.5px;color:var(--muted)}
-  .trkcard .call{width:42px;height:42px;border-radius:50%;background:var(--ink);color:#fff;border:none;font-size:18px}
-  .ordsum{background:#fff;margin:0 16px;border-radius:16px;padding:14px;box-shadow:var(--shadow-sm)}
-  .ordsum .l{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--muted)}.ordsum .l b{color:var(--ink)}
-  /* tabbar */
-  .tabbar{height:70px;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;flex:none}
-  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:11px;font-weight:600;background:none;border:none;position:relative}
-  .tab svg{width:23px;height:23px}.tab.active{color:var(--ink)}.tab.active svg{stroke:var(--honey-deep)}
-  .tab .cnt{position:absolute;top:-4px;right:8px;background:var(--honey);color:var(--ink);font-size:10px;font-weight:800;min-width:17px;height:17px;border-radius:10px;display:grid;place-items:center;padding:0 4px}
+  /* ====== cihaz çerçevesi ====== */
+  body{background:radial-gradient(1200px 600px at 50% -10%,#16181d,#0B0C0E 60%);min-height:100vh;
+    display:flex;align-items:center;justify-content:center;padding:22px 12px}
+  .device{width:430px;max-width:100%;height:min(900px,94vh);background:var(--bg);border:1px solid var(--line-2);
+    border-radius:42px;box-shadow:0 40px 120px rgba(0,0,0,.7),0 0 0 9px #050608,0 0 0 10px #1a1d22;
+    position:relative;overflow:hidden;display:flex;flex-direction:column}
+  /* status bar */
+  .statusbar{height:42px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+    font-size:13px;font-weight:700;color:var(--tx);position:relative;z-index:6}
+  .statusbar .notch{position:absolute;left:50%;top:9px;transform:translateX(-50%);width:108px;height:24px;background:#000;border-radius:0 0 16px 16px}
+  .statusbar .sig{display:flex;align-items:center;gap:6px}
+  .statusbar .sig svg{width:16px;height:12px;stroke:none;fill:var(--tx)}
+  .statusbar .batt{width:23px;height:12px;border:1.5px solid var(--tx);border-radius:3px;position:relative;padding:1.5px}
+  .statusbar .batt::after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:var(--tx);border-radius:0 2px 2px 0}
+  .statusbar .batt i{display:block;height:100%;width:78%;background:var(--y);border-radius:1px}
+
+  /* screen viewport */
+  .screens{flex:1;position:relative;overflow:hidden}
+  .scr{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:0 0 96px;display:none;-webkit-overflow-scrolling:touch}
+  .scr.on{display:block;animation:fade .28s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .scr::-webkit-scrollbar{width:0}
+
+  /* ====== tab bar ====== */
+  .tabbar{position:absolute;left:0;right:0;bottom:0;height:80px;background:rgba(13,15,18,.86);backdrop-filter:blur(18px);
+    border-top:1px solid var(--line);display:flex;align-items:stretch;padding:6px 8px 18px;z-index:20}
+  .tabbar button{flex:1;background:transparent;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    color:var(--tx-3);font-size:10px;font-weight:600;transition:.16s;position:relative}
+  .tabbar button .ic{width:22px;height:22px;transition:.16s}
+  .tabbar button.on{color:var(--y)}
+  .tabbar button.on .ic{transform:translateY(-1px)}
+  .tabbar button .cart-dot{position:absolute;top:4px;right:50%;margin-right:-19px;min-width:16px;height:16px;padding:0 4px;background:var(--y);
+    color:#15140F;border-radius:9px;font-size:9.5px;font-weight:800;display:none;align-items:center;justify-content:center;border:2px solid #0d0f12}
+  .tabbar button .cart-dot.show{display:flex}
+
+  /* ====== ortak ====== */
+  .pad{padding:0 18px}
+  .h-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .sec-t{font-size:17px;font-weight:800;color:var(--tx);letter-spacing:-.3px}
+  .sec-s{font-size:11.5px;color:var(--tx-3);margin-top:1px}
+  .seeall{font-size:12px;font-weight:700;color:var(--y);display:flex;align-items:center;gap:3px;background:none;border:none}
+
+  /* keşfet header */
+  .kf-top{padding:6px 18px 14px;position:sticky;top:0;background:linear-gradient(180deg,var(--bg) 70%,rgba(11,12,14,0));z-index:5}
+  .kf-loc{display:flex;align-items:center;gap:10px}
+  .kf-loc .lg{width:34px;height:34px;border-radius:10px;object-fit:cover;background:#000;flex:none}
+  .kf-loc .addr{flex:1;min-width:0}
+  .kf-loc .addr .lab{font-size:10px;font-weight:700;color:var(--y);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:4px}
+  .kf-loc .addr .val{font-size:13.5px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:5px;margin-top:1px}
+  .kf-loc .addr .val .ic{width:14px;height:14px;color:var(--tx-3)}
+  .icon-btn{width:38px;height:38px;border-radius:12px;background:var(--s2);border:1px solid var(--line);display:grid;place-items:center;color:var(--tx-2);position:relative}
+  .icon-btn .ic{width:19px;height:19px}
+  .icon-btn .ndot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--bad);border:1.5px solid var(--s2)}
+  /* arama */
+  .search{display:flex;align-items:center;gap:9px;background:var(--s2);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-top:13px}
+  .search .ic{color:var(--tx-3);flex:none}
+  .search input{flex:1;background:none;border:none;outline:none;color:var(--tx);font-size:13.5px;font-family:inherit}
+  .search input::placeholder{color:var(--tx-3)}
+  .search .mic{color:var(--y)}
+  /* kategori chip */
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:13px 18px 4px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip-c{flex:none;display:flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--line);border-radius:30px;
+    padding:8px 14px 8px 11px;font-size:12.5px;font-weight:600;color:var(--tx-2);transition:.14s;white-space:nowrap}
+  .chip-c .ic{width:16px;height:16px;color:var(--tx-3)}
+  .chip-c:active{transform:scale(.96)}
+  .chip-c.on{background:var(--y-soft);border-color:var(--y-line);color:var(--y)}
+  .chip-c.on .ic{color:var(--y)}
+  /* promo */
+  .promo{margin:14px 18px 4px;border-radius:var(--r-xl);overflow:hidden;position:relative;background:linear-gradient(110deg,#1c1606,#0f1013 70%);
+    border:1px solid var(--y-line);padding:18px 16px;display:flex;align-items:center;gap:14px;min-height:104px}
+  .promo .glow{position:absolute;right:-30px;top:-30px;width:150px;height:150px;background:radial-gradient(circle,var(--y-glow),transparent 65%)}
+  .promo .ico{width:52px;height:52px;border-radius:15px;background:var(--y);display:grid;place-items:center;flex:none;box-shadow:0 8px 22px rgba(242,169,0,.3)}
+  .promo .ico .ic{width:27px;height:27px;color:#15140F;stroke-width:2.2}
+  .promo .tx h4{font-size:15.5px;font-weight:800;color:var(--tx);letter-spacing:-.3px}
+  .promo .tx p{font-size:11.5px;color:var(--tx-2);margin-top:3px;line-height:1.5}
+  .promo .code{display:inline-block;margin-top:7px;font-size:10.5px;font-weight:800;color:var(--y);background:var(--bg);
+    border:1px dashed var(--y-line);border-radius:6px;padding:3px 9px;letter-spacing:1px}
+
+  /* restoran kartı */
+  .rcards{display:flex;flex-direction:column;gap:13px;padding:13px 18px 4px}
+  .rcard{background:var(--s2);border:1px solid var(--line);border-radius:var(--r-xl);overflow:hidden;transition:.16s;cursor:pointer}
+  .rcard:active{transform:scale(.985);border-color:var(--line-3)}
+  .rcard .cover{position:relative;height:148px;background:var(--s3)}
+  .rcard .cover img{width:100%;height:100%;object-fit:cover}
+  .rcard .cover .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,12,14,.05) 30%,rgba(11,12,14,.82))}
+  .rcard .cover .toprow{position:absolute;top:11px;left:11px;right:11px;display:flex;align-items:flex-start;justify-content:space-between}
+  .rcard .cover .pill{background:rgba(11,12,14,.72);backdrop-filter:blur(6px);border:1px solid var(--line-2);border-radius:30px;
+    padding:5px 10px;font-size:11px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:5px}
+  .rcard .cover .pill .ic{width:13px;height:13px;color:var(--y);fill:var(--y);stroke:var(--y)}
+  .rcard .cover .fav{width:32px;height:32px;border-radius:50%;background:rgba(11,12,14,.55);backdrop-filter:blur(6px);border:1px solid var(--line-2);display:grid;place-items:center;color:var(--tx)}
+  .rcard .cover .fav .ic{width:16px;height:16px}
+  .rcard .cover .badge-b{position:absolute;left:11px;bottom:11px}
+  .rcard .info{padding:12px 14px 14px}
+  .rcard .info .nm{font-size:15px;font-weight:800;color:var(--tx);letter-spacing:-.3px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .rcard .info .nm .cat{font-size:11px;font-weight:600;color:var(--tx-3)}
+  .rcard .info .meta{display:flex;align-items:center;gap:13px;margin-top:9px;font-size:11.5px;color:var(--tx-2);font-weight:600}
+  .rcard .info .meta span{display:flex;align-items:center;gap:5px}
+  .rcard .info .meta .ic{width:14px;height:14px;color:var(--tx-3)}
+  .rcard .info .meta .free{color:var(--ok)}
+
+  /* ====== restoran / menü ekranı ====== */
+  .menu-cover{position:relative;height:215px;background:var(--s3)}
+  .menu-cover img{width:100%;height:100%;object-fit:cover}
+  .menu-cover .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,12,14,.35) 0%,transparent 35%,rgba(11,12,14,.92))}
+  .menu-cover .nav{position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between}
+  .navbtn{width:38px;height:38px;border-radius:50%;background:rgba(11,12,14,.6);backdrop-filter:blur(8px);border:1px solid var(--line-2);display:grid;place-items:center;color:var(--tx)}
+  .navbtn .ic{width:19px;height:19px}
+  .menu-cover .rinfo{position:absolute;left:18px;right:18px;bottom:14px}
+  .menu-cover .rinfo h2{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+  .menu-cover .rinfo .row{display:flex;align-items:center;gap:9px;margin-top:9px;flex-wrap:wrap}
+  .info-pill{background:rgba(21,24,29,.78);backdrop-filter:blur(6px);border:1px solid var(--line-2);border-radius:30px;padding:5px 11px;
+    font-size:11.5px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:5px}
+  .info-pill .ic{width:13px;height:13px;color:var(--y)}
+  .info-pill.star .ic{fill:var(--y);stroke:var(--y)}
+  .min-bar{margin:14px 18px 0;background:var(--s2);border:1px solid var(--line);border-radius:11px;padding:11px 13px;display:flex;align-items:center;gap:10px}
+  .min-bar .ic{width:18px;height:18px;color:var(--y);flex:none}
+  .min-bar .t{flex:1;font-size:12px;color:var(--tx-2);font-weight:600}
+  .min-bar .t b{color:var(--tx)}
+  /* menü kategori sekmesi */
+  .menu-tabs{display:flex;gap:7px;overflow-x:auto;padding:15px 18px 6px;scrollbar-width:none;position:sticky;top:0;background:var(--bg);z-index:4}
+  .menu-tabs::-webkit-scrollbar{display:none}
+  .menu-tabs button{flex:none;background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:7px 13px;font-size:12px;font-weight:700;color:var(--tx-2);white-space:nowrap}
+  .menu-tabs button.on{background:var(--y);color:#15140F;border-color:var(--y)}
+  .menu-list{padding:6px 18px 4px;display:flex;flex-direction:column;gap:11px}
+  .mitem{display:flex;gap:13px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:11px;transition:.15s}
+  .mitem:active{border-color:var(--line-3)}
+  .mitem .ph{width:88px;height:88px;border-radius:11px;overflow:hidden;flex:none;background:var(--s3);position:relative}
+  .mitem .ph img{width:100%;height:100%;object-fit:cover}
+  .mitem .body{flex:1;min-width:0;display:flex;flex-direction:column}
+  .mitem .nm{font-size:14px;font-weight:700;color:var(--tx);letter-spacing:-.2px}
+  .mitem .ds{font-size:11.5px;color:var(--tx-3);margin-top:3px;line-height:1.45;flex:1}
+  .mitem .br{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .mitem .pr{font-size:15px;font-weight:800;color:var(--y)}
+  .addbtn{width:34px;height:34px;border-radius:10px;background:var(--y);border:none;display:grid;place-items:center;color:#15140F;box-shadow:0 5px 14px rgba(242,169,0,.26)}
+  .addbtn .ic{width:18px;height:18px;stroke-width:2.6}
+  .addbtn:active{transform:scale(.9)}
+  .qty{display:flex;align-items:center;gap:9px;background:var(--s3);border:1px solid var(--line-2);border-radius:10px;padding:3px}
+  .qty button{width:28px;height:28px;border-radius:8px;background:var(--s4);border:none;color:var(--tx);display:grid;place-items:center}
+  .qty button .ic{width:15px;height:15px;stroke-width:2.6}
+  .qty button:first-child{background:transparent;color:var(--y)}
+  .qty .n{min-width:16px;text-align:center;font-weight:800;font-size:13px;color:var(--tx)}
+
+  /* ====== sepet ====== */
+  .pg-head{padding:8px 18px 4px;display:flex;align-items:center;gap:12px;position:sticky;top:0;background:var(--bg);z-index:5}
+  .pg-head h2{font-size:19px;font-weight:800;letter-spacing:-.4px}
+  .pg-head .navbtn{background:var(--s2);width:36px;height:36px}
+  .cart-rest{margin:12px 18px 0;display:flex;align-items:center;gap:11px;background:var(--s2);border:1px solid var(--line);border-radius:13px;padding:11px 13px}
+  .cart-rest .av-r{width:42px;height:42px;border-radius:11px;overflow:hidden;flex:none}
+  .cart-rest .av-r img{width:100%;height:100%;object-fit:cover}
+  .cart-rest .nm{font-size:13.5px;font-weight:700;color:var(--tx)}
+  .cart-rest .sub{font-size:11px;color:var(--tx-3);margin-top:2px;display:flex;align-items:center;gap:5px}
+  .cart-rest .sub .ic{width:12px;height:12px}
+  .cart-items{padding:12px 18px 0;display:flex;flex-direction:column;gap:10px}
+  .citem{display:flex;gap:12px;align-items:center;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:10px}
+  .citem .ph{width:58px;height:58px;border-radius:10px;overflow:hidden;flex:none;background:var(--s3)}
+  .citem .ph img{width:100%;height:100%;object-fit:cover}
+  .citem .body{flex:1;min-width:0}
+  .citem .nm{font-size:13px;font-weight:700;color:var(--tx)}
+  .citem .opt{font-size:10.5px;color:var(--tx-3);margin-top:2px}
+  .citem .pr{font-size:13px;font-weight:800;color:var(--y);margin-top:5px}
+  .coupon{margin:16px 18px 0;display:flex;gap:9px;align-items:center;background:var(--s2);border:1px dashed var(--y-line);border-radius:12px;padding:11px 13px}
+  .coupon .ic{width:18px;height:18px;color:var(--y);flex:none}
+  .coupon input{flex:1;background:none;border:none;outline:none;color:var(--tx);font-size:13px;font-family:inherit;font-weight:600;letter-spacing:.5px}
+  .coupon input::placeholder{color:var(--tx-3);letter-spacing:0;font-weight:400}
+  .coupon button{background:var(--y-soft);border:1px solid var(--y-line);color:var(--y);font-weight:700;font-size:12px;padding:6px 12px;border-radius:8px}
+  .summary{margin:16px 18px 0;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 15px}
+  .summary .ln{display:flex;justify-content:space-between;font-size:13px;color:var(--tx-2);margin-bottom:11px}
+  .summary .ln b{color:var(--tx);font-weight:600}
+  .summary .ln.disc{color:var(--ok)}.summary .ln.disc b{color:var(--ok)}
+  .summary .div{height:1px;background:var(--line);margin:4px 0 13px}
+  .summary .total{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;font-weight:700;color:var(--tx);margin:0}
+  .summary .total .big{font-size:22px;font-weight:800;color:var(--y);letter-spacing:-.5px}
+
+  /* ====== canlı takip ====== */
+  .track-map{position:relative;height:268px;background:#0d0f12}
+  #trackmap{position:absolute;inset:0}
+  .track-map .topfade{position:absolute;top:0;left:0;right:0;height:90px;z-index:500;pointer-events:none;background:linear-gradient(180deg,var(--bg),transparent)}
+  .track-map .nav{position:absolute;top:14px;left:16px;z-index:600}
+  .track-eta{position:absolute;left:50%;top:16px;transform:translateX(-50%);z-index:600;background:rgba(13,15,18,.9);backdrop-filter:blur(10px);
+    border:1px solid var(--y-line);border-radius:30px;padding:8px 16px;display:flex;align-items:center;gap:9px;box-shadow:var(--shadow)}
+  .track-eta .ic{width:16px;height:16px;color:var(--y)}
+  .track-eta .t{font-size:12.5px;font-weight:700;color:var(--tx)}
+  .track-eta .t b{color:var(--y);font-size:14px}
+  .track-sheet{background:var(--bg);border-radius:22px 22px 0 0;margin-top:-22px;position:relative;z-index:10;padding:8px 0 4px}
+  .track-sheet .grab{width:38px;height:4px;border-radius:4px;background:var(--s4);margin:6px auto 14px}
+  /* aşama cubugu */
+  .stages{display:flex;padding:0 22px 6px;gap:0}
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative}
+  .stage .ring{width:38px;height:38px;border-radius:50%;background:var(--s2);border:2px solid var(--line-2);display:grid;place-items:center;color:var(--tx-3);z-index:2;transition:.3s}
+  .stage .ring .ic{width:18px;height:18px}
+  .stage .lab{font-size:9.5px;font-weight:700;color:var(--tx-3);text-align:center;line-height:1.2}
+  .stage .bar{position:absolute;top:18px;left:-50%;width:100%;height:2.5px;background:var(--line-2);z-index:1}
+  .stage:first-child .bar{display:none}
+  .stage.done .ring{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+  .stage.done .bar{background:var(--ok)}
+  .stage.act .ring{background:var(--y);border-color:var(--y);color:#15140F;box-shadow:0 0 0 5px var(--y-glow)}
+  .stage.act .bar{background:linear-gradient(90deg,var(--ok),var(--y))}
+  .stage.act .lab{color:var(--y)}
+  .stage.done .lab{color:var(--tx-2)}
+  /* kurye kartı */
+  .courier-card{margin:16px 18px 0;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:13px;display:flex;align-items:center;gap:13px}
+  .courier-card .av-c{width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,var(--y),var(--y-2));display:grid;place-items:center;color:#15140F;font-weight:800;font-size:17px;flex:none;position:relative}
+  .courier-card .av-c .on-dot{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:var(--ok);border:2.5px solid var(--s2)}
+  .courier-card .body{flex:1;min-width:0}
+  .courier-card .nm{font-size:14px;font-weight:800;color:var(--tx)}
+  .courier-card .role{font-size:11px;color:var(--tx-3);margin-top:2px;display:flex;align-items:center;gap:6px}
+  .courier-card .role .star{color:var(--y);display:flex;align-items:center;gap:3px;font-weight:700}
+  .courier-card .role .star .ic{width:12px;height:12px;fill:var(--y);stroke:var(--y)}
+  .call-btns{display:flex;gap:8px;flex:none}
+  .call-btn{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;border:1px solid var(--line-2);background:var(--s3);color:var(--tx)}
+  .call-btn.green{background:var(--ok-bg);border-color:rgba(38,194,129,.3);color:var(--ok)}
+  .call-btn .ic{width:19px;height:19px}
+  .call-btn:active{transform:scale(.92)}
+  .track-order{margin:16px 18px 0;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+  .track-order .oh{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+  .track-order .oh .id{font-size:12px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:7px}
+  .track-order .oh .id .ic{width:15px;height:15px;color:var(--tx-3)}
+  .track-order .oitem{padding:10px 14px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--line)}
+  .track-order .oitem:last-child{border-bottom:none}
+  .track-order .oitem .q{min-width:24px;height:24px;border-radius:7px;background:var(--s4);display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--y);flex:none}
+  .track-order .oitem .nm{flex:1;font-size:12.5px;color:var(--tx-2);font-weight:600}
+  .track-order .oitem .pr{font-size:12.5px;font-weight:700;color:var(--tx);font-variant-numeric:tabular-nums}
+
+  /* ====== profil ====== */
+  .prof-head{padding:14px 18px 6px;display:flex;align-items:center;gap:14px}
+  .prof-head .av-p{width:62px;height:62px;border-radius:19px;background:linear-gradient(135deg,var(--y),var(--y-2));display:grid;place-items:center;color:#15140F;font-weight:800;font-size:23px;flex:none}
+  .prof-head .nm{font-size:18px;font-weight:800;color:var(--tx);letter-spacing:-.3px}
+  .prof-head .ph{font-size:12px;color:var(--tx-3);margin-top:3px}
+  .prof-head .edit{margin-left:auto;width:38px;height:38px;border-radius:12px;background:var(--s2);border:1px solid var(--line);display:grid;place-items:center;color:var(--tx-2)}
+  .prof-head .edit .ic{width:18px}
+  .prof-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px 18px 4px}
+  .pstat{background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:12px;text-align:center}
+  .pstat .v{font-size:19px;font-weight:800;color:var(--tx);letter-spacing:-.5px}
+  .pstat .v.y{color:var(--y)}
+  .pstat .l{font-size:10px;color:var(--tx-3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+  .plist-t{padding:18px 18px 8px;font-size:11px;font-weight:700;color:var(--tx-3);text-transform:uppercase;letter-spacing:.6px}
+  .plist{margin:0 18px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+  .prow{display:flex;align-items:center;gap:13px;padding:13px 14px;border-bottom:1px solid var(--line);transition:.13s}
+  .prow:last-child{border-bottom:none}
+  .prow:active{background:var(--s3)}
+  .prow .ig{width:36px;height:36px;border-radius:11px;background:var(--s3);border:1px solid var(--line);display:grid;place-items:center;color:var(--y);flex:none}
+  .prow .ig .ic{width:18px;height:18px}
+  .prow .body{flex:1;min-width:0}
+  .prow .body .t{font-size:13.5px;font-weight:700;color:var(--tx)}
+  .prow .body .s{font-size:11px;color:var(--tx-3);margin-top:2px}
+  .prow .chev{color:var(--tx-4)}
+  .prow .chev .ic{width:18px}
+  .prow .tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px}
+  /* toggle */
+  .tgl{width:42px;height:24px;border-radius:30px;background:var(--s4);border:1px solid var(--line-2);position:relative;transition:.18s;flex:none}
+  .tgl::after{content:"";position:absolute;top:1.5px;left:1.5px;width:19px;height:19px;border-radius:50%;background:var(--tx-2);transition:.18s}
+  .tgl.on{background:var(--y);border-color:var(--y)}
+  .tgl.on::after{left:20px;background:#15140F}
+
+  /* ====== alt aksiyon barı (sepete git / sipariş ver) ====== */
+  .bottom-bar{position:absolute;left:0;right:0;bottom:80px;padding:12px 18px 14px;background:linear-gradient(180deg,transparent,var(--bg) 30%);z-index:18;display:none}
+  .bottom-bar.show{display:block}
+  .bigbtn{width:100%;height:54px;border-radius:15px;background:var(--y);border:none;color:#15140F;font-weight:800;font-size:15px;
+    display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 10px 30px rgba(242,169,0,.32);transition:.14s}
+  .bigbtn:active{transform:scale(.985)}
+  .bigbtn .l{display:flex;align-items:center;gap:10px}
+  .bigbtn .l .ic{width:21px;height:21px;stroke-width:2.4}
+  .bigbtn .badge-n{background:#15140F;color:var(--y);min-width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:800;padding:0 6px}
+  .bigbtn .r{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+
+  /* empty state */
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 30px;text-align:center}
+  .empty .eic{width:78px;height:78px;border-radius:24px;background:var(--s2);border:1px solid var(--line);display:grid;place-items:center;color:var(--tx-4);margin-bottom:16px}
+  .empty .eic .ic{width:36px;height:36px}
+  .empty h3{font-size:16px;font-weight:800;color:var(--tx)}
+  .empty p{font-size:12.5px;color:var(--tx-3);margin-top:6px;max-width:230px;line-height:1.5}
+  .empty .btn-y{margin-top:18px;padding:11px 22px}
 </style></head><body>
 <div class="device">
-  <div class="screen">
-    <!-- HOME -->
-    <div class="view active" id="v-home">
-      <div class="hdr"><div class="hdr-top"><div class="vz-brand"><img id="logo" style="height:30px;width:30px" alt=""><b><i>V</i>IZZ</b></div>
-        <div class="loc">📍 Merkez, Yozgat ▾</div></div>
-        <div class="search" onclick="toast('🔎 Arama')">🔎 Ne yemek istersin?</div></div>
-      <div class="chips" id="chips"></div>
-      <div class="promo"><div><h3>İlk siparişe <span style="color:var(--honey)">vızz</span> indirim</h3><p>Bugün teslimat bizden 🐝</p></div><div class="bee">🐝</div></div>
-      <div class="sec">Yozgat'ta öne çıkanlar</div>
-      <div class="list" id="rlist"></div>
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <span class="num">19:24</span>
+    <div class="notch"></div>
+    <div class="sig">
+      <svg viewBox="0 0 20 14"><path d="M1 13h2v-3H1v3zm4 0h2V7H5v6zm4 0h2V4H9v9zm4 0h2V1h-2v12z"/></svg>
+      <svg viewBox="0 0 20 14" style="width:15px"><path d="M10 3c2.5 0 4.8 1 6.5 2.6l1.4-1.4A11 11 0 0 0 10 1 11 11 0 0 0 2.1 4.2l1.4 1.4A9 9 0 0 1 10 3zm0 4c1.4 0 2.6.5 3.6 1.4l1.4-1.4A7 7 0 0 0 10 5a7 7 0 0 0-5 2l1.4 1.4A5 5 0 0 1 10 7zm0 4c.6 0 1.1.2 1.5.6L10 13l-1.5-1.4c.4-.4.9-.6 1.5-.6z"/></svg>
+      <div class="batt"><i></i></div>
     </div>
-    <!-- MENU -->
-    <div class="view" id="v-menu"></div>
-    <!-- CART -->
-    <div class="view" id="v-cart"></div>
-    <!-- TRACKING -->
-    <div class="view" id="v-track">
-      <div class="trk">
-        <div class="trkmap"><div class="eta"><div><div class="s">Tahmini varış</div><b id="etaMin">9 dk</b></div><div style="text-align:right"><div class="s">Sipariş</div><b style="font-size:15px;color:#fff">VZ-7742</b></div></div><div id="tMap"></div></div>
-        <div class="stagebar" id="stages">
-          <div class="stg done"><div class="bar"></div><div class="ic">✅</div><div class="lbl">Onaylandı</div></div>
-          <div class="stg done"><div class="bar"></div><div class="ic">👨‍🍳</div><div class="lbl">Hazırlanıyor</div></div>
-          <div class="stg now"><div class="bar"></div><div class="ic">🛵</div><div class="lbl">Yolda</div></div>
-          <div class="stg"><div class="bar"></div><div class="ic">📍</div><div class="lbl">Yaklaşıyor</div></div>
-          <div class="stg"><div class="bar"></div><div class="ic">🏠</div><div class="lbl">Teslim</div></div>
+  </div>
+
+  <!-- SCREENS -->
+  <div class="screens">
+
+    <!-- ===== 1. KEŞFET ===== -->
+    <section class="scr on" id="s-kesfet">
+      <div class="kf-top">
+        <div class="kf-loc">
+          <img class="lg" id="logoTop" alt="VIZZ">
+          <div class="addr">
+            <div class="lab"><svg class="ic" viewBox="0 0 24 24" style="width:11px;height:11px;color:var(--y)"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>TESLİMAT ADRESİ</div>
+            <div class="val">Cumhuriyet Mah., Yozgat <svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+          </div>
+          <button class="icon-btn" onclick="VZ.go('profil')"><svg class="ic" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="ndot"></span></button>
         </div>
-        <div class="trkcard"><div class="av">🛵</div><div class="t"><b>Mehmet K. yolda</b><span>Çapanoğlu Köftecisi · ⭐ 4.9 · VIZZ kuryesi</span></div><button class="call" onclick="toast('📞 Kurye aranıyor…')">📞</button></div>
-        <div class="ordsum"><div class="l"><span>Izgara Köfte (8'li) ×1</span><b>₺165</b></div><div class="l"><span>Ayran ×2</span><b>₺60</b></div><div class="l"><span>Teslimat 🐝</span><b>Ücretsiz</b></div><div class="l" style="border-top:1px dashed var(--line);margin-top:4px;padding-top:8px"><span style="color:var(--ink);font-weight:800">Toplam</span><b style="font-size:16px">₺225</b></div></div>
+        <div class="search" onclick="VZ.toast('Arama — yemek veya restoran ara')">
+          <svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input placeholder="Köfte, pide, lahmacun ara…" readonly>
+          <svg class="ic ic-sm mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        </div>
       </div>
-    </div>
+
+      <div class="chips" id="catChips"></div>
+
+      <div class="promo" onclick="VZ.toast('VIZZBAL10 kuponu sepete uygulanmaya hazır')">
+        <div class="glow"></div>
+        <div class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2 9.5 8.5 3 9l5 4.5L6.5 20 12 16.5 17.5 20 16 13.5 21 9l-6.5-.5L12 2Z"/></svg></div>
+        <div class="tx">
+          <h4>İlk siparişe %10 indirim</h4>
+          <p>Yozgat'ın yerel arısı VIZZ ile, ücretsiz teslimat fırsatlarını kaçırma.</p>
+          <span class="code">KOD: VIZZBAL10</span>
+        </div>
+      </div>
+
+      <div class="pad h-row" style="margin-top:18px">
+        <div><div class="sec-t">Yozgat'ta öne çıkanlar</div><div class="sec-s">en sevilen 8 restoran · canlı</div></div>
+        <button class="seeall" onclick="VZ.toast('Tüm restoranlar listeleniyor')">Tümü <svg class="ic ic-sm" viewBox="0 0 24 24" style="width:13px"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+
+      <div class="rcards" id="restCards"></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ===== 2. RESTORAN / MENÜ ===== -->
+    <section class="scr" id="s-menu"></section>
+
+    <!-- ===== 3. SEPET ===== -->
+    <section class="scr" id="s-sepet"></section>
+
+    <!-- ===== 4. CANLI TAKİP ===== -->
+    <section class="scr" id="s-takip"></section>
+
+    <!-- ===== 5. PROFİL ===== -->
+    <section class="scr" id="s-profil">
+      <div class="pg-head" style="padding-top:14px"><h2>Hesabım</h2></div>
+      <div class="prof-head">
+        <div class="av-p">E</div>
+        <div><div class="nm">Eray Çaylak</div><div class="ph">+90 532 *** 14 88 · Yozgat</div></div>
+        <button class="edit" onclick="VZ.toast('Profil düzenleme')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg></button>
+      </div>
+
+      <div class="prof-stats">
+        <div class="pstat"><div class="v num">47</div><div class="l">Sipariş</div></div>
+        <div class="pstat"><div class="v y num">₺1.9K</div><div class="l">Tasarruf</div></div>
+        <div class="pstat"><div class="v num">4.9</div><div class="l">Puanım</div></div>
+      </div>
+
+      <div class="plist-t">Kayıtlı Adresler</div>
+      <div class="plist">
+        <div class="prow" onclick="VZ.toast('Ev adresi seçildi')">
+          <div class="ig"><svg class="ic" viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2v-9Z"/></svg></div>
+          <div class="body"><div class="t">Ev</div><div class="s">Cumhuriyet Mah. Lise Cad. No:14 D:3</div></div>
+          <span class="tag b-y badge" style="border:none">Varsayılan</span>
+        </div>
+        <div class="prow" onclick="VZ.toast('İş adresi seçildi')">
+          <div class="ig"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+          <div class="body"><div class="t">İş Yeri</div><div class="s">Çapanoğlu Mah. Sanayi Sitesi B-Blok</div></div>
+          <span class="chev"><svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+        </div>
+        <div class="prow" onclick="VZ.toast('Yeni adres ekleme haritası')">
+          <div class="ig"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="body"><div class="t">Yeni adres ekle</div></div>
+          <span class="chev"><svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+        </div>
+      </div>
+
+      <div class="plist-t">Ödeme Yöntemleri</div>
+      <div class="plist">
+        <div class="prow" onclick="VZ.toast('Kayıtlı kart seçildi')">
+          <div class="ig"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+          <div class="body"><div class="t">Banka Kartı</div><div class="s">•••• 4488 · Son kullanım 08/27</div></div>
+          <span class="tag b-ok badge" style="border:none">Aktif</span>
+        </div>
+        <div class="prow" onclick="VZ.toast('Kapıda ödeme seçildi')">
+          <div class="ig"><svg class="ic" viewBox="0 0 24 24"><path d="M3 7h18v10H3z"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+          <div class="body"><div class="t">Kapıda Ödeme</div><div class="s">Nakit veya kart</div></div>
+          <span class="chev"><svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+        </div>
+      </div>
+
+      <div class="plist-t">Bildirimler</div>
+      <div class="plist">
+        <div class="prow">
+          <div class="ig"><svg class="ic" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg></div>
+          <div class="body"><div class="t">Sipariş bildirimleri</div><div class="s">Kurye ve teslimat durumu</div></div>
+          <div class="tgl on" onclick="VZ.toggle(this)"></div>
+        </div>
+        <div class="prow">
+          <div class="ig"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2 9.5 8.5 3 9l5 4.5L6.5 20 12 16.5 17.5 20 16 13.5 21 9l-6.5-.5L12 2Z"/></svg></div>
+          <div class="body"><div class="t">Kampanya & indirimler</div><div class="s">Fırsat ve kupon haberleri</div></div>
+          <div class="tgl on" onclick="VZ.toggle(this)"></div>
+        </div>
+        <div class="prow" onclick="VZ.toast('Canlı destek hattına bağlanılıyor')">
+          <div class="ig"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg></div>
+          <div class="body"><div class="t">Yardım & Destek</div><div class="s">7/24 canlı destek hattı</div></div>
+          <span class="chev"><svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+        </div>
+      </div>
+      <div style="height:14px"></div>
+    </section>
+
   </div>
-  <!-- tabbar -->
-  <div class="tabbar">
-    <button class="tab active" data-t="home" onclick="go('home')"><svg fill="none" stroke="#14130F" stroke-width="2" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Keşfet</button>
-    <button class="tab" data-t="track" onclick="go('track')"><svg fill="none" stroke="#7A766A" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Siparişler</button>
-    <button class="tab" data-t="cart" onclick="go('cart')"><svg fill="none" stroke="#7A766A" stroke-width="2" viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6 5 2H2"/></svg>Sepet<span class="cnt" id="tabCnt" style="display:none">0</span></button>
-    <button class="tab" data-t="profile" onclick="toast('👤 Profil')"><svg fill="none" stroke="#7A766A" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
-  </div>
+
+  <!-- BOTTOM ACTION BAR -->
+  <div class="bottom-bar" id="bottomBar"></div>
+
+  <!-- TAB BAR -->
+  <nav class="tabbar" id="tabbar">
+    <button class="on" data-t="kesfet">
+      <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg>Keşfet</button>
+    <button data-t="menu">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M4 3v7a2 2 0 0 0 2 2h0V3M6 3v18M14 3c-1 1-2 3-2 6s2 4 3 4v8"/></svg>Restoran</button>
+    <button data-t="sepet">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12L5 3H2"/><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/></svg>Sepet
+      <span class="cart-dot" id="cartDot">0</span></button>
+    <button data-t="takip">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Takip</button>
+    <button data-t="profil">
+      <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>Hesap</button>
+  </nav>
 </div>
-<div class="vz-toast" id="toast"></div>
+
+<div class="toast" id="toast"></div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="vizz-data.js"></script>
 <script>
-document.getElementById('logo').src=VIZZ.LOGO;
-const R=VIZZ.RESTAURANTS;let cart=[],filter="Tümü",tMap=null;
-const cb=document.getElementById('chips');
-VIZZ.CATS.forEach(c=>{const b=document.createElement('button');b.className='chip'+(c==='Tümü'?' active':'');b.innerHTML=`<span>${VIZZ.CAT_EMOJI[c]}</span>${c}`;b.onclick=()=>{filter=c;[...cb.children].forEach(x=>x.classList.remove('active'));b.classList.add('active');rlist()};cb.appendChild(b)});
-function rlist(){document.getElementById('rlist').innerHTML=R.filter(r=>filter==='Tümü'||r.cat===filter).map(r=>`
-  <div class="rcard" onclick="openMenu(${r.id})"><div class="phw"><img class="ph" src="${VIZZ.IMG(r.cover)}" onerror="VIZZ.imgFallback(this,'${r.cover}')"><span class="pill badge">${r.badge}</span></div>
-   <div class="body"><div class="r1"><span class="name">${r.name}</span><span class="rate">★ ${r.rate}</span></div>
-   <div class="meta"><span>🕒 <b>${r.time} dk</b></span><span class="${r.fee==='Ücretsiz'?'tag-on':''}">🛵 ${r.fee==='Ücretsiz'?'Ücretsiz':'₺'+r.fee}</span><span>${r.zone}</span></div></div></div>`).join('');}
-rlist();
-function openMenu(id){const r=R.find(x=>x.id===id);document.getElementById('v-menu').innerHTML=`
-  <div class="mhead"><img src="${VIZZ.IMG(r.cover)}" onerror="VIZZ.imgFallback(this,'${r.cover}')"><button class="back" onclick="go('home')">←</button></div>
-  <div class="minfo"><h2>${r.name}</h2><div class="tags">${r.cat} • ${r.zone} • ⭐ ${r.rate} • ${r.time} dk • Min. ₺${r.min}</div></div>
-  <div class="sec">🐝 Menü</div>
-  ${r.menu.map(m=>`<div class="item"><img src="${VIZZ.IMG(m[2])}" onerror="VIZZ.imgFallback(this,'${m[2]}')"><div class="t"><b>${m[0]}</b><p>${m[1]}</p><span class="pr">₺${m[3]}</span></div><button class="add" onclick="addCart('${m[0].replace(/'/g,'')}',${m[3]},'${m[2]}')">+</button></div>`).join('')}<div style="height:16px"></div>`;go('menu');}
-function addCart(n,p,img){const e=cart.find(c=>c.name===n);if(e)e.q++;else cart.push({name:n,price:p,img,q:1});upd();toast('💛 Sepete eklendi: '+n);}
-function upd(){const n=cart.reduce((s,c)=>s+c.q,0);const t=document.getElementById('tabCnt');t.textContent=n;t.style.display=n?'grid':'none';}
-function renderCart(){const b=document.getElementById('v-cart');if(!cart.length){b.innerHTML='<div class="empty"><div class="b">🛒</div><p>Sepetin boş.<br>Hadi atıştır! 🐝</p></div>';return;}
- const sub=cart.reduce((s,c)=>s+c.price*c.q,0),fee=sub>=150?0:19.9,tot=sub+fee;
- b.innerHTML=`<div class="cwrap"><div class="sec" style="padding-left:0">Sepetim</div>
-  ${cart.map((c,i)=>`<div class="ci"><img src="${VIZZ.IMG(c.img)}" onerror="VIZZ.imgFallback(this,'${c.img}')"><div class="t"><b>${c.name}</b><br><span>₺${c.price}</span></div><div class="qty"><button onclick="chg(${i},-1)">−</button><b>${c.q}</b><button onclick="chg(${i},1)">+</button></div></div>`).join('')}
-  <div class="summary"><div class="srow"><span>Ara toplam</span><span>₺${sub.toFixed(2)}</span></div><div class="srow"><span>Teslimat (🐝 VIZZ filo)</span><span>${fee?'₺'+fee.toFixed(2):'Ücretsiz'}</span></div><div class="srow total"><span>Toplam</span><span>₺${tot.toFixed(2)}</span></div></div>
-  <button class="cta" onclick="go('track');toast('🎉 Siparişin alındı!')">Siparişi Onayla • ₺${tot.toFixed(2)}</button></div>`;}
-function chg(i,d){cart[i].q+=d;if(cart[i].q<=0)cart.splice(i,1);upd();renderCart();}
-function go(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('v-'+v).classList.add('active');document.querySelector('.screen').scrollTop=0;
- if(v==='cart')renderCart();if(v==='track')initTrack();
- document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));const tb=document.querySelector(`.tab[data-t="${v}"]`);if(tb)tb.classList.add('active');}
-let tt;function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),1800);}
-// tracking mini-map: courier (Çapanoğlu) -> home (Fatih) following roads
-function initTrack(){
- if(tMap){setTimeout(()=>tMap.invalidateSize(),120);return;}
- const Z=VIZZ.YOZGAT.zones, rest=Z.find(z=>z.n==='Çapanoğlu').c, home=Z.find(z=>z.n==='Fatih').c;
- tMap=L.map('tMap',{zoomControl:false,attributionControl:false}).setView([(rest[0]+home[0])/2,(rest[1]+home[1])/2],14.5);
- L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(tMap);
- L.marker(home,{icon:L.divIcon({html:'<div style="font-size:26px">🏠</div>',className:'',iconSize:[26,26],iconAnchor:[13,13]})}).addTo(tMap);
- L.marker(rest,{icon:L.divIcon({html:'<div style="font-size:22px">🍽️</div>',className:'',iconSize:[22,22],iconAnchor:[11,11]})}).addTo(tMap);
- const bee=L.marker(rest.slice(),{icon:L.divIcon({html:'<div class="vz-courier" style="font-size:26px">🛵</div>',className:'',iconSize:[26,26],iconAnchor:[13,13]})}).addTo(tMap);
- (async()=>{let path;try{const u=`https://router.project-osrm.org/route/v1/driving/${rest[1]},${rest[0]};${home[1]},${home[0]}?overview=full&geometries=geojson`;const j=await (await fetch(u)).json();path=j.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);}catch(e){path=[rest,home];}
-   L.polyline(path,{color:'#F2A900',weight:4,opacity:.8}).addTo(tMap);tMap.fitBounds(L.polyline(path).getBounds(),{padding:[40,40]});
-   let i=0;const N=path.length;const iv=setInterval(()=>{i++;if(i>=N){i=N-1;clearInterval(iv);document.getElementById('etaMin').textContent='Kapında! 🎉';}bee.setLatLng(path[i]);const left=Math.max(0,Math.round(9*(1-i/N)));document.getElementById('etaMin').textContent=(left||0)+' dk';},Math.max(120,9000/N));})();
- setTimeout(()=>tMap.invalidateSize(),200);
+(function(){
+const $ = s=>document.querySelector(s);
+const D = window.VIZZ;
+const fmt = n=>n.toLocaleString('tr-TR');
+$('#logoTop').src = D.LOGO;
+
+/* ---- çizgi-ikon kategori SVG'leri (emoji yok) ---- */
+const CAT_IC = {
+  "Tümü":'<path d="M5 3h6v6H5zM13 3h6v6h-6zM5 11h6v6H5zM13 11h6v6h-6z"/>',
+  "Kebap":'<path d="M6 3c3 2 3 5 0 7M12 3c3 2 3 5 0 7M18 3c3 2 3 5 0 7M4 13h16M5 13l2 8M19 13l-2 8"/>',
+  "Pide":'<path d="M3 12c0-3 4-5 9-5s9 2 9 5-4 5-9 5-9-2-9-5Z"/><path d="M8 12h8"/>',
+  "Lahmacun":'<circle cx="12" cy="12" r="8"/><path d="M9 9h.01M14 10h.01M11 14h.01M15 14h.01"/>',
+  "Mantı":'<path d="M5 14c0-4 3-7 7-7s7 3 7 7M5 14h14l-1.5 4h-11Z"/><path d="M9 7l1.5-2M14 7l-1-2"/>',
+  "Burger":'<path d="M4 9c0-3 4-5 8-5s8 2 8 5M4 9h16M4 13h16c0 3-4 5-8 5s-8-2-8-5M6 11h.01M10 11h.01M14 11h.01"/>',
+  "Kahvaltı":'<circle cx="9" cy="11" r="5"/><circle cx="9" cy="11" r="2"/><path d="M16 6c2 1 3 3 3 5s-1 4-3 5"/>',
+  "Tatlı":'<path d="M4 20h16M6 20v-6a6 6 0 0 1 12 0v6M9 8V5M12 8V4M15 8V5"/>'
+};
+function catIcon(c){return `<svg class="ic" viewBox="0 0 24 24">${CAT_IC[c]||CAT_IC["Tümü"]}</svg>`;}
+const starSvg = '<svg class="ic" viewBox="0 0 24 24"><path d="M12 2 9.2 8.6 2 9.2l5.5 4.7L5.8 21 12 17.3 18.2 21l-1.7-7.1L22 9.2l-7.2-.6L12 2Z"/></svg>';
+
+/* ---- state ---- */
+let activeRest = D.RESTAURANTS[0];
+let cart = [];   // {slug,name,opt,price,rest,cover,qty}
+const cartCount = ()=>cart.reduce((s,i)=>s+i.qty,0);
+const cartSum = ()=>cart.reduce((s,i)=>s+i.price*i.qty,0);
+let couponOn = false;
+let current = 'kesfet';
+
+/* ---- toast ---- */
+let tt; function toast(m){const e=$('#toast');e.innerHTML='<svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m9 11 3 3L22 4"/></svg>'+m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2000);}
+
+/* ================= KEŞFET ================= */
+function renderCats(){
+  $('#catChips').innerHTML = D.CATS.map((c,i)=>`<button class="chip-c${i===0?' on':''}" data-cat="${c}" onclick="VZ.filterCat(this,'${c}')">${catIcon(c)}${c}</button>`).join('');
 }
+function restMeta(r){
+  const free = r.fee==='Ücretsiz';
+  return `<span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${r.time} dk</span>
+    <span><svg class="ic" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8m6.5 6 2-6h2.5"/></svg><span class="${free?'free':''}">${free?'Ücretsiz':'₺'+r.fee}</span></span>
+    <span><svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="M3 10h18"/></svg>Min ₺${r.min}</span>`;
+}
+function renderRests(filter){
+  const list = (!filter||filter==='Tümü') ? D.RESTAURANTS : D.RESTAURANTS.filter(r=>r.cat===filter);
+  if(!list.length){ $('#restCards').innerHTML = `<div class="empty"><div class="eic"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div><h3>Sonuç yok</h3><p>Bu kategoride henüz restoran bulunmuyor. Farklı bir kategori dene.</p></div>`; return; }
+  $('#restCards').innerHTML = list.map(r=>{
+    const bcls = r.badge==='Yeni'?'b-info':(r.badge==='Premium'||r.badge==='Şehrin En İyisi')?'b-y':'b-mute';
+    return `<div class="rcard" onclick="VZ.openRest(${r.id})">
+      <div class="cover">
+        <img src="img/${r.cover}.jpg" alt="${r.name}" onerror="VIZZ.imgFallback(this,'${r.cover}')">
+        <div class="shade"></div>
+        <div class="toprow">
+          <span class="pill">${starSvg}${r.rate}</span>
+          <button class="fav" onclick="event.stopPropagation();VZ.toast('${r.name} favorilere eklendi')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9.5-8.5C.8 9.5 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.5.8-1.3 2-2.5 4-2.5 3.5 0 5.2 4 3.5 7C19 16.5 12 21 12 21Z"/></svg></button>
+        </div>
+        <span class="badge ${bcls} badge-b"><span class="dot"></span>${r.badge}</span>
+      </div>
+      <div class="info">
+        <div class="nm">${r.name} <span class="cat">${r.cat}</span></div>
+        <div class="meta">${restMeta(r)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function filterCat(el,cat){
+  document.querySelectorAll('.chip-c').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on'); renderRests(cat);
+}
+
+/* ================= RESTORAN / MENÜ ================= */
+function openRest(id){
+  activeRest = D.RESTAURANTS.find(r=>r.id===id);
+  buildMenu(); go('menu');
+}
+function itemQty(slug){ const it=cart.find(i=>i.slug===slug && i.rest===activeRest.name); return it?it.qty:0; }
+function buildMenu(){
+  const r = activeRest, free = r.fee==='Ücretsiz';
+  const tabs = ['Öne çıkanlar','Ana Yemek','İçecek','Tatlı'];
+  $('#s-menu').innerHTML = `
+    <div class="menu-cover">
+      <img src="img/${r.cover}.jpg" alt="${r.name}" onerror="VIZZ.imgFallback(this,'${r.cover}')">
+      <div class="shade"></div>
+      <div class="nav">
+        <button class="navbtn" onclick="VZ.go('kesfet')"><svg class="ic" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button class="navbtn" onclick="VZ.toast('Restoran paylaşıldı')"><svg class="ic" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+      </div>
+      <div class="rinfo">
+        <h2>${r.name}</h2>
+        <div class="row">
+          <span class="info-pill star">${starSvg}${r.rate} <span style="color:var(--tx-3);font-weight:600">(${300+r.id*47})</span></span>
+          <span class="info-pill"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${r.time} dk</span>
+          <span class="info-pill"><svg class="ic" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/></svg>${free?'Ücretsiz':'₺'+r.fee}</span>
+          <span class="info-pill"><svg class="ic" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>${r.zone}</span>
+        </div>
+      </div>
+    </div>
+    <div class="min-bar">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <div class="t">Minimum sepet tutarı <b>₺${r.min}</b> · ${free?'<b style="color:var(--ok)">ücretsiz teslimat</b>':'teslimat ₺'+r.fee}</div>
+      <span class="badge b-y" style="font-size:10px"><span class="dot"></span>${r.badge}</span>
+    </div>
+    <div class="menu-tabs">${tabs.map((t,i)=>`<button class="${i===0?'on':''}" onclick="VZ.menuTab(this)">${t}</button>`).join('')}</div>
+    <div class="menu-list" id="menuList"></div>
+    <div style="height:8px"></div>`;
+  renderMenuItems();
+}
+function renderMenuItems(){
+  const r = activeRest;
+  $('#menuList').innerHTML = r.menu.map((m)=>{
+    const [name,desc,slug,price]=m, q=itemQty(slug);
+    return `<div class="mitem">
+      <div class="ph"><img src="img/${slug}.jpg" alt="${name}" onerror="VIZZ.imgFallback(this,'${slug}')"></div>
+      <div class="body">
+        <div class="nm">${name}</div>
+        <div class="ds">${desc}</div>
+        <div class="br">
+          <span class="pr">₺${price}</span>
+          ${q>0
+            ? `<div class="qty"><button onclick="VZ.qty('${slug}',-1)"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><span class="n num">${q}</span><button onclick="VZ.qty('${slug}',1)"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>`
+            : `<button class="addbtn" onclick="VZ.add('${slug}')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>`}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function menuTab(el){ document.querySelectorAll('.menu-tabs button').forEach(b=>b.classList.remove('on')); el.classList.add('on'); }
+function addItem(slug){
+  const m = activeRest.menu.find(x=>x[2]===slug); if(!m)return;
+  const it = cart.find(i=>i.slug===slug && i.rest===activeRest.name);
+  if(it) it.qty++; else cart.push({slug,name:m[0],opt:m[1],price:m[3],rest:activeRest.name,cover:activeRest.cover,qty:1});
+  syncCart(); renderMenuItems(); toast(`<b>${m[0]}</b> sepete eklendi`);
+}
+function changeQty(slug,d){
+  const it = cart.find(i=>i.slug===slug && i.rest===activeRest.name); if(!it)return;
+  it.qty += d; if(it.qty<=0) cart = cart.filter(i=>i!==it);
+  syncCart(); renderMenuItems();
+}
+
+/* ================= SEPET ================= */
+const DELIV = ()=>{ const r = cart.length?D.RESTAURANTS.find(x=>x.name===cart[0].rest):activeRest; return (r && r.fee!=='Ücretsiz')?Number(String(r.fee).replace(',','.')):0; };
+const SERVICE = 5.90;
+const discount = ()=> couponOn ? Math.round(cartSum()*0.10) : 0;
+const grandTotal = ()=> Math.max(0, cartSum()+DELIV()+SERVICE-discount());
+
+function buildCart(){
+  if(!cart.length){
+    $('#s-sepet').innerHTML = `<div class="pg-head" style="padding-top:14px"><h2>Sepetim</h2></div>
+      <div class="empty"><div class="eic"><svg class="ic" viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12L5 3H2"/><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/></svg></div>
+      <h3>Sepetin boş</h3><p>Yozgat'ın en sevilen lezzetlerini keşfet, sepetini doldur.</p>
+      <button class="btn btn-y" onclick="VZ.go('kesfet')">Restoranları Keşfet</button></div>`;
+    return;
+  }
+  const r = D.RESTAURANTS.find(x=>x.name===cart[0].rest)||activeRest;
+  $('#s-sepet').innerHTML = `
+    <div class="pg-head" style="padding-top:14px">
+      <button class="navbtn" onclick="VZ.go('menu')"><svg class="ic" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <h2>Sepetim</h2>
+      <button class="navbtn" style="margin-left:auto;background:var(--s2)" onclick="VZ.clearCart()"><svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg></button>
+    </div>
+    <div class="cart-rest">
+      <div class="av-r"><img src="img/${r.cover}.jpg" onerror="VIZZ.imgFallback(this,'${r.cover}')"></div>
+      <div style="flex:1"><div class="nm">${r.name}</div><div class="sub"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${r.time} dk · ${r.zone}</div></div>
+      <span class="badge b-ok"><span class="dot"></span>Açık</span>
+    </div>
+    <div class="cart-items">${cart.map(i=>`
+      <div class="citem">
+        <div class="ph"><img src="img/${i.slug}.jpg" onerror="VIZZ.imgFallback(this,'${i.slug}')"></div>
+        <div class="body"><div class="nm">${i.name}</div><div class="opt">${i.opt}</div><div class="pr">₺${fmt(i.price*i.qty)}</div></div>
+        <div class="qty"><button onclick="VZ.cartQty('${i.slug}',-1)"><svg class="ic" viewBox="0 0 24 24"><path d="${i.qty>1?'M5 12h14':'M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14'}"/></svg></button><span class="n num">${i.qty}</span><button onclick="VZ.cartQty('${i.slug}',1)"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+      </div>`).join('')}</div>
+    <div class="coupon">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 6 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-6Z"/><path d="M14 7v10"/></svg>
+      <input id="couponInp" placeholder="İndirim kodu gir" value="${couponOn?'VIZZBAL10':''}" ${couponOn?'readonly':''}>
+      <button onclick="VZ.applyCoupon()">${couponOn?'Kaldır':'Uygula'}</button>
+    </div>
+    <div class="summary">
+      <div class="ln">Ara toplam <b class="num">₺${fmt(cartSum())}</b></div>
+      <div class="ln">Teslimat ücreti <b class="num">${DELIV()?'₺'+fmt(DELIV()):'<span style="color:var(--ok)">Ücretsiz</span>'}</b></div>
+      <div class="ln">Hizmet bedeli <b class="num">₺${SERVICE.toFixed(2).replace('.',',')}</b></div>
+      ${couponOn?`<div class="ln disc">İndirim (VIZZBAL10) <b class="num">−₺${fmt(discount())}</b></div>`:''}
+      <div class="div"></div>
+      <div class="total"><span>Toplam <span style="color:var(--tx-3);font-weight:400;font-size:11px">(KDV dahil)</span></span><span class="big num">₺${fmt(grandTotal())}</span></div>
+    </div>
+    <div style="height:10px"></div>`;
+}
+function applyCoupon(){
+  if(couponOn){ couponOn=false; toast('Kupon kaldırıldı'); }
+  else{ const v=($('#couponInp')&&$('#couponInp').value||'').trim().toUpperCase();
+    if(v==='VIZZBAL10'||v===''){ couponOn=true; toast('<b>VIZZBAL10</b> · %10 indirim uygulandı'); }
+    else { toast('Geçersiz kod — VIZZBAL10 dene'); return; } }
+  buildCart(); syncBars();
+}
+function clearCart(){ cart=[]; couponOn=false; syncCart(); buildCart(); toast('Sepet temizlendi'); }
+function cartQty(slug,d){
+  const it = cart.find(i=>i.slug===slug); if(!it)return;
+  it.qty += d; if(it.qty<=0) cart=cart.filter(i=>i!==it);
+  if(!cart.length) couponOn=false;
+  syncCart(); buildCart();
+}
+function checkout(){
+  toast('Siparişin alındı · kurye atanıyor');
+  buildTrack(); setTimeout(()=>go('takip'),650);
+}
+
+/* ================= CANLI TAKİP ================= */
+let tmap=null, courierMarker=null, animRAF=null;
+const trackCourier = D.COURIERS.find(c=>c.status==='delivering') || D.COURIERS[0];
+function buildTrack(){
+  const r = (cart.length?D.RESTAURANTS.find(x=>x.name===cart[0].rest):activeRest)||D.RESTAURANTS[0];
+  const orderItems = cart.length?cart:[{name:activeRest.menu[0][0],slug:activeRest.menu[0][2],price:activeRest.menu[0][3],qty:1,opt:''}];
+  const oTotal = cart.length?grandTotal():orderItems.reduce((s,i)=>s+i.price*i.qty,0);
+  const stages = [
+    ['Alındı','M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
+    ['Hazırlanıyor','M4 3v7a2 2 0 0 0 2 2V3M6 3v18M14 3c-1 1-2 3-2 6s2 4 3 4v8'],
+    ['Yolda','M5.5 17a3 3 0 1 0 0-.1M18.5 17a3 3 0 1 0 0-.1M8.5 17h6l-2.5-6H8m6.5 6 2-6h2.5'],
+    ['Yaklaşıyor','M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 10h.01'],
+    ['Teslim','M3 12h18M12 3l9 9-9 9']
+  ];
+  const cur = 2; // şu an "Yolda"
+  $('#s-takip').innerHTML = `
+    <div class="track-map">
+      <div class="topfade"></div>
+      <div id="trackmap"></div>
+      <div class="nav"><button class="navbtn" style="background:rgba(13,15,18,.8)" onclick="VZ.go('kesfet')"><svg class="ic" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button></div>
+      <div class="track-eta"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="t">Tahmini varış <b>14 dk</b></span></div>
+    </div>
+    <div class="track-sheet">
+      <div class="grab"></div>
+      <div class="pad" style="margin-bottom:6px"><div class="sec-t">Siparişin yolda</div><div class="sec-s">${trackCourier.name}, ${r.name}'nden siparişini getiriyor</div></div>
+      <div class="stages">${stages.map((s,i)=>`<div class="stage ${i<cur?'done':i===cur?'act':''}"><div class="bar"></div><div class="ring"><svg class="ic" viewBox="0 0 24 24"><path d="${s[1]}"/></svg></div><div class="lab">${s[0]}</div></div>`).join('')}</div>
+
+      <div class="courier-card">
+        <div class="av-c">${trackCourier.name.split(' ').map(p=>p[0]).join('')}<span class="on-dot"></span></div>
+        <div class="body"><div class="nm">${trackCourier.name}</div><div class="role">VIZZ Kurye <span class="star">${starSvg}${trackCourier.rate}</span></div></div>
+        <div class="call-btns">
+          <button class="call-btn" onclick="VZ.toast('${trackCourier.name} ile mesajlaşma')"><svg class="ic" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></button>
+          <button class="call-btn green" onclick="VZ.toast('${trackCourier.name} aranıyor…')"><svg class="ic" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg></button>
+        </div>
+      </div>
+
+      <div class="track-order">
+        <div class="oh"><div class="id"><svg class="ic" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6Z"/><path d="M14 2v5h5"/></svg>Sipariş #VZ-7748</div><span class="badge b-y" style="font-size:10px"><span class="dot"></span>Yolda</span></div>
+        ${orderItems.map(i=>`<div class="oitem"><span class="q num">${i.qty}×</span><span class="nm">${i.name}</span><span class="pr">₺${fmt(i.price*i.qty)}</span></div>`).join('')}
+        <div class="oitem" style="background:var(--s3)"><span class="q num" style="background:transparent;color:var(--tx-3)"><svg class="ic" viewBox="0 0 24 24" style="width:14px"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="nm"><b style="color:var(--tx)">Toplam ödenen</b></span><span class="pr" style="color:var(--y);font-size:14px">₺${fmt(oTotal)}</span></div>
+      </div>
+      <div class="pad" style="margin-top:14px"><button class="btn" style="width:100%;justify-content:center;height:46px" onclick="VZ.toast('Canlı destek hattına bağlanılıyor')"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg>Yardıma mı ihtiyacın var?</button></div>
+      <div style="height:10px"></div>
+    </div>`;
+  setTimeout(initTrackMap,80);
+}
+function initTrackMap(){
+  const Y=D.YOZGAT;
+  const r = (cart.length?D.RESTAURANTS.find(x=>x.name===cart[0].rest):activeRest)||D.RESTAURANTS[0];
+  const restZone = Y.zones.find(z=>z.n===r.zone)||Y.zones[0];
+  const restPos = restZone.c.slice();
+  const home = (Y.zones.find(z=>z.n==='Cumhuriyet')||Y.zones[6]).c.slice();
+  if(tmap){ tmap.remove(); tmap=null; }
+  if(animRAF) cancelAnimationFrame(animRAF);
+  tmap = L.map('trackmap',{zoomControl:false,attributionControl:false,dragging:true,scrollWheelZoom:false});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(tmap);
+
+  // restoran pin
+  const restIcon = L.divIcon({className:'',html:'<div class="rest-pin" style="width:22px;height:22px;border-radius:7px"><svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M4 3v7a2 2 0 0 0 2 2V3M6 3v18M14 3c-1 1-2 3-2 6s2 4 3 4v8"/></svg></div>',iconSize:[22,22],iconAnchor:[11,11]});
+  L.marker(restPos,{icon:restIcon}).addTo(tmap).bindTooltip(r.name,{direction:'top'});
+  // ev pin
+  const homeIcon = L.divIcon({className:'',html:'<div style="width:30px;height:30px;border-radius:50%;background:var(--ok);border:2px solid var(--bg);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.5)"><svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#06130d;fill:none;stroke-width:2.4"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2v-9Z"/></svg></div>',iconSize:[30,30],iconAnchor:[15,15]});
+  L.marker(home,{icon:homeIcon}).addTo(tmap).bindTooltip('Evim',{direction:'top'});
+
+  // kurye marker (operasyon.js stili — sarı bisiklet)
+  const bike='<svg viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8m6.5 6 2-6h2.5"/></svg>';
+  const cIcon = L.divIcon({className:'',html:`<div class="cm deliver"><div class="pin">${bike}</div></div>`,iconSize:[26,26],iconAnchor:[13,13]});
+  courierMarker = L.marker(restPos,{icon:cIcon}).addTo(tmap).bindTooltip(trackCourier.name,{direction:'top',offset:[0,-8]});
+
+  // rota: OSRM dene, olmazsa düz çizgi
+  fetch(`https://router.project-osrm.org/route/v1/driving/${restPos[1]},${restPos[0]};${home[1]},${home[0]}?overview=full&geometries=geojson`)
+    .then(res=>res.ok?res.json():Promise.reject())
+    .then(d=>drawRoute(d.routes[0].geometry.coordinates.map(c=>[c[1],c[0]])))
+    .catch(()=>{ const p=[]; for(let i=0;i<=40;i++)p.push([restPos[0]+(home[0]-restPos[0])*i/40, restPos[1]+(home[1]-restPos[1])*i/40]); drawRoute(p); });
+}
+function drawRoute(path){
+  // izlenen yol (sönük) + canlı dolan kısım (sarı)
+  L.polyline(path,{color:'#2a2f37',weight:5,opacity:.8}).addTo(tmap);
+  const live = L.polyline([path[0]],{color:'#FFC400',weight:5,opacity:.95}).addTo(tmap);
+  tmap.fitBounds(L.latLngBounds(path),{padding:[42,42]});
+  // kümülatif uzunluk
+  const cumD=[0]; for(let i=1;i<path.length;i++)cumD.push(cumD[i-1]+Math.hypot(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1]));
+  const total=cumD[cumD.length-1]||1e-6;
+  let t=0.18; const dur=26; let last=performance.now();
+  function step(now){
+    const dt=Math.min(.05,(now-last)/1000); last=now;
+    t += dt/dur; if(t>=0.92) t=0.18;  // teslimata yaklaşıp döngü (mock canlılık)
+    const tg=t*total; let lo=0,hi=cumD.length-1;
+    while(lo<hi-1){const md=(lo+hi)>>1; if(cumD[md]<tg)lo=md;else hi=md;}
+    const sg=cumD[hi]-cumD[lo]||1e-9, fr=(tg-cumD[lo])/sg, p0=path[lo],p1=path[hi];
+    const pos=[p0[0]+(p1[0]-p0[0])*fr,p0[1]+(p1[1]-p0[1])*fr];
+    courierMarker.setLatLng(pos);
+    live.setLatLngs(path.slice(0,hi+1).concat([pos]));
+    animRAF=requestAnimationFrame(step);
+  }
+  animRAF=requestAnimationFrame(step);
+  setTimeout(()=>tmap&&tmap.invalidateSize(),120);
+}
+
+/* ================= GENEL: tab + bottom bar ================= */
+function syncCart(){
+  const n=cartCount();
+  const dot=$('#cartDot'); dot.textContent=n; dot.classList.toggle('show',n>0);
+  syncBars();
+}
+function syncBars(){
+  const bar=$('#bottomBar');
+  if(current==='menu' && cartCount()>0){
+    bar.classList.add('show');
+    bar.innerHTML=`<button class="bigbtn" onclick="VZ.go('sepet')"><span class="l"><span class="badge-n num">${cartCount()}</span><svg class="ic" viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12L5 3H2"/></svg> Sepete git</span><span class="r">₺${fmt(cartSum())}</span></button>`;
+  } else if(current==='sepet' && cartCount()>0){
+    bar.classList.add('show');
+    bar.innerHTML=`<button class="bigbtn" onclick="VZ.checkout()"><span class="l"><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Siparişi Onayla</span><span class="r">₺${fmt(grandTotal())}</span></button>`;
+  } else { bar.classList.remove('show'); bar.innerHTML=''; }
+}
+
+const screenId={kesfet:'s-kesfet',menu:'s-menu',sepet:'s-sepet',takip:'s-takip',profil:'s-profil'};
+function go(v){
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.t===v));
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  current=v;
+  if(v==='menu' && !$('#s-menu').innerHTML.trim()) buildMenu();
+  if(v==='sepet') buildCart();
+  if(v==='takip' && !$('#s-takip').innerHTML.trim()) buildTrack();
+  if(v==='takip') setTimeout(()=>tmap&&tmap.invalidateSize(),140);
+  $('#'+screenId[v]).classList.add('on');
+  $('#'+screenId[v]).scrollTop=0;
+  syncBars();
+}
+document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>go(b.dataset.t));
+function toggle(el){ el.classList.toggle('on'); toast(el.classList.contains('on')?'Bildirim açıldı':'Bildirim kapatıldı'); }
+
+/* init */
+renderCats(); renderRests('Tümü'); buildMenu();
+window.VZ={ go, openRest, add:addItem, qty:changeQty, cartQty, menuTab, filterCat, applyCoupon, clearCart, checkout, toggle, toast };
+})();
 </script>
 </body></html>

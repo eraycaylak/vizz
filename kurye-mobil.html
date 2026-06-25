@@ -1,178 +1,626 @@
 <!DOCTYPE html>
 <html lang="tr"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIZZ — Kurye App</title>
-<link rel="stylesheet" href="vizz.css">
+<title>VIZZ — Kurye</title>
+<link rel="stylesheet" href="vizz-pro.css">
 <style>
-  html,body{height:100%}
-  body{background:#000;display:flex;justify-content:center}
-  .device{width:100%;max-width:430px;height:100%;background:#0e0d0b;color:#ece9e0;position:relative;overflow:hidden;display:flex;flex-direction:column}
-  .screen{flex:1;overflow-y:auto;position:relative}
-  .view{display:none;padding:18px}.view.active{display:block}
-  .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-  .hdr .vz-brand b{color:#fff}
-  .hdr .av{width:40px;height:40px;border-radius:50%;background:#211f18;display:grid;place-items:center;font-size:20px}
-  /* online toggle */
-  .online-card{background:linear-gradient(135deg,#1b1915,#26231a);border:1px solid #ffffff10;border-radius:22px;padding:22px;text-align:center;margin-bottom:16px}
-  .bigtog{width:130px;height:130px;border-radius:50%;margin:6px auto 14px;display:grid;place-items:center;cursor:pointer;border:none;font-weight:800;font-size:16px;transition:.25s;position:relative}
-  .bigtog.on{background:radial-gradient(circle at 50% 40%,#FFD23F,#F2A900);color:#14130F;box-shadow:0 0 0 8px rgba(242,169,0,.18),0 14px 30px rgba(242,169,0,.4)}
-  .bigtog.off{background:#211f18;color:#8c887c;border:2px solid #ffffff14}
-  .bigtog .em{font-size:40px;display:block}
-  .online-card .stt{font-size:14px;font-weight:700}.online-card .stt.on{color:var(--honey)}.online-card .stt.off{color:#8c887c}
-  /* stats */
-  .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-  .stat{background:#1b1915;border:1px solid #ffffff0d;border-radius:16px;padding:15px}
-  .stat .l{font-size:11.5px;color:#8c887c}.stat .v{font-size:24px;font-weight:800;color:#fff;margin-top:4px}
-  /* cuma card */
-  .cuma{background:linear-gradient(120deg,#FFC400,#F2A900);color:#14130F;border-radius:18px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-  .cuma .l{font-size:12px;font-weight:700;opacity:.8}.cuma .v{font-size:26px;font-weight:800}
-  .cuma .cd{text-align:right}.cuma .cd b{font-size:20px}.cuma .cd span{font-size:11px;display:block;opacity:.8}
-  .waiting{background:#1b1915;border:1px dashed #ffffff1a;border-radius:16px;padding:24px;text-align:center;color:#8c887c}
-  .waiting .p{font-size:34px;animation:rot 2.5s linear infinite}@keyframes rot{to{transform:rotate(360deg)}}
-  .simbtn{width:100%;background:#211f18;color:#cfcabb;border:1px solid #ffffff14;border-radius:14px;padding:13px;font-weight:700;margin-top:10px}
-  /* task invite */
-  .invite{position:absolute;inset:0;background:rgba(8,8,6,.82);backdrop-filter:blur(4px);z-index:200;display:none;flex-direction:column;justify-content:flex-end;padding:16px}
-  .invite.show{display:flex;animation:fade .2s}@keyframes fade{from{opacity:0}}
-  .invite .card{background:#1b1915;border:1px solid #ffffff14;border-radius:24px;padding:20px;animation:up .25s}@keyframes up{from{transform:translateY(30px)}}
-  .invite h3{color:#fff;font-size:18px;text-align:center;margin-bottom:4px}
-  .invite .timer{height:6px;background:#332f22;border-radius:6px;overflow:hidden;margin:12px 0}.invite .timer i{display:block;height:100%;background:var(--honey);width:100%;transition:width 1s linear}
-  .invite .row{display:flex;justify-content:space-between;background:#211f18;border-radius:12px;padding:12px;margin-bottom:8px;font-size:13px}.invite .row b{color:#fff}
-  .invite .earn{text-align:center;font-size:30px;font-weight:800;color:var(--honey);margin:10px 0}
-  .invite .acts{display:flex;gap:10px;margin-top:6px}
-  .invite .acts button{flex:1;border:none;border-radius:14px;padding:15px;font-weight:800;font-size:15px}
-  .rej{background:#211f18;color:#cfcabb}.acc{background:var(--honey);color:#14130F}
-  /* active task */
-  .step{background:#1b1915;border:1px solid #ffffff0d;border-radius:16px;padding:15px;margin-bottom:11px;display:flex;align-items:center;gap:13px;opacity:.45}
-  .step.act{opacity:1;border-color:var(--honey)}.step.don{opacity:.7}
-  .step .n{width:34px;height:34px;border-radius:50%;background:#211f18;display:grid;place-items:center;font-size:16px;flex:none}
-  .step.act .n{background:var(--honey);color:#14130F}.step.don .n{background:var(--green);color:#fff}
-  .step .t{flex:1}.step .t b{color:#fff;font-size:14.5px}.step .t span{font-size:12px;color:#8c887c}
-  .step .go{background:var(--honey);color:#14130F;border:none;border-radius:10px;padding:9px 13px;font-weight:700;font-size:12.5px}
-  .navline{background:#1b1915;border:1px solid #ffffff0d;border-radius:14px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-  .navline b{color:#fff}.navline .km{color:var(--honey);font-weight:800}
-  /* earnings list */
-  .erow{display:flex;justify-content:space-between;padding:12px;background:#1b1915;border:1px solid #ffffff0d;border-radius:13px;margin-bottom:9px;font-size:13.5px}.erow b{color:#fff}.erow .p{color:var(--honey);font-weight:800}
-  /* perf */
-  .perf{background:#1b1915;border:1px solid #ffffff0d;border-radius:16px;padding:16px;margin-bottom:12px}
-  .perf .pr{display:flex;justify-content:space-between;font-size:13px;margin-bottom:11px}.perf .pr b{color:#fff}
-  .pbar{height:8px;background:#211f18;border-radius:8px;overflow:hidden;margin-top:5px}.pbar i{display:block;height:100%;background:var(--honey)}
-  .badges{display:flex;gap:10px;flex-wrap:wrap}.bdg{background:#211f18;border:1px solid #ffffff14;border-radius:12px;padding:10px 13px;font-size:12px;color:#cfcabb;display:flex;gap:7px;align-items:center}
-  /* tabbar */
-  .tabbar{height:66px;background:#141310;border-top:1px solid #ffffff10;display:flex;justify-content:space-around;align-items:center;flex:none}
-  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:#6f6c63;font-size:11px;font-weight:600;background:none;border:none}.tab svg{width:22px;height:22px}.tab.active{color:#fff}.tab.active svg{stroke:var(--honey)}
-  h2.t{font-size:19px;color:#fff;margin-bottom:14px}
+  body{background:#000;display:flex;justify-content:center;align-items:center;min-height:100%;padding:0}
+  /* ---- cihaz çerçevesi ---- */
+  .device{width:100%;max-width:430px;height:100vh;max-height:932px;background:var(--bg);position:relative;overflow:hidden;
+    display:flex;flex-direction:column;border:1px solid var(--line-2);box-shadow:0 0 0 1px #000, var(--shadow-pop)}
+  @media(min-width:480px){.device{border-radius:30px;margin:14px 0;height:calc(100vh - 28px)}}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:130px;height:26px;background:#000;border-radius:0 0 16px 16px;z-index:60}
+  @media(max-width:479px){.notch{display:none}}
+
+  /* ---- üst durum çubuğu ---- */
+  .statbar{flex:none;display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;font-size:12px;font-weight:600;color:var(--tx-2)}
+  .statbar .l{display:flex;align-items:center;gap:9px}
+  .statbar .lg{width:26px;height:26px;border-radius:7px;object-fit:cover;background:#000}
+  .statbar .nm{font-weight:800;color:var(--tx);font-size:14px;letter-spacing:-.2px}
+  .statbar .nm small{font-weight:600;color:var(--y);font-size:12px}
+  .statbar .r{display:flex;align-items:center;gap:7px}
+  .statbar .net .ic{width:14px;height:14px;color:var(--tx-3)}
+
+  /* ---- ekran alanı ---- */
+  .stage{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;-webkit-overflow-scrolling:touch}
+  .scr{display:none;padding:4px 16px 96px;animation:fade .25s ease}
+  .scr.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .h2{font-size:20px;font-weight:800;letter-spacing:-.4px;margin:8px 2px 3px}
+  .sub{font-size:12px;color:var(--tx-3);margin:0 2px 14px}
+
+  /* ---- müsaitlik toggle (büyük, sarı glow) ---- */
+  .availcard{border-radius:var(--r-xl);padding:20px 18px;border:1px solid var(--line);background:var(--s2);transition:.3s;position:relative;overflow:hidden}
+  .availcard.online{background:linear-gradient(150deg,rgba(255,196,0,.16),var(--s2) 62%);border-color:var(--y-line);box-shadow:0 0 36px rgba(255,196,0,.14)}
+  .availcard .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .availcard .st{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--tx-3)}
+  .availcard .big{font-size:23px;font-weight:800;letter-spacing:-.4px;margin-top:3px;display:flex;align-items:center;gap:9px}
+  .availcard.online .big{color:var(--y)}
+  .availcard .big .liv{width:9px;height:9px;border-radius:50%;background:var(--tx-4)}
+  .availcard.online .big .liv{background:var(--y)}
+  .availcard .desc{font-size:11.5px;color:var(--tx-3);margin-top:8px;max-width:210px}
+  .tgl{width:64px;height:36px;border-radius:30px;background:var(--s4);border:1px solid var(--line-2);position:relative;flex:none;transition:.25s;cursor:pointer}
+  .tgl:after{content:"";position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;background:var(--tx-2);transition:.25s cubic-bezier(.4,0,.2,1)}
+  .availcard.online .tgl{background:var(--y);border-color:var(--y)}
+  .availcard.online .tgl:after{left:33px;background:#15140F}
+
+  /* ---- bugün kartları (tabular) ---- */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:13px}
+  .stat{background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:13px 14px}
+  .stat .lab{font-size:10.5px;color:var(--tx-3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+  .stat .lab .ic{width:14px;height:14px;color:var(--tx-3)}
+  .stat .v{font-size:25px;font-weight:800;margin-top:7px;line-height:1}
+  .stat .v small{font-size:13px;font-weight:600;color:var(--tx-2)}
+  .stat.gold .v{color:var(--y)}
+  .stat .d{font-size:10.5px;margin-top:6px;font-weight:600}
+
+  /* ---- haftalık birikim + cuma sayacı ---- */
+  .pay{margin-top:13px;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:15px}
+  .pay .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .pay .lab{font-size:11px;color:var(--tx-3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .pay .amt{font-size:28px;font-weight:800;color:var(--tx);margin-top:5px;letter-spacing:-.5px}
+  .pay .cd{text-align:right;flex:none}
+  .pay .cd .n{font-size:26px;font-weight:800;color:var(--y);line-height:1}
+  .pay .cd .u{font-size:10px;color:var(--tx-3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+  .pay .bar{height:7px;border-radius:5px;background:var(--s4);overflow:hidden;margin-top:13px}
+  .pay .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--y-2),var(--y));border-radius:5px}
+  .pay .legend{display:flex;justify-content:space-between;font-size:11px;color:var(--tx-3);margin-top:8px;font-weight:600}
+
+  /* ---- görev araniyor / davet ---- */
+  .seek{margin-top:14px;border-radius:var(--r-xl);border:1px dashed var(--line-3);background:var(--s1);padding:22px 16px;text-align:center}
+  .seek.idle{border-style:solid;border-color:var(--line)}
+  .radar{width:58px;height:58px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;position:relative}
+  .radar:before,.radar:after{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--y-line)}
+  .online-mode .radar:before{animation:ping 1.8s cubic-bezier(0,.2,.8,1) infinite}
+  .online-mode .radar:after{animation:ping 1.8s cubic-bezier(0,.2,.8,1) .9s infinite}
+  .seek.idle .radar:before,.seek.idle .radar:after{display:none}
+  @keyframes ping{0%{transform:scale(.55);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+  .radar .core{width:34px;height:34px;border-radius:50%;background:var(--y-soft);display:grid;place-items:center;z-index:2}
+  .radar .core .ic{color:var(--y);width:18px;height:18px}
+  .seek.idle .radar .core{background:var(--s4)} .seek.idle .radar .core .ic{color:var(--tx-4)}
+  .seek .ttl{font-size:14px;font-weight:700;color:var(--tx)}
+  .seek .txt{font-size:12px;color:var(--tx-3);margin-top:5px}
+
+  /* ---- butonlar (büyük dokunma min 48px) ---- */
+  .bigbtn{width:100%;min-height:52px;border-radius:14px;border:1px solid var(--line-2);background:var(--s3);color:var(--tx);
+    font-weight:700;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:9px;transition:.15s}
+  .bigbtn:active{transform:scale(.985)}
+  .bigbtn.y{background:var(--y);color:#15140F;border-color:var(--y);box-shadow:0 8px 22px rgba(242,169,0,.3)}
+  .bigbtn.y:active{background:var(--y-2)}
+  .bigbtn.ghost{background:transparent;border-color:var(--line-2);color:var(--tx-2)}
+  .bigbtn .ic{width:19px;height:19px}
+  .bigbtn:disabled{opacity:.42;pointer-events:none}
+
+  /* ---- KAZANÇ ekranı ---- */
+  .chart{width:100%;height:200px}
+  .earnrow{display:flex;align-items:center;justify-content:space-between;padding:13px 2px;border-bottom:1px solid var(--line)}
+  .earnrow:last-child{border-bottom:none}
+  .earnrow .d{font-size:13px;font-weight:600;color:var(--tx)}
+  .earnrow .s{font-size:11px;color:var(--tx-3);margin-top:2px}
+  .earnrow .a{font-size:15px;font-weight:800;color:var(--tx)}
+  .earnrow .a.g{color:var(--y)}
+
+  /* ---- PERFORMANS ---- */
+  .metric{margin-bottom:15px}
+  .metric .top{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;margin-bottom:7px}
+  .metric .top .nm{color:var(--tx-2);font-weight:600}
+  .metric .top .vl{font-weight:800;font-size:15px}
+  .metric .track{height:9px;border-radius:6px;background:var(--s4);overflow:hidden}
+  .metric .track i{display:block;height:100%;border-radius:6px;transition:width .8s cubic-bezier(.16,1,.3,1)}
+  .badges{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .bg{background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:13px;display:flex;gap:11px;align-items:center;transition:.15s;cursor:pointer}
+  .bg:active{background:var(--s3)}
+  .bg.lock{opacity:.5}
+  .bg .ico{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;flex:none;background:var(--y-soft);border:1px solid var(--y-line)}
+  .bg.lock .ico{background:var(--s4);border-color:var(--line-2)}
+  .bg .ico .ic{color:var(--y);width:20px;height:20px}.bg.lock .ico .ic{color:var(--tx-4)}
+  .bg .nm{font-size:12.5px;font-weight:700;color:var(--tx)}
+  .bg .ds{font-size:10.5px;color:var(--tx-3);margin-top:2px}
+  .doc{display:flex;align-items:center;gap:11px;padding:12px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+  .doc:last-child{border-bottom:none}
+  .doc>.ic{width:17px;height:17px;color:var(--tx-3);flex:none}
+  .doc .nm{flex:1;font-size:12.5px;color:var(--tx-2);font-weight:600}
+
+  /* ---- AKTİF GÖREV — durum makinesi ---- */
+  .steps{position:relative;margin:6px 0 4px;padding-left:4px}
+  .step{display:flex;gap:13px;padding-bottom:18px;position:relative}
+  .step:last-child{padding-bottom:4px}
+  .step .rail{position:absolute;left:13px;top:26px;bottom:-2px;width:2px;background:var(--line-2)}
+  .step:last-child .rail{display:none}
+  .step.done .rail{background:var(--ok)}
+  .step .dot{width:28px;height:28px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--s3);border:2px solid var(--line-2);z-index:2;position:relative}
+  .step .dot .ic{width:14px;height:14px;color:var(--tx-3)}
+  .step.done .dot{background:var(--ok-bg);border-color:var(--ok)}.step.done .dot .ic{color:var(--ok)}
+  .step.cur .dot{background:var(--y);border-color:var(--y);box-shadow:0 0 0 4px var(--y-glow)}
+  .step.cur .dot .ic{color:#15140F}
+  .step .body{flex:1;padding-top:3px}
+  .step .t{font-size:13.5px;font-weight:700;color:var(--tx-3)}
+  .step.done .t,.step.cur .t{color:var(--tx)}
+  .step .m{font-size:11.5px;color:var(--tx-4);margin-top:2px}
+  .step.cur .m{color:var(--tx-3)}
+  .task-hdr{background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px}
+  .task-hdr .cover{height:104px;position:relative;background:var(--s4)}
+  .task-hdr .cover img{width:100%;height:100%;object-fit:cover}
+  .task-hdr .cover:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,12,14,.1),rgba(11,12,14,.92))}
+  .task-hdr .cover .ov{position:absolute;left:13px;right:13px;bottom:11px;z-index:2;display:flex;justify-content:space-between;align-items:flex-end}
+  .task-hdr .cover .rn{font-size:15px;font-weight:800;color:#fff}
+  .task-hdr .cover .rz{font-size:11px;color:#cfd2d6;margin-top:3px;display:flex;align-items:center;gap:5px}
+  .task-hdr .meta{display:flex;padding:12px 14px;gap:6px}
+  .task-hdr .meta .c{flex:1;text-align:center}
+  .task-hdr .meta .c+.c{border-left:1px solid var(--line)}
+  .task-hdr .meta .l{font-size:9.5px;color:var(--tx-3);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .task-hdr .meta .v{font-size:15px;font-weight:800;margin-top:3px}
+  .task-hdr .meta .v.g{color:var(--y)}
+  .podbox{border:1px dashed var(--line-3);border-radius:var(--r-lg);padding:18px;text-align:center;background:var(--s1);margin-bottom:13px}
+  .podbox.shot{border-style:solid;border-color:var(--ok);background:var(--ok-bg)}
+  .podbox>.ic{width:30px;height:30px;color:var(--tx-3);margin:0 auto 9px}
+  .podbox.shot>.ic{color:var(--ok)}
+  .podbox .t{font-size:13px;font-weight:700;color:var(--tx)}
+  .podbox .s{font-size:11px;color:var(--tx-3);margin-top:4px}
+  .podthumb{width:100%;height:120px;border-radius:var(--r);object-fit:cover;margin-bottom:9px;display:none}
+
+  /* ---- GÖREV DAVETI modal ---- */
+  .invite{position:absolute;inset:0;z-index:80;background:rgba(5,6,8,.78);backdrop-filter:blur(7px);display:none;flex-direction:column;justify-content:flex-end;padding:14px;opacity:0;transition:.25s}
+  .invite.on{display:flex;opacity:1}
+  .invite-card{background:var(--s1);border:1px solid var(--y-line);border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-pop);transform:translateY(24px);transition:.3s cubic-bezier(.16,1,.3,1)}
+  .invite.on .invite-card{transform:none}
+  .invite-card .ih{padding:16px 17px 13px;text-align:center;border-bottom:1px solid var(--line)}
+  .invite-card .ih .tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--y);background:var(--y-soft);border:1px solid var(--y-line);padding:5px 12px;border-radius:30px}
+  .invite-card .ih .tag .ic{width:14px;height:14px}
+  .invite-card .ih .h{font-size:18px;font-weight:800;margin-top:11px;letter-spacing:-.3px}
+  .invite-card .ih .z{font-size:12px;color:var(--tx-3);margin-top:3px}
+  .ides{display:flex;padding:14px 17px;gap:8px}
+  .ides .c{flex:1;text-align:center;background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:11px 6px}
+  .ides .l{font-size:9.5px;color:var(--tx-3);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .ides .v{font-size:18px;font-weight:800;margin-top:4px}
+  .ides .v.g{color:var(--y)}
+  .ides .v small{font-size:11px;color:var(--tx-2);font-weight:600}
+  .icd{padding:0 17px}
+  .icd .cdbar{height:6px;border-radius:6px;background:var(--s4);overflow:hidden}
+  .icd .cdbar i{display:block;height:100%;background:var(--y);width:100%;border-radius:6px}
+  .icd .cdt{display:flex;justify-content:space-between;font-size:11px;color:var(--tx-3);font-weight:600;margin-top:7px}
+  .iact{display:flex;gap:10px;padding:14px 17px 17px}
+  .iact .bigbtn{flex:1}
+  .iact .bigbtn.rej{flex:.7}
+
+  /* ---- alt tab bar ---- */
+  .tabbar{flex:none;display:flex;background:var(--s1);border-top:1px solid var(--line);padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));position:relative;z-index:40}
+  .tabbar button{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:6px 0;color:var(--tx-3);font-size:10px;font-weight:600;min-height:48px;justify-content:center;border-radius:11px;transition:.15s;position:relative}
+  .tabbar button .ic{width:21px;height:21px}
+  .tabbar button.on{color:var(--y)}
+  .tabbar button.on .ic{color:var(--y)}
+  .tabbar button:active{background:var(--s3)}
+  .tabdot{position:absolute;top:5px;left:calc(50% + 6px);width:7px;height:7px;border-radius:50%;background:var(--bad);border:1.5px solid var(--s1)}
+
+  .card-blk{background:var(--s2);border:1px solid var(--line);border-radius:var(--r-lg);padding:15px;margin-top:14px}
+  .card-blk .bt{font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+  .card-blk .bt>.ic{width:15px;height:15px;color:var(--tx-3)}
+  .seg.full{width:100%;display:flex}.seg.full button{flex:1}
+  .toast .ic{color:var(--y)}
 </style></head><body>
-<div class="device">
-  <div class="screen">
-    <!-- AVAILABILITY -->
-    <div class="view active" id="v-home">
-      <div class="hdr"><div class="vz-brand"><img id="logo" style="height:30px;width:30px" alt=""><b><i>V</i>IZZ</b> <span style="font-size:12px;color:#8c887c">Kurye</span></div><div class="av">🪖</div></div>
-      <div class="online-card">
-        <button class="bigtog off" id="tog" onclick="toggleOnline()"><span><span class="em" id="togEm">⏸</span><span id="togTx">ÇEVRİMDIŞI</span></span></button>
-        <div class="stt off" id="stt">Çevrimiçi ol, görev almaya başla</div>
-      </div>
-      <div class="stats">
-        <div class="stat"><div class="l">📦 Bugün teslimat</div><div class="v" id="sToday">0</div></div>
-        <div class="stat"><div class="l">💵 Bugün kazanç</div><div class="v" id="sEarn">₺0</div></div>
-      </div>
-      <div class="cuma"><div><div class="l">🐝 Bu hafta biriken</div><div class="v" id="weekly">₺1.840</div></div>
-        <div class="cd"><b id="cumaDay">Cuma</b><span id="cumaTxt">ödeme günü</span></div></div>
-      <div id="waitBox"></div>
-    </div>
-    <!-- ACTIVE TASK -->
-    <div class="view" id="v-task"></div>
-    <!-- EARNINGS -->
-    <div class="view" id="v-earn">
-      <h2 class="t">💵 Kazanç</h2>
-      <div class="cuma"><div><div class="l">Bu hafta biriken</div><div class="v">₺1.840</div></div><div class="cd"><b id="cumaDay2">Cuma</b><span>IBAN'a yatacak</span></div></div>
-      <div style="font-size:13px;color:#8c887c;margin:6px 0 10px">Bugünün teslimatları</div>
-      <div id="earnList"></div>
-    </div>
-    <!-- PERFORMANCE -->
-    <div class="view" id="v-perf">
-      <h2 class="t">📊 Performans</h2>
-      <div class="perf">
-        <div class="pr"><span>⭐ Müşteri puanı</span><b>4.9 / 5</b></div><div class="pbar"><i style="width:98%"></i></div>
-        <div class="pr" style="margin-top:14px"><span>✅ Kabul oranı</span><b>%92</b></div><div class="pbar"><i style="width:92%"></i></div>
-        <div class="pr" style="margin-top:14px"><span>⏱ Zamanında teslim</span><b>%96</b></div><div class="pbar"><i style="width:96%"></i></div>
-      </div>
-      <div style="font-size:13px;color:#8c887c;margin-bottom:10px">🏅 Rozetlerin</div>
-      <div class="badges"><span class="bdg">⚡ Hız Canavarı</span><span class="bdg">🐝 100 Teslimat</span><span class="bdg">🌧️ Yağmur Kahramanı</span><span class="bdg">⭐ 5 Yıldız Kulübü</span></div>
+
+<div class="device online-mode" id="device">
+  <div class="notch"></div>
+
+  <!-- ÜST DURUM ÇUBUĞU -->
+  <div class="statbar">
+    <div class="l"><img class="lg" id="logo" alt="VIZZ"><div class="nm">VIZZ <small>Kurye</small></div></div>
+    <div class="r">
+      <span class="net"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg></span>
+      <span style="font-weight:700;color:var(--tx)" class="num" id="clock">--:--</span>
+      <svg class="ic" viewBox="0 0 24 24" style="width:22px;height:13px;color:var(--tx-2)"><rect x="1" y="6" width="18" height="12" rx="3"/><rect x="3.5" y="8.5" width="11" height="7" rx="1" fill="currentColor" stroke="none"/><path d="M22 10v4"/></svg>
     </div>
   </div>
-  <div class="tabbar">
-    <button class="tab active" data-t="home" onclick="go('home')"><svg fill="none" stroke="#6f6c63" stroke-width="2" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Görev</button>
-    <button class="tab" data-t="earn" onclick="go('earn')"><svg fill="none" stroke="#6f6c63" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Kazanç</button>
-    <button class="tab" data-t="perf" onclick="go('perf')"><svg fill="none" stroke="#6f6c63" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="13" y="6" width="3" height="11"/></svg>Performans</button>
-    <button class="tab" data-t="prof" onclick="toast('👤 Profil & Belgeler: ehliyet, MYK, SRC, sigorta — geçerli ✓')"><svg fill="none" stroke="#6f6c63" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
+
+  <div class="stage" id="stage">
+
+    <!-- ============ 1) GÖREV / MÜSAİTLİK ============ -->
+    <section class="scr on" id="s-gorev">
+      <h2 class="h2">Merhaba, Mehmet</h2>
+      <p class="sub" id="greetSub">Şehirde 9 görev bekliyor · yoğun saat başlıyor</p>
+
+      <div class="availcard online" id="availCard">
+        <div class="row">
+          <div>
+            <div class="st">Durum</div>
+            <div class="big"><span class="liv pulse"></span><span id="availTxt">Çevrimiçi</span></div>
+            <div class="desc" id="availDesc">Görev davetleri açık. Sana en yakın siparişleri gönderiyoruz.</div>
+          </div>
+          <div class="tgl" id="availTgl" role="switch" aria-checked="true" tabindex="0"></div>
+        </div>
+      </div>
+
+      <div class="duo">
+        <div class="stat">
+          <div class="lab"><svg class="ic" viewBox="0 0 24 24"><path d="M5 7h11l3 5v5h-3M5 7v10h3M5 7 3 5"/><circle cx="8" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Bugün teslimat</div>
+          <div class="v num">14</div>
+          <div class="d up">▲ dünden +3</div>
+        </div>
+        <div class="stat gold">
+          <div class="lab"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Bugün kazanç</div>
+          <div class="v"><span class="num">₺612</span></div>
+          <div class="d muted">paket + prim + bahşiş</div>
+        </div>
+      </div>
+
+      <!-- haftalık birikim + CUMA sayacı -->
+      <div class="pay">
+        <div class="top">
+          <div>
+            <div class="lab">Bu hafta biriken</div>
+            <div class="amt"><span class="num">₺3.180</span></div>
+          </div>
+          <div class="cd">
+            <div class="n num" id="fridayDays">—</div>
+            <div class="u" id="fridayUnit">gün → Cuma</div>
+          </div>
+        </div>
+        <div class="bar"><i style="width:64%"></i></div>
+        <div class="legend"><span>Pzt başladı</span><span class="hl" id="fridayLine">Cuma ödeme günü</span></div>
+      </div>
+
+      <!-- görev araniyor durumu + demo davet -->
+      <div class="seek" id="seekBox">
+        <div class="radar"><div class="core"><svg class="ic" viewBox="0 0 24 24"><path d="M2 12h4l3 8 6-16 3 8h4"/></svg></div></div>
+        <div class="ttl" id="seekTtl">Görev aranıyor…</div>
+        <div class="txt" id="seekTxt">Çapanoğlu &amp; Eskipazar bölgesinde en yakın siparişi bekliyorsun.</div>
+        <button class="bigbtn y" id="demoInvite" style="margin-top:15px"><svg class="ic" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z"/></svg> Demo görev daveti getir</button>
+      </div>
+    </section>
+
+    <!-- ============ 3) AKTİF GÖREV ============ -->
+    <section class="scr" id="s-aktif">
+      <h2 class="h2">Aktif Görev</h2>
+      <p class="sub"><span class="num">VZ-7743</span> · tahmini kazanç <b class="hl">₺48</b></p>
+
+      <div class="task-hdr">
+        <div class="cover"><img src="img/adana-kebap.jpg" onerror="VIZZ.imgFallback(this,'adana-kebap')" alt="">
+          <div class="ov">
+            <div><div class="rn">Anadolu Lezzetleri</div><div class="rz"><svg class="ic" viewBox="0 0 24 24" style="width:12px;height:12px;color:#cfd2d6"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> Köseoğlu → S. Kaya · Köseoğlu Mah.</div></div>
+            <span class="badge" style="background:rgba(255,196,0,.92);color:#15140F;border:none"><span class="dot" style="background:#15140F"></span>2,4 km</span>
+          </div>
+        </div>
+        <div class="meta">
+          <div class="c"><div class="l">Mesafe</div><div class="v num">2,4<small> km</small></div></div>
+          <div class="c"><div class="l">Tahmini</div><div class="v num">11<small> dk</small></div></div>
+          <div class="c"><div class="l">Kazanç</div><div class="v g num">₺48</div></div>
+          <div class="c"><div class="l">Tahsilat</div><div class="v num">₺420</div></div>
+        </div>
+      </div>
+
+      <!-- durum makinesi -->
+      <div class="steps" id="taskSteps"></div>
+
+      <!-- POD foto adımı (teslim aşamasında görünür) -->
+      <div class="podbox" id="podBox" style="display:none">
+        <img class="podthumb" id="podThumb" alt="">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>
+        <div class="t" id="podTtl">Teslimat kanıtı (POD)</div>
+        <div class="s" id="podSub">Paketi teslim ettiğin yerin fotoğrafını çek.</div>
+        <button class="bigbtn ghost" id="podBtn" style="margin-top:13px"><svg class="ic" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg> Fotoğraf çek</button>
+      </div>
+
+      <button class="bigbtn ghost" id="navBtn" style="margin-bottom:11px"><svg class="ic" viewBox="0 0 24 24"><path d="m3 11 19-9-9 19-2-8-8-2Z"/></svg> Navigasyonu aç (harita)</button>
+      <button class="bigbtn y" id="stepBtn"><svg class="ic" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg> <span id="stepBtnTxt">Restorana ulaştım</span></button>
+    </section>
+
+    <!-- ============ 4) KAZANÇ ============ -->
+    <section class="scr" id="s-kazanc">
+      <h2 class="h2">Kazanç</h2>
+      <p class="sub">Esnaf kurye hakedişi · Cuma günü IBAN'a yatar</p>
+
+      <div class="duo">
+        <div class="stat gold"><div class="lab">Bugün</div><div class="v"><span class="num">₺612</span></div><div class="d up">▲ %12</div></div>
+        <div class="stat"><div class="lab">Bu hafta</div><div class="v"><span class="num">₺3.180</span></div><div class="d muted">4 günde</div></div>
+      </div>
+
+      <div class="pay" style="margin-top:11px">
+        <div class="top">
+          <div><div class="lab">Cuma ödenecek (net)</div><div class="amt"><span class="hl"><span class="num">₺3.180</span></span></div></div>
+          <div class="cd"><div class="n num" id="fridayDays2">—</div><div class="u">gün kaldı</div></div>
+        </div>
+        <div class="legend" style="margin-top:11px"><span>Paket ₺2.610</span><span>Prim ₺410</span><span>Bahşiş ₺160</span></div>
+      </div>
+
+      <div class="card-blk">
+        <div class="bt">Haftalık özet <span class="seg"><button class="on" data-em="hafta">Teslimat</button><button data-em="kazanc">Kazanç</button></span></div>
+        <div class="chart" id="earnChart"></div>
+      </div>
+
+      <div class="card-blk">
+        <div class="bt">Günlük döküm <svg class="ic" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg></div>
+        <div id="dailyList"></div>
+      </div>
+    </section>
+
+    <!-- ============ 5) PERFORMANS ============ -->
+    <section class="scr" id="s-perf">
+      <h2 class="h2">Performans</h2>
+      <p class="sub">Yüksek skor = daha çok &amp; daha iyi görev</p>
+
+      <div class="duo" style="margin-bottom:0">
+        <div class="card-blk" style="margin-top:0;text-align:center;padding:13px 10px 10px">
+          <div class="chart" id="gScore" style="height:120px"></div>
+          <div style="font-size:11px;color:var(--tx-3);font-weight:600;margin-top:-4px">Kurye Skoru</div>
+        </div>
+        <div class="card-blk" style="margin-top:0;text-align:center;padding:13px 10px 10px">
+          <div class="chart" id="gRate" style="height:120px"></div>
+          <div style="font-size:11px;color:var(--tx-3);font-weight:600;margin-top:-4px">Müşteri Puanı</div>
+        </div>
+      </div>
+
+      <div class="card-blk">
+        <div class="bt">Bu hafta metrikler</div>
+        <div class="metric"><div class="top"><span class="nm">Zamanında teslim</span><span class="vl num" style="color:var(--ok)">%96</span></div><div class="track"><i style="width:96%;background:var(--ok)"></i></div></div>
+        <div class="metric"><div class="top"><span class="nm">Kabul oranı</span><span class="vl num" style="color:var(--y)">%88</span></div><div class="track"><i style="width:88%;background:var(--y)"></i></div></div>
+        <div class="metric"><div class="top"><span class="nm">Tamamlama</span><span class="vl num" style="color:var(--info)">%99</span></div><div class="track"><i style="width:99%;background:var(--info)"></i></div></div>
+        <div class="metric" style="margin-bottom:2px"><div class="top"><span class="nm">İptal / iade</span><span class="vl num" style="color:var(--bad)">%1,4</span></div><div class="track"><i style="width:14%;background:var(--bad)"></i></div></div>
+      </div>
+
+      <div class="card-blk">
+        <div class="bt">Rozetler <span class="dim" style="font-size:11px;font-weight:600">3 / 4 açık</span></div>
+        <div class="badges">
+          <div class="bg" data-bd="Hız Şampiyonu — bu hafta en hızlı %5 kurye arasındasın"><div class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="m13 2-3 7h6l-5 13 2-9H7l4-11Z"/></svg></div><div><div class="nm">Hız Şampiyonu</div><div class="ds">En hızlı %5</div></div></div>
+          <div class="bg" data-bd="Yüzler Kulübü — bu ay 100. teslimatını tamamladın"><div class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="M7 21V9l5-7 5 7v12"/><path d="M12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg></div><div><div class="nm">Yüzler Kulübü</div><div class="ds">100+ teslimat</div></div></div>
+          <div class="bg" data-bd="5★ Serisi — son 20 teslimatın tam puan aldı"><div class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 .9-5 4.8 1.3 7L12 18l-6.6 3.2L6.7 14l-5-4.8 7-.9L12 2Z"/></svg></div><div><div class="nm">5★ Serisi</div><div class="ds">20 tam puan</div></div></div>
+          <div class="bg lock" data-bd="Gece Kartalı — kilitli: 30 gece teslimatı yap (18/30)"><div class="ico"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></div><div><div class="nm">Gece Kartalı</div><div class="ds">18 / 30 gece</div></div></div>
+        </div>
+      </div>
+
+      <div class="card-blk">
+        <div class="bt">Belge geçerlilik <span class="badge b-ok"><span class="dot"></span>Hepsi geçerli</span></div>
+        <div class="doc"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h4M7 13h7"/></svg><span class="nm">Sürücü Belgesi (A2)</span><span class="badge b-ok"><span class="dot"></span>2031</span></div>
+        <div class="doc"><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="nm">MYK Seviye-3 Sertifika</span><span class="badge b-ok"><span class="dot"></span>Geçerli</span></div>
+        <div class="doc"><svg class="ic" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg><span class="nm">Trafik Sigortası</span><span class="badge b-warn"><span class="dot"></span>34 gün</span></div>
+        <div class="doc"><svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg><span class="nm">Vergi Levhası</span><span class="badge b-ok"><span class="dot"></span>2026</span></div>
+      </div>
+    </section>
+
   </div>
-  <!-- task invite -->
-  <div class="invite" id="invite"><div class="card">
-    <h3>🔔 Yeni Görev!</h3>
-    <div class="timer"><i id="timerBar"></i></div>
-    <div class="row"><span>🍽 Restoran</span><b id="iv-rest">Çapanoğlu Köftecisi</b></div>
-    <div class="row"><span>📍 Teslimat</span><b id="iv-zone">Fatih Mah.</b></div>
-    <div class="row"><span>🛣 Mesafe</span><b id="iv-dist">2.4 km</b></div>
-    <div class="earn" id="iv-earn">+₺38</div>
-    <div class="acts"><button class="rej" onclick="rejectTask()">Reddet</button><button class="acc" onclick="acceptTask()">Kabul Et ✓</button></div>
-  </div></div>
+
+  <!-- GÖREV DAVETI MODAL -->
+  <div class="invite" id="invite">
+    <div class="invite-card">
+      <div class="ih">
+        <span class="tag"><svg class="ic" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg> Yeni görev daveti</span>
+        <div class="h">Çapanoğlu Köftecisi</div>
+        <div class="z">Çapanoğlu → Fatih Mah. · A. Demir</div>
+      </div>
+      <div class="ides">
+        <div class="c"><div class="l">Mesafe</div><div class="v num">3,1<small> km</small></div></div>
+        <div class="c"><div class="l">Tahmini süre</div><div class="v num">13<small> dk</small></div></div>
+        <div class="c"><div class="l">Kazanç</div><div class="v g num">₺52</div></div>
+      </div>
+      <div class="icd">
+        <div class="cdbar"><i id="invBar"></i></div>
+        <div class="cdt"><span>Yanıt süresi</span><span class="hl num" id="invSec">15 sn</span></div>
+      </div>
+      <div class="iact">
+        <button class="bigbtn ghost rej" id="invReject">Reddet</button>
+        <button class="bigbtn y" id="invAccept"><svg class="ic" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg> Kabul et</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALT TAB BAR -->
+  <nav class="tabbar" id="tabbar">
+    <button class="on" data-s="gorev"><svg class="ic" viewBox="0 0 24 24"><path d="m3 11 19-9-9 19-2-8-8-2Z"/></svg>Görev<span class="tabdot" id="taskDot" style="display:none"></span></button>
+    <button data-s="kazanc"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Kazanç</button>
+    <button data-s="perf"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 5-6"/></svg>Performans</button>
+    <button data-s="profil"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
+  </nav>
 </div>
-<div class="vz-toast" id="toast"></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script src="vizz-data.js"></script>
 <script>
-document.getElementById('logo').src=VIZZ.LOGO;
-let onlineState=false, today=0, earn=0, taskStep=0;
-const Z=VIZZ.YOZGAT.zones;
-// cuma countdown
-(function(){const d=new Date();const dow=d.getDay();const toFri=((5-dow)+7)%7;
- const txt=toFri===0?'Bugün!':toFri===1?'Yarın':toFri+' gün sonra';
- document.getElementById('cumaTxt').textContent=txt;})();
-function toggleOnline(){onlineState=!onlineState;const t=document.getElementById('tog');
- t.className='bigtog '+(onlineState?'on':'off');
- document.getElementById('togEm').textContent=onlineState?'🟢':'⏸';
- document.getElementById('togTx').textContent=onlineState?'ÇEVRİMİÇİ':'ÇEVRİMDIŞI';
- const s=document.getElementById('stt');s.className='stt '+(onlineState?'on':'off');
- s.textContent=onlineState?'Müsaitsin — görev aranıyor…':'Çevrimiçi ol, görev almaya başla';
- renderWait();
- if(onlineState)setTimeout(showInvite,2200);
-}
-function renderWait(){const w=document.getElementById('waitBox');
- if(!onlineState){w.innerHTML='';return;}
- w.innerHTML=`<div class="waiting"><div class="p">🐝</div><p style="margin-top:8px">Sana en yakın sipariş aranıyor…</p></div>
-  <button class="simbtn" onclick="showInvite()">▶︎ Görev daveti gönder (demo)</button>`;}
-let timer=null;
-function showInvite(){if(!onlineState)return;
- const z=Z[Math.floor(Math.random()*8)];const dist=(1+Math.random()*3).toFixed(1);const e=Math.round(28+dist*6);
- document.getElementById('iv-zone').textContent=z.n+' Mah.';document.getElementById('iv-dist').textContent=dist+' km';document.getElementById('iv-earn').textContent='+₺'+e;
- window._taskEarn=e;document.getElementById('invite').classList.add('show');
- let w=100;document.getElementById('timerBar').style.width='100%';
- clearInterval(timer);timer=setInterval(()=>{w-=100/12;document.getElementById('timerBar').style.width=Math.max(0,w)+'%';if(w<=0){clearInterval(timer);rejectTask();}},1000);
-}
-function rejectTask(){clearInterval(timer);document.getElementById('invite').classList.remove('show');toast('Görev reddedildi (performansa yansır, ceza yok)');}
-function acceptTask(){clearInterval(timer);document.getElementById('invite').classList.remove('show');taskStep=0;renderTask();go('task');}
-function renderTask(){const steps=[
-  ['🏪','Restorana git','Çapanoğlu Köftecisi · 0.8 km','Yola çıktım'],
-  ['📦','Paketi al','Siparişi teslim al','Paketi aldım'],
-  ['🛵','Müşteriye git','Fatih Mah. · 2.4 km','Yola çıktım'],
-  ['🏠','Teslim et','Kapıya teslim','Teslim ettim'],
-  ['💵','Tahsilat','Online ödendi ✓','Tamamla']];
- document.getElementById('v-task').innerHTML=`<h2 class="t">🛵 Aktif Görev · VZ-77${40+today}</h2>
-  <div class="navline"><b>📍 Sıradaki nokta</b><span class="km">${steps[taskStep][2]}</span></div>
-  ${steps.map((s,i)=>`<div class="step ${i<taskStep?'don':i===taskStep?'act':''}">
-    <div class="n">${i<taskStep?'✓':s[0]}</div><div class="t"><b>${s[1]}</b><span>${s[2]}</span></div>
-    ${i===taskStep?`<button class="go" onclick="nextStep()">${s[3]} →</button>`:''}</div>`).join('')}`;
-}
-function nextStep(){taskStep++;if(taskStep>=5){completeTask();return;}renderTask();}
-function completeTask(){today++;earn+=window._taskEarn||38;
- document.getElementById('sToday').textContent=today;document.getElementById('sEarn').textContent='₺'+earn;
- renderEarn();toast('🎉 Teslimat tamam! +₺'+(window._taskEarn||38));go('home');renderWait();}
-function renderEarn(){const el=document.getElementById('earnList');
- if(!today){el.innerHTML='<div style="color:#6f6c63;text-align:center;padding:30px">Bugün henüz teslimat yok</div>';return;}
- let h='';for(let i=today;i>=1;i--)h+=`<div class="erow"><div><b>VZ-77${40+i}</b><br><span style="color:#8c887c;font-size:12px">${Z[i%8].n} · paket başı</span></div><span class="p">+₺${30+i*3}</span></div>`;
- el.innerHTML=h;}
-renderEarn();
-function go(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('v-'+v).classList.add('active');
- document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));const tb=document.querySelector(`.tab[data-t="${v}"]`);if(tb)tb.classList.add('active');document.querySelector('.screen').scrollTop=0;}
-let tt;function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2000);}
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+  const D=window.VIZZ;
+  $('#logo').src=D.LOGO;
+
+  const C={y:'#FFC400',y2:'#F2A900',ok:'#26C281',warn:'#F5A623',bad:'#FF5A52',info:'#4C8DFF',
+    tx2:'#A4AAB3',tx3:'#70767E',s3:'#1C2026',s4:'#252A31',line:'rgba(255,255,255,.07)'};
+  const charts=[];
+  const mk=id=>{const c=echarts.init(document.getElementById(id),null,{renderer:'canvas'});charts.push(c);return c;};
+  window.addEventListener('resize',()=>charts.forEach(c=>c.resize()));
+  const axisBase={axisLine:{lineStyle:{color:C.line}},axisTick:{show:false},splitLine:{lineStyle:{color:C.line}},axisLabel:{color:C.tx3,fontSize:10}};
+  const baseTip={backgroundColor:'#1C2026',borderColor:'rgba(255,255,255,.12)',textStyle:{color:'#E9EBEE',fontSize:12},padding:[8,11]};
+
+  /* ---- toast ---- */
+  let tt;function toast(m){const e=$('#toast');e.innerHTML='<svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m9 11 3 3L22 4"/></svg>'+m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2400);}
+
+  /* ---- saat ---- */
+  function clock(){const d=new Date();$('#clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+  clock();setInterval(clock,20000);
+
+  /* ---- CUMA sayacı (bugünden Cuma'ya kaç gün — new Date ile) ---- */
+  function daysToFriday(){const dow=new Date().getDay();return (5-dow+7)%7;} // 0 = bugün Cuma
+  (function fridayLabel(){
+    const n=daysToFriday(), isToday=n===0;
+    $('#fridayDays').textContent=isToday?'Bugün':n;
+    $('#fridayUnit').textContent=isToday?'ödeme günü':'gün → Cuma';
+    $('#fridayLine').textContent=isToday?'Bugün ödeme günü!':'Cuma ödeme günü';
+    $('#fridayDays2').textContent=isToday?'0':n;
+  })();
+
+  /* ============ MÜSAİTLİK TOGGLE ============ */
+  let onlineMode=true;
+  function setAvail(v){
+    onlineMode=v;
+    const card=$('#availCard'),dev=$('#device'),seek=$('#seekBox');
+    card.classList.toggle('online',v);
+    $('#availTgl').setAttribute('aria-checked',v);
+    dev.classList.toggle('online-mode',v);
+    $('#availTxt').textContent=v?'Çevrimiçi':'Çevrimdışı';
+    $('#availDesc').textContent=v?'Görev davetleri açık. Sana en yakın siparişleri gönderiyoruz.':'Görev daveti almıyorsun. Hazır olunca tekrar çevrimiçi ol.';
+    $('#greetSub').textContent=v?'Şehirde 9 görev bekliyor · yoğun saat başlıyor':'Çevrimdışısın — molanın tadını çıkar.';
+    if(v){
+      seek.classList.remove('idle');
+      seek.querySelector('.radar .core').innerHTML='<svg class="ic" viewBox="0 0 24 24"><path d="M2 12h4l3 8 6-16 3 8h4"/></svg>';
+      $('#seekTtl').textContent='Görev aranıyor…';
+      $('#seekTxt').innerHTML='Çapanoğlu &amp; Eskipazar bölgesinde en yakın siparişi bekliyorsun.';
+      $('#demoInvite').disabled=false;
+    }else{
+      seek.classList.add('idle');
+      seek.querySelector('.radar .core').innerHTML='<svg class="ic" viewBox="0 0 24 24"><path d="M18.36 6.64A9 9 0 1 1 5.64 6.64M12 2v10"/></svg>';
+      $('#seekTtl').textContent='Çevrimdışısın';
+      $('#seekTxt').textContent='Görev daveti almak için yukarıdan çevrimiçi ol.';
+      $('#demoInvite').disabled=true;
+    }
+    toast(v?'Çevrimiçi oldun · görev davetleri açık':'Çevrimdışı oldun');
+  }
+  $('#availTgl').onclick=()=>setAvail(!onlineMode);
+
+  /* ============ GÖREV DAVETI MODAL ============ */
+  let invTimer=null, invLeft=15;
+  function openInvite(){
+    if(!onlineMode){toast('Önce çevrimiçi ol');return;}
+    invLeft=15;$('#invSec').textContent='15 sn';
+    const bar=$('#invBar');bar.style.transition='none';bar.style.width='100%';
+    $('#invite').classList.add('on');
+    requestAnimationFrame(()=>{bar.style.transition='width 15s linear';bar.style.width='0%';});
+    clearInterval(invTimer);
+    invTimer=setInterval(()=>{invLeft--;$('#invSec').textContent=invLeft+' sn';
+      if(invLeft<=0){clearInterval(invTimer);closeInvite();toast('Davet süresi doldu — kabul oranını korumak için hızlı ol');}},1000);
+  }
+  function closeInvite(){$('#invite').classList.remove('on');clearInterval(invTimer);}
+  $('#demoInvite').onclick=openInvite;
+  $('#invReject').onclick=()=>{closeInvite();toast('Davet reddedildi · sıradaki kuryeye gidiyor');};
+  $('#invAccept').onclick=()=>{closeInvite();toast('Görev kabul edildi → VZ-7743');$('#taskDot').style.display='block';resetTask();go('aktif');};
+
+  /* ============ AKTİF GÖREV — durum makinesi ============ */
+  const STEPS=[
+    {t:'Restorana git',m:'Anadolu Lezzetleri · Köseoğlu Mah.',btn:'Restorana ulaştım',ic:'<path d="M5 7h14M5 7v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7M5 7 7 3h10l2 4"/>'},
+    {t:'Paketi al',m:'Sipariş no eşleştir · sıcak çantaya koy',btn:'Paketi aldım',ic:'<path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>'},
+    {t:'Müşteriye git',m:'S. Kaya · 2,4 km · navigasyon açık',btn:'Adrese ulaştım',ic:'<path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/>'},
+    {t:'Teslim et',m:'Teslimat kanıtı (POD) fotoğrafı çek',btn:'Teslim ettim',ic:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'},
+    {t:'Tahsilat',m:'₺420 kapıda ödeme · nakit / kart',btn:'Tahsilat tamam · görevi bitir',ic:'<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'},
+  ];
+  let curStep=0, podDone=false;
+  function renderSteps(){
+    $('#taskSteps').innerHTML=STEPS.map((s,i)=>{
+      const cls=i<curStep?'done':i===curStep?'cur':'';
+      const ic=i<curStep?'<path d="m5 12 5 5L20 7"/>':s.ic;
+      return `<div class="step ${cls}"><div class="rail"></div><div class="dot"><svg class="ic" viewBox="0 0 24 24">${ic}</svg></div>
+        <div class="body"><div class="t">${i+1}. ${s.t}</div><div class="m">${s.m}</div></div></div>`;
+    }).join('');
+    const isPOD=curStep===3;
+    $('#podBox').style.display=isPOD?'block':'none';
+    const done=curStep>=STEPS.length;
+    if(done){
+      $('#stepBtn').innerHTML='<svg class="ic" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg> Görev tamamlandı';
+      $('#stepBtn').disabled=true;$('#stepBtn').classList.remove('y');$('#stepBtn').classList.add('ghost');
+      $('#navBtn').style.display='none';
+    }else{
+      $('#stepBtnTxt').textContent=STEPS[curStep].btn;
+      $('#stepBtn').disabled=isPOD&&!podDone;
+    }
+  }
+  function resetTask(){
+    curStep=0;podDone=false;
+    $('#podThumb').style.display='none';$('#podBox').classList.remove('shot');
+    $('#podTtl').textContent='Teslimat kanıtı (POD)';$('#podSub').textContent='Paketi teslim ettiğin yerin fotoğrafını çek.';
+    $('#stepBtn').disabled=false;$('#stepBtn').classList.add('y');$('#stepBtn').classList.remove('ghost');$('#navBtn').style.display='';
+    $('#stepBtn').innerHTML='<svg class="ic" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg> <span id="stepBtnTxt">Restorana ulaştım</span>';
+    renderSteps();
+  }
+  $('#stepBtn').onclick=()=>{
+    if(curStep>=STEPS.length)return;
+    if(curStep===3&&!podDone){toast('Önce teslimat fotoğrafı çek');return;}
+    const label=STEPS[curStep].t;
+    curStep++;renderSteps();
+    if(curStep>=STEPS.length){
+      $('#taskDot').style.display='none';
+      toast('Teslimat tamamlandı · +₺48 kazancına eklendi');
+      setTimeout(()=>{resetTask();go('gorev');},1500);
+    }else{
+      toast(label+' ✓ · sıradaki: '+STEPS[curStep].t);
+    }
+  };
+  $('#navBtn').onclick=()=>toast('Harita uygulaması açılıyor (deep-link)…');
+  $('#podBtn').onclick=()=>{
+    podDone=true;
+    const t=$('#podThumb');t.src='img/karisik-izgara.jpg';t.onerror=()=>VIZZ.imgFallback(t,'karisik-izgara');t.style.display='block';
+    $('#podBox').classList.add('shot');
+    $('#podTtl').textContent='Fotoğraf eklendi ✓';$('#podSub').textContent='Teslimat kanıtı kaydedildi. Artık teslim edebilirsin.';
+    $('#stepBtn').disabled=false;
+    toast('POD fotoğrafı kaydedildi');
+  };
+
+  /* ============ KAZANÇ — haftalık bar ============ */
+  const wkDays=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+  const wkDeliv=[12,16,9,11,14,0,0], wkEarn=[520,690,380,470,612,0,0];
+  let earnChart;
+  function buildEarn(metric){
+    if(!earnChart)earnChart=mk('earnChart');
+    const data=metric==='kazanc'?wkEarn:wkDeliv;
+    const todayIdx=(new Date().getDay()+6)%7; // Pzt=0
+    earnChart.setOption({
+      tooltip:{trigger:'axis',...baseTip,formatter:p=>p[0].name+': <b>'+(metric==='kazanc'?'₺'+p[0].value:p[0].value+' teslimat')+'</b>'},
+      grid:{left:4,right:10,top:18,bottom:4,containLabel:true},
+      xAxis:{type:'category',data:wkDays,...axisBase},
+      yAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:metric==='kazanc'?'₺{value}':'{value}'}},
+      series:[{type:'bar',data:data.map((v,i)=>({value:v,itemStyle:{color:i===todayIdx?C.y:'#3a4048',borderRadius:[4,4,0,0]}})),barWidth:'56%'}]
+    });
+    setTimeout(()=>earnChart.resize(),40);
+  }
+  $$('#s-kazanc .seg button').forEach(b=>b.onclick=()=>{
+    $$('#s-kazanc .seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');buildEarn(b.dataset.em);});
+
+  const daily=[
+    ['Bugün','14 teslimat · 6,2 sa',612,true],
+    ['Dün','11 teslimat · 5,1 sa',470,false],
+    ['Çarşamba','9 teslimat · 4,0 sa',380,false],
+    ['Salı','16 teslimat · 7,2 sa',690,false],
+    ['Pazartesi','12 teslimat · 5,4 sa',520,false],
+  ];
+  $('#dailyList').innerHTML=daily.map(d=>`<div class="earnrow"><div><div class="d">${d[0]}</div><div class="s">${d[1]}</div></div><div class="a${d[3]?' g':''} num">₺${d[2]}</div></div>`).join('');
+
+  /* ============ PERFORMANS — gauge'lar ============ */
+  function gauge(id,val,max,fmt,color){
+    mk(id).setOption({series:[{type:'gauge',startAngle:210,endAngle:-30,min:0,max:max,radius:'94%',center:['50%','62%'],
+      progress:{show:true,width:11,roundCap:true,itemStyle:{color:color}},
+      axisLine:{lineStyle:{width:11,color:[[1,C.s3]]}},pointer:{show:false},axisTick:{show:false},splitLine:{show:false},axisLabel:{show:false},
+      anchor:{show:false},title:{show:false},
+      detail:{valueAnimation:true,fontSize:23,fontWeight:800,color:'#E9EBEE',offsetCenter:[0,'2%'],formatter:fmt},
+      data:[{value:val}]}]});
+  }
+  let perfBuilt=false;
+  function buildPerf(){if(perfBuilt)return;perfBuilt=true;
+    gauge('gScore',92,100,'{value}',C.y);
+    gauge('gRate',4.8,5,'{value}',C.info);
+    setTimeout(()=>charts.forEach(c=>c.resize()),50);
+  }
+  $$('#s-perf .bg').forEach(b=>b.onclick=()=>toast(b.dataset.bd));
+  $$('#s-perf .doc').forEach(b=>b.onclick=()=>toast('Belge detayı / yenileme paneli'));
+
+  /* ============ TAB NAVİGASYON ============ */
+  const scrOf={gorev:'#s-gorev',kazanc:'#s-kazanc',perf:'#s-perf',aktif:'#s-aktif'};
+  function go(s){
+    if(s==='profil'){toast('Profil & ayarlar — ad, IBAN, araç, vardiya tercihi');return;}
+    $$('.scr').forEach(x=>x.classList.remove('on'));
+    $(scrOf[s]||'#s-gorev').classList.add('on');
+    const tabKey=(s==='aktif')?'gorev':s;
+    $$('#tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.s===tabKey));
+    $('#stage').scrollTop=0;
+    if(s==='kazanc')buildEarn($('#s-kazanc .seg button.on').dataset.em);
+    if(s==='perf')buildPerf();
+    setTimeout(()=>charts.forEach(c=>c.resize()),60);
+  }
+  $$('#tabbar button').forEach(b=>b.onclick=()=>{
+    if(b.dataset.s==='gorev'){
+      // aktif görev varsa onu göster, yoksa müsaitlik
+      $('#taskDot').style.display!=='none'?go('aktif'):go('gorev');
+    }else go(b.dataset.s);
+  });
+
+  /* init */
+  renderSteps();
+  setTimeout(()=>charts.forEach(c=>c.resize()),120);
+})();
 </script>
 </body></html>
