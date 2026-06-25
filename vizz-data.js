@@ -156,6 +156,7 @@ ORDERS.push(
 
 window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IMG,EMOJI,imgFallback,MARKET};
 
+
 // ==========================================
 // VIZZ Theme Manager - Global Theme Toggle
 // ==========================================
@@ -171,11 +172,14 @@ window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IM
   }
 
   // Load theme immediately to prevent flashing
-  const savedTheme = localStorage.getItem('vizz-theme') || 'dark';
+  let savedTheme = 'dark';
+  try {
+    savedTheme = localStorage.getItem('vizz-theme') || 'dark';
+  } catch (e) {}
   applyTheme(savedTheme);
 
   // Inject Theme Toggle Switch once DOM is ready
-  document.addEventListener('DOMContentLoaded', () => {
+  function initToggle() {
     // Avoid double toggle button injection
     if (document.getElementById('vizz-theme-toggle')) return;
     
@@ -213,16 +217,32 @@ window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IM
       toggle.innerHTML = theme === 'light' ? '🌙' : '☀️';
     };
 
-    const currentTheme = localStorage.getItem('vizz-theme') || 'dark';
+    let currentTheme = 'dark';
+    try {
+      currentTheme = localStorage.getItem('vizz-theme') || 'dark';
+    } catch (e) {}
     setToggleContent(currentTheme);
 
     toggle.addEventListener('click', () => {
-      const theme = localStorage.getItem('vizz-theme') === 'light' ? 'dark' : 'light';
-      localStorage.setItem('vizz-theme', theme);
+      let current = 'dark';
+      try {
+        current = localStorage.getItem('vizz-theme') || 'dark';
+      } catch (e) {}
+      const theme = current === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem('vizz-theme', theme);
+      } catch (e) {}
       applyTheme(theme);
       setToggleContent(theme);
     });
 
     document.body.appendChild(toggle);
-  });
+  }
+
+  // Safe DOM ready execution
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initToggle);
+  } else {
+    initToggle();
+  }
 })();
