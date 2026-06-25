@@ -1,5 +1,5 @@
 /* VIZZ — shared mock data, brand assets, helpers (presentation mockup) */
-const VIZZ_LOGO = "img/bee.png";";
+const VIZZ_LOGO = "img/bee.png";
 
 /* Yozgat merkez — mahalleler şehrin gerçek street-grid'i boyunca yayıldı (kapsama haritası).
    Harita bunlara fitBounds yapar → bölge çerçevelenir, kümelenme/çakışma olmaz. */
