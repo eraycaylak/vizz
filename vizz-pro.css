@@ -264,3 +264,66 @@ body.light-theme .av { background:#e2e8f0 !important }
 /* KPI sparklines */
 body.light-theme .kpi .spark { opacity:.6 }
 
+/* Navigation and upper menus overrides */
+body.light-theme nav, body.light-theme .nav {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+}
+body.light-theme nav .brand, body.light-theme .nav .brand {
+  color: #0f172a !important;
+}
+body.light-theme nav .nlinks a {
+  color: #334155 !important;
+}
+body.light-theme nav .nlinks a:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Category icons on active state */
+body.light-theme .cat.on .ic, body.light-theme .cats button.on .ic {
+  color: var(--y) !important;
+}
+
+/* Hero promo cards in light theme (avoid dark text on dark background) */
+body.light-theme .hcard {
+  background: linear-gradient(135deg, #fef3c7, #fffbeb 62%) !important;
+  border-color: rgba(217, 119, 6, 0.2) !important;
+  color: #0f172a !important;
+}
+body.light-theme .hcard h1 {
+  color: #0f172a !important;
+}
+body.light-theme .hcard p {
+  color: #334155 !important;
+}
+body.light-theme .hstats .st {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+body.light-theme .hstats .v {
+  color: #0f172a !important;
+}
+body.light-theme .hstats .l {
+  color: #64748b !important;
+}
+
+body.light-theme .hero {
+  background: linear-gradient(125deg, #fef3c7, #fffbeb 62%) !important;
+  border-color: rgba(217, 119, 6, 0.2) !important;
+  color: #0f172a !important;
+}
+body.light-theme .hero h1 {
+  color: #0f172a !important;
+}
+body.light-theme .hero p {
+  color: #334155 !important;
+}
+
+/* Tabbar cart dot border color in light theme */
+body.light-theme .tabbar button .cart-dot {
+  border-color: var(--s1) !important;
+}
+
+

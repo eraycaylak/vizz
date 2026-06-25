@@ -93,12 +93,12 @@ const MARKET_CATS = [
 ];
 
 const MARKET_PRODUCTS = [
-  {id:"m-sutlu-cik",n:"Sütlü Çikolata",cat:"cikolata",price:34,old:40,unit:"80 g",emo:"🍫",stock:42,tag:"Çok Satan"},
-  {id:"m-findikli",n:"Fındıklı Çikolata",cat:"cikolata",price:38,unit:"80 g",emo:"🍫",stock:30},
-  {id:"m-gofret",n:"Çikolatalı Gofret",cat:"cikolata",price:18,unit:"36 g",emo:"🍫",stock:120},
-  {id:"m-kakaolu-bar",n:"Kakaolu Bar",cat:"cikolata",price:22,unit:"50 g",emo:"🍫",stock:64},
-  {id:"m-beyaz-cik",n:"Beyaz Çikolata",cat:"cikolata",price:36,unit:"80 g",emo:"🍫",stock:0,tag:"Tükendi"},
-  {id:"m-findik-krem",n:"Fındık Kreması",cat:"cikolata",price:96,old:115,unit:"350 g",emo:"🍯",stock:18,tag:"Fırsat"},
+  {id:"m-sutlu-cik",n:"Sütlü Çikolata",cat:"cikolata",price:34,old:40,unit:"80 g",emo:"🍫",img:"https://images.unsplash.com/photo-1548907040-4d42b52125e0?w=200&fit=crop&auto=format",stock:42,tag:"Çok Satan"},
+  {id:"m-findikli",n:"Fındıklı Çikolata",cat:"cikolata",price:38,unit:"80 g",emo:"🍫",img:"https://images.unsplash.com/photo-1549007994-cb92ca817b7a?w=200&fit=crop&auto=format",stock:30},
+  {id:"m-gofret",n:"Çikolatalı Gofret",cat:"cikolata",price:18,unit:"36 g",emo:"🍫",img:"https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=200&fit=crop&auto=format",stock:120},
+  {id:"m-kakaolu-bar",n:"Kakaolu Bar",cat:"cikolata",price:22,unit:"50 g",emo:"🍫",img:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=200&fit=crop&auto=format",stock:64},
+  {id:"m-beyaz-cik",n:"Beyaz Çikolata",cat:"cikolata",price:36,unit:"80 g",emo:"🍫",img:"https://images.unsplash.com/photo-1600431521340-491eca880813?w=200&fit=crop&auto=format",stock:0,tag:"Tükendi"},
+  {id:"m-findik-krem",n:"Fındık Kreması",cat:"cikolata",price:96,old:115,unit:"350 g",emo:"🍯",img:"https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?w=200&fit=crop&auto=format",stock:18,tag:"Fırsat"},
   {id:"m-klasik-cips",n:"Klasik Patates Cipsi",cat:"cips",price:42,unit:"107 g",emo:"🥔",stock:58,tag:"Çok Satan"},
   {id:"m-baharatli",n:"Baharatlı Cips",cat:"cips",price:42,unit:"107 g",emo:"🌶️",stock:47},
   {id:"m-misir-cips",n:"Mısır Cipsi (Nacho)",cat:"cips",price:38,unit:"140 g",emo:"🌽",stock:33},
@@ -169,6 +169,8 @@ window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IM
       document.body.classList.remove('light-theme');
       document.documentElement.classList.remove('light-theme');
     }
+    // Dispatch a global event for theme changes (e.g., for ECharts redrawing)
+    window.dispatchEvent(new CustomEvent('vizz-theme-change', { detail: { theme } }));
   }
 
   // Load theme immediately to prevent flashing

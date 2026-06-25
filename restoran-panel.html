@@ -211,10 +211,45 @@ document.getElementById('logo2').src = D.LOGO;
 const C = { y:'#FFC400', y2:'#F2A900', ok:'#26C281', warn:'#F5A623', bad:'#FF5A52', info:'#4C8DFF', purple:'#A98BFF',
   tx2:'#A4AAB3', tx3:'#70767E', line:'rgba(255,255,255,.07)', s3:'#1C2026', s4:'#252A31' };
 const rnd=(a,b)=>a+Math.random()*(b-a);
-const charts=[]; function mkChart(id){const c=echarts.init(document.getElementById(id),null,{renderer:'canvas'});charts.push(c);return c;}
+const charts=[];
+
+function getThemeStyles() {
+  const isLight = document.body.classList.contains('light-theme');
+  const line = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,.07)';
+  const tx3 = isLight ? '#64748b' : '#70767E';
+  const tx2 = isLight ? '#334155' : '#A4AAB3';
+  const s3 = isLight ? '#f1f5f9' : '#1C2026';
+  return {
+    isLight,
+    y: isLight ? '#d97706' : '#FFC400',
+    y2: isLight ? '#b45309' : '#F2A900',
+    ok: '#26C281',
+    warn: '#F5A623',
+    bad: '#FF5A52',
+    info: '#4C8DFF',
+    purple: '#A98BFF',
+    tx2,
+    tx3,
+    line,
+    s3,
+    tip: {
+      backgroundColor: isLight ? '#ffffff' : '#1C2026',
+      borderColor: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,.12)',
+      textStyle: { color: isLight ? '#0f172a' : '#E9EBEE', fontSize: 12 },
+      padding: [8, 11]
+    },
+    axis: {
+      axisLine: { lineStyle: { color: line } },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: line } },
+      axisLabel: { color: tx3, fontSize: 10 },
+      nameTextStyle: { color: tx3 }
+    }
+  };
+}
+
+function mkChart(id){const c=echarts.init(document.getElementById(id),null,{renderer:'canvas'});charts.push(c);return c;}
 window.addEventListener('resize',()=>charts.forEach(c=>c.resize()));
-const axisBase={axisLine:{lineStyle:{color:C.line}},axisTick:{show:false},splitLine:{lineStyle:{color:C.line}},axisLabel:{color:C.tx3,fontSize:10},nameTextStyle:{color:C.tx3}};
-const baseTip={backgroundColor:'#1C2026',borderColor:'rgba(255,255,255,.12)',textStyle:{color:'#E9EBEE',fontSize:12},padding:[8,11]};
 
 /* ---------- toast ---------- */
 let tt; function toast(m){ const e=$('#toast'); e.innerHTML='<svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m9 11 3 3L22 4"/></svg>'+m; e.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>e.classList.remove('on'),2400); }
@@ -431,6 +466,7 @@ let reportsBuilt=false;
 function buildReports(){
   const done=ORD.filter(o=>o.stage==='tamamlandi').length;
   const ciro=ORD.reduce((a,o)=>a+o.tot,0);
+  const s = getThemeStyles();
   const RK=[
    {lab:'Bugün Sipariş',val:ORD.length,sub:'<span class="up">▲ 18</span> dün'},
    {lab:'Bugünkü Ciro',val:'₺'+(ciro/1000).toFixed(1)+'K',sub:'<span class="up">▲ %14</span> dün',accent:true},
@@ -450,30 +486,30 @@ function buildReports(){
   $('#reportGrid').innerHTML=cards.map(c=>`<div class="card col-${c.col}"><div class="card-h"><div class="t">${c.t}</div><span class="dim" style="font-size:11px">${c.s}</span></div><div style="padding:10px 12px 12px;flex:1;display:flex"><div class="chart" id="${c.id}" style="height:${c.h}px"></div></div></div>`).join('');
 
   // Ciro trend (line)
-  mkChart('r-rev').setOption({tooltip:{trigger:'axis',...baseTip,formatter:p=>p[0].name+':00 → <b>₺'+(p[0].value*1000).toLocaleString('tr')+'</b>'},grid:{left:6,right:14,top:14,bottom:6,containLabel:true},
-    xAxis:{type:'category',data:['10','11','12','13','14','15','16','17','18','19','20'],...axisBase},
-    yAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:'₺{value}K'}},
-    series:[{type:'line',smooth:true,symbol:'none',data:[0.8,1.6,3.4,4.1,2.2,1.5,1.9,2.8,3.9,4.6,3.1],lineStyle:{color:C.y,width:2.5},
-      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(255,196,0,.30)'},{offset:1,color:'rgba(255,196,0,0)'}])}}]});
+  mkChart('r-rev').setOption({tooltip:{trigger:'axis',...s.tip,formatter:p=>p[0].name+':00 → <b>₺'+(p[0].value*1000).toLocaleString('tr')+'</b>'},grid:{left:6,right:14,top:14,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:['10','11','12','13','14','15','16','17','18','19','20'],...s.axis},
+    yAxis:{type:'value',...s.axis,axisLabel:{...s.axis.axisLabel,formatter:'₺{value}K'}},
+    series:[{type:'line',smooth:true,symbol:'none',data:[0.8,1.6,3.4,4.1,2.2,1.5,1.9,2.8,3.9,4.6,3.1],lineStyle:{color:s.y,width:2.5},
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:s.isLight?'rgba(217,119,6,.25)':'rgba(255,196,0,.30)'},{offset:1,color:'rgba(0,0,0,0)'}])}}]});
   // Kanal dağılımı (donut)
-  mkChart('r-mix').setOption({tooltip:{...baseTip,formatter:p=>p.name+': <b>%'+p.percent+'</b> ('+p.value+' sipariş)'},
-    series:[{type:'pie',radius:['52%','78%'],center:['50%','52%'],avoidLabelOverlap:false,itemStyle:{borderColor:'#15181D',borderWidth:3},
-      label:{show:true,position:'center',formatter:'{total|'+(ORD.length*9)+'}\n{sub|bugün}',rich:{total:{fontSize:24,fontWeight:800,color:'#E9EBEE'},sub:{fontSize:10,color:C.tx3}}},
+  mkChart('r-mix').setOption({tooltip:{...s.tip,formatter:p=>p.name+': <b>%'+p.percent+'</b> ('+p.value+' sipariş)'},
+    series:[{type:'pie',radius:['52%','78%'],center:['50%','52%'],avoidLabelOverlap:false,itemStyle:{borderColor:s.isLight ? '#ffffff' : '#15181D',borderWidth:3},
+      label:{show:true,position:'center',formatter:'{total|'+(ORD.length*9)+'}\n{sub|bugün}',rich:{total:{fontSize:24,fontWeight:800,color:s.isLight ? '#0f172a' : '#E9EBEE'},sub:{fontSize:10,color:s.tx3}}},
       labelLine:{show:false},
-      data:[{value:54,name:'VIZZ',itemStyle:{color:C.y}},{value:28,name:'Telefon',itemStyle:{color:C.info}},{value:18,name:'Yemeksepeti',itemStyle:{color:C.purple}}]}]});
+      data:[{value:54,name:'VIZZ',itemStyle:{color:s.y}},{value:28,name:'Telefon',itemStyle:{color:s.info}},{value:18,name:'Yemeksepeti',itemStyle:{color:s.purple}}]}]});
   // Hazırlık süresi (bar)
-  mkChart('r-prep').setOption({tooltip:{trigger:'axis',...baseTip,formatter:p=>p[0].name+':00 → <b>'+p[0].value+' dk</b>'},grid:{left:6,right:14,top:14,bottom:6,containLabel:true},
-    xAxis:{type:'category',data:['11','12','13','14','17','18','19','20'],...axisBase},yAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:'{value}dk'}},
-    series:[{type:'bar',data:[10,13,18,16,11,15,19,14].map(v=>({value:v,itemStyle:{color:v>=16?C.bad:v>=13?C.warn:C.ok,borderRadius:[3,3,0,0]}})),barWidth:'56%',
-      markLine:{symbol:'none',data:[{yAxis:15,name:'hedef'}],label:{color:C.tx3,fontSize:9,formatter:'hedef 15dk'},lineStyle:{color:C.tx3,type:'dashed'}}}]});
+  mkChart('r-prep').setOption({tooltip:{trigger:'axis',...s.tip,formatter:p=>p[0].name+':00 → <b>'+p[0].value+' dk</b>'},grid:{left:6,right:14,top:14,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:['11','12','13','14','17','18','19','20'],...s.axis},yAxis:{type:'value',...s.axis,axisLabel:{...s.axis.axisLabel,formatter:'{value}dk'}},
+    series:[{type:'bar',data:[10,13,18,16,11,15,19,14].map(v=>({value:v,itemStyle:{color:v>=16?s.bad:v>=13?s.warn:s.ok,borderRadius:[3,3,0,0]}})),barWidth:'56%',
+      markLine:{symbol:'none',data:[{yAxis:15,name:'hedef'}],label:{color:s.tx3,fontSize:9,formatter:'hedef 15dk'},lineStyle:{color:s.tx3,type:'dashed'}}}]});
   // En çok satan pareto
   const pn=['Izgara Köfte','Çapanoğlu Spc.','Künefe','Ayran'],pv=[64,38,29,22];
   let acc=0,tot=pv.reduce((a,b)=>a+b,0),cum=pv.map(v=>Math.round((acc+=v)/tot*100));
-  mkChart('r-pareto').setOption({tooltip:{trigger:'axis',...baseTip},grid:{left:6,right:34,top:14,bottom:6,containLabel:true},
-    xAxis:{type:'category',data:pn,...axisBase,axisLabel:{...axisBase.axisLabel,rotate:14,fontSize:9}},
-    yAxis:[{type:'value',...axisBase},{type:'value',max:100,...axisBase,axisLabel:{...axisBase.axisLabel,formatter:'{value}%'}}],
-    series:[{type:'bar',data:pv.map((v,i)=>({value:v,itemStyle:{color:i===0?C.y:'#3a4048',borderRadius:[3,3,0,0]}})),barWidth:'54%',label:{show:true,position:'top',color:C.tx2,fontSize:10}},
-      {type:'line',yAxisIndex:1,data:cum,smooth:true,symbol:'circle',symbolSize:5,lineStyle:{color:C.info,width:2},itemStyle:{color:C.info}}]});
+  mkChart('r-pareto').setOption({tooltip:{trigger:'axis',...s.tip},grid:{left:6,right:34,top:14,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:pn,...s.axis,axisLabel:{...s.axis.axisLabel,rotate:14,fontSize:9}},
+    yAxis:[{type:'value',...s.axis},{type:'value',max:100,...s.axis,axisLabel:{...s.axis.axisLabel,formatter:'{value}%'}}],
+    series:[{type:'bar',data:pv.map((v,i)=>({value:v,itemStyle:{color:i===0?s.y:(s.isLight?'#cbd5e1':'#3a4048'),borderRadius:[3,3,0,0]}})),barWidth:'54%',label:{show:true,position:'top',color:s.tx2,fontSize:10}},
+      {type:'line',yAxisIndex:1,data:cum,smooth:true,symbol:'circle',symbolSize:5,lineStyle:{color:s.info,width:2},itemStyle:{color:s.info}}]});
   setTimeout(()=>charts.forEach(c=>c.resize()),60);
 }
 
@@ -518,6 +554,16 @@ document.querySelectorAll('.rail .ni').forEach(n=>n.onclick=()=>go(n.dataset.v))
 
 /* init */
 renderKanban();
+
+window.addEventListener('vizz-theme-change', () => {
+  charts.forEach(c => c.dispose());
+  charts.length = 0;
+  reportsBuilt = false;
+  if ($('#v-raporlar').classList.contains('on')) {
+    buildReports();
+  }
+});
+
 window.RP={advance,toggle86,cat,callCourier,flip,seg,toast};
 })();
 </script>

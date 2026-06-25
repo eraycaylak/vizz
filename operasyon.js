@@ -9,11 +9,46 @@ const C = { y:'#FFC400', y2:'#F2A900', ok:'#26C281', warn:'#F5A623', bad:'#FF5A5
   tx2:'#A4AAB3', tx3:'#70767E', line:'rgba(255,255,255,.07)', s3:'#1C2026' };
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const charts=[];
+let activeCourierId = null;
+let activeDukkanId = null;
+
+function getThemeStyles() {
+  const isLight = document.body.classList.contains('light-theme');
+  const line = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,.07)';
+  const tx3 = isLight ? '#64748b' : '#70767E';
+  const tx2 = isLight ? '#334155' : '#A4AAB3';
+  const s3 = isLight ? '#f1f5f9' : '#1C2026';
+  return {
+    isLight,
+    y: isLight ? '#d97706' : '#FFC400',
+    y2: isLight ? '#b45309' : '#F2A900',
+    ok: '#26C281',
+    warn: '#F5A623',
+    bad: '#FF5A52',
+    info: '#4C8DFF',
+    purple: '#A98BFF',
+    tx2,
+    tx3,
+    line,
+    s3,
+    tip: {
+      backgroundColor: isLight ? '#ffffff' : '#1C2026',
+      borderColor: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,.12)',
+      textStyle: { color: isLight ? '#0f172a' : '#E9EBEE', fontSize: 12 },
+      padding: [8, 11]
+    },
+    axis: {
+      axisLine: { lineStyle: { color: line } },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: line } },
+      axisLabel: { color: tx3, fontSize: 10 },
+      nameTextStyle: { color: tx3 }
+    }
+  };
+}
+
 function mkChart(elId){ const c=echarts.init(document.getElementById(elId),null,{renderer:'canvas'}); charts.push(c); return c; }
 window.addEventListener('resize',()=>charts.forEach(c=>c.resize()));
-const axisBase={ axisLine:{lineStyle:{color:C.line}}, axisTick:{show:false}, splitLine:{lineStyle:{color:C.line}},
-  axisLabel:{color:C.tx3,fontSize:10}, nameTextStyle:{color:C.tx3} };
-const baseTip={ backgroundColor:'#1C2026', borderColor:'rgba(255,255,255,.12)', textStyle:{color:'#E9EBEE',fontSize:12}, padding:[8,11] };
 
 let tt; function toast(m){ const e=$('#toast'); e.innerHTML='<svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m9 11 3 3L22 4"/></svg>'+m; e.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>e.classList.remove('on'),2200); }
 
@@ -34,12 +69,14 @@ const KPI=[
  {lab:'Bugünkü Ciro', val:'₺<span class="num">18.4</span><small>K</small>', sub:'<span class="up">▲ %12</span> dün', spark:'line', data:[6,9,11,13,15,16,17,18.4], col:C.y},
 ];
 function renderKPIs(){
+  const s = getThemeStyles();
   $('#kpis').innerHTML = KPI.map((k,i)=>`<div class="kpi${k.accent?' accent':''}"><div class="lab">${k.lab}</div><div class="val">${k.val}</div><div class="sub">${k.sub}</div><div class="spark" id="sp${i}"></div></div>`).join('');
   KPI.forEach((k,i)=>{ const c=mkChart('sp'+i);
+    const col = (k.col === C.y || k.col === '#FFC400') ? s.y : k.col;
     c.setOption({ grid:{left:0,right:0,top:6,bottom:0}, xAxis:{type:'category',show:false,data:k.data.map((_,j)=>j)}, yAxis:{type:'value',show:false,scale:true},
       series:[k.spark==='bar'
-        ? {type:'bar',data:k.data,itemStyle:{color:k.col,borderRadius:[2,2,0,0]},barWidth:'55%'}
-        : {type:'line',data:k.data,smooth:true,symbol:'none',lineStyle:{color:k.col,width:2},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:k.col+'55'},{offset:1,color:k.col+'00'}])}}] }); });
+        ? {type:'bar',data:k.data,itemStyle:{color:col,borderRadius:[2,2,0,0]},barWidth:'55%'}
+        : {type:'line',data:k.data,smooth:true,symbol:'none',lineStyle:{color:col,width:2},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:col+'55'},{offset:1,color:col+'00'}])}}] }); });
 }
 
 /* ---------- NOC harita (koyu) ---------- */
@@ -125,9 +162,9 @@ function renderCouriers(){
 }
 
 /* ---------- RAPORLAR (leapfrog dashboard) ---------- */
-let reportsBuilt=false;
 function buildReports(){
   if(reportsBuilt) return; reportsBuilt=true;
+  const s = getThemeStyles();
   const cards=[
     {id:'r-sla',col:6,t:'SLA — Zamanında Teslim',s:'söz verilen pencerede teslim oranı',h:150},
     {id:'r-rev',col:6,t:'Ciro Trendi (bugün, saatlik)',s:'canlı gelir akışı',h:150},
@@ -143,63 +180,64 @@ function buildReports(){
 
   // SLA gauge
   mkChart('r-sla').setOption({series:[{type:'gauge',startAngle:200,endAngle:-20,min:0,max:100,radius:'96%',center:['50%','72%'],
-    progress:{show:true,width:14,roundCap:true,itemStyle:{color:C.ok}}, axisLine:{lineStyle:{width:14,color:[[1,C.s3]]}},
+    progress:{show:true,width:14,roundCap:true,itemStyle:{color:s.ok}}, axisLine:{lineStyle:{width:14,color:[[1,s.s3]]}},
     pointer:{show:false},axisTick:{show:false},splitLine:{show:false},axisLabel:{show:false},
     anchor:{show:false}, title:{show:false},
-    detail:{valueAnimation:true,fontSize:30,fontWeight:800,color:'#E9EBEE',offsetCenter:[0,'-2%'],formatter:'%{value}'},
+    detail:{valueAnimation:true,fontSize:30,fontWeight:800,color:s.isLight ? '#0f172a' : '#E9EBEE',offsetCenter:[0,'-2%'],formatter:'%{value}'},
     data:[{value:94}]}]});
   // Ciro trend
-  mkChart('r-rev').setOption({tooltip:{trigger:'axis',...baseTip},grid:{left:6,right:14,top:14,bottom:6,containLabel:true},
-    xAxis:{type:'category',data:['10','11','12','13','14','15','16','17','18','19'],...axisBase},
-    yAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:'₺{value}K'}},
-    series:[{type:'line',smooth:true,symbol:'none',data:[2.1,3.4,5.2,6.0,4.1,3.2,4.8,6.4,8.1,9.2],lineStyle:{color:C.y,width:2.5},
-      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(255,196,0,.30)'},{offset:1,color:'rgba(255,196,0,0)'}])}}]});
+  mkChart('r-rev').setOption({tooltip:{trigger:'axis',...s.tip},grid:{left:6,right:14,top:14,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:['10','11','12','13','14','15','16','17','18','19'],...s.axis},
+    yAxis:{type:'value',...s.axis,axisLabel:{...s.axis.axisLabel,formatter:'₺{value}K'}},
+    series:[{type:'line',smooth:true,symbol:'none',data:[2.1,3.4,5.2,6.0,4.1,3.2,4.8,6.4,8.1,9.2],lineStyle:{color:s.y,width:2.5},
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:s.isLight?'rgba(217,119,6,.25)':'rgba(255,196,0,.30)'},{offset:1,color:'rgba(0,0,0,0)'}])}}]});
   // Persentil histogram
   const bins=['10','15','20','25','30','35','40','45+'], cnt=[4,11,24,31,22,14,7,3];
-  mkChart('r-pct').setOption({tooltip:{trigger:'axis',...baseTip},grid:{left:6,right:14,top:30,bottom:6,containLabel:true},
-    xAxis:{type:'category',data:bins,...axisBase,name:'dk',nameLocation:'end',nameGap:6},yAxis:{type:'value',...axisBase},
-    series:[{type:'bar',data:cnt.map((v,i)=>({value:v,itemStyle:{color:i<4?C.info:i<6?C.warn:C.bad,borderRadius:[3,3,0,0]}})),barWidth:'62%',
-      markLine:{symbol:'none',label:{color:C.tx2,fontSize:10,formatter:'{b}'},lineStyle:{color:C.tx3,type:'dashed'},
+  mkChart('r-pct').setOption({tooltip:{trigger:'axis',...s.tip},grid:{left:6,right:14,top:30,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:bins,...s.axis,name:'dk',nameLocation:'end',nameGap:6},yAxis:{type:'value',...s.axis},
+    series:[{type:'bar',data:cnt.map((v,i)=>({value:v,itemStyle:{color:i<4?s.info:i<6?s.warn:s.bad,borderRadius:[3,3,0,0]}})),barWidth:'62%',
+      markLine:{symbol:'none',label:{color:s.tx2,fontSize:10,formatter:'{b}'},lineStyle:{color:s.tx3,type:'dashed'},
         data:[{xAxis:2,name:'P50 24dk'},{xAxis:5,name:'P90 36dk'},{xAxis:6,name:'P95 41dk'}]}}]});
   // Aşama darboğazı (bar yatay)
-  mkChart('r-stage').setOption({tooltip:{trigger:'axis',...baseTip,formatter:p=>p[0].name+': <b>'+p[0].value+' dk</b>'},grid:{left:6,right:18,top:10,bottom:6,containLabel:true},
-    xAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:'{value}dk'}},
-    yAxis:{type:'category',data:['Teslim','Pickup→yol','Kurye→rest.','Hazırlık','Onay'],...axisBase},
-    series:[{type:'bar',data:[ {value:7,itemStyle:{color:C.info}},{value:9,itemStyle:{color:C.y}},{value:5,itemStyle:{color:C.ok}},{value:14,itemStyle:{color:C.bad}},{value:2,itemStyle:{color:C.tx3}} ],barWidth:'58%',itemStyle:{borderRadius:[0,4,4,0]},
-      label:{show:true,position:'right',color:C.tx2,fontSize:10,formatter:'{c}dk'}}]});
+  mkChart('r-stage').setOption({tooltip:{trigger:'axis',...s.tip,formatter:p=>p[0].name+': <b>'+p[0].value+' dk</b>'},grid:{left:6,right:18,top:10,bottom:6,containLabel:true},
+    xAxis:{type:'value',...s.axis,axisLabel:{...s.axis.axisLabel,formatter:'{value}dk'}},
+    yAxis:{type:'category',data:['Teslim','Pickup→yol','Kurye→rest.','Hazırlık','Onay'],...s.axis},
+    series:[{type:'bar',data:[ {value:7,itemStyle:{color:s.info}},{value:9,itemStyle:{color:s.y}},{value:5,itemStyle:{color:s.ok}},{value:14,itemStyle:{color:s.bad}},{value:2,itemStyle:{color:s.tx3}} ],barWidth:'58%',itemStyle:{borderRadius:[0,4,4,0]},
+      label:{show:true,position:'right',color:s.tx2,fontSize:10,formatter:'{c}dk'}}]});
   // İptal pareto
   const cn=['Restoran kapalı','Stok yok','Müşteri iptal','Adres hatalı','Kurye yok'],cv=[34,21,15,9,6];
   let acc=0,tot=cv.reduce((a,b)=>a+b,0),cumP=cv.map(v=>Math.round((acc+=v)/tot*100));
-  mkChart('r-cancel').setOption({tooltip:{trigger:'axis',...baseTip},grid:{left:6,right:30,top:14,bottom:6,containLabel:true},
-    xAxis:{type:'category',data:cn,...axisBase,axisLabel:{...axisBase.axisLabel,rotate:18,fontSize:9}},
-    yAxis:[{type:'value',...axisBase},{type:'value',max:100,...axisBase,axisLabel:{...axisBase.axisLabel,formatter:'{value}%'}}],
-    series:[{type:'bar',data:cv,barWidth:'52%',itemStyle:{color:C.bad,borderRadius:[3,3,0,0]}},
-      {type:'line',yAxisIndex:1,data:cumP,smooth:true,symbol:'circle',symbolSize:5,lineStyle:{color:C.y,width:2},itemStyle:{color:C.y}}]});
+  mkChart('r-cancel').setOption({tooltip:{trigger:'axis',...s.tip},grid:{left:6,right:30,top:14,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:cn,...s.axis,axisLabel:{...s.axis.axisLabel,rotate:18,fontSize:9}},
+    yAxis:[{type:'value',...s.axis},{type:'value',max:100,...s.axis,axisLabel:{...s.axis.axisLabel,formatter:'{value}%'}}],
+    series:[{type:'bar',data:cv,barWidth:'52%',itemStyle:{color:s.bad,borderRadius:[3,3,0,0]}},
+      {type:'line',yAxisIndex:1,data:cumP,smooth:true,symbol:'circle',symbolSize:5,lineStyle:{color:s.y,width:2},itemStyle:{color:s.y}}]});
   // Heatmap saat × mahalle
   const hrs=['11','12','13','14','17','18','19','20','21'], zns=['Çapanoğlu','Cumhuriyet','Medrese','Köseoğlu','Fatih','Bahçelievler'];
   const hd=[]; for(let i=0;i<zns.length;i++)for(let j=0;j<hrs.length;j++){const base=(j>3?7:3); hd.push([j,i,Math.round(rnd(0,5)+base*(0.5+Math.random()))]);}
-  mkChart('r-heat').setOption({tooltip:{...baseTip,formatter:p=>zns[p.value[1]]+' · '+hrs[p.value[0]]+':00 → <b>'+p.value[2]+' sipariş</b>'},
+  mkChart('r-heat').setOption({tooltip:{...s.tip,formatter:p=>zns[p.value[1]]+' · '+hrs[p.value[0]]+':00 → <b>'+p.value[2]+' sipariş</b>'},
     grid:{left:6,right:10,top:10,bottom:22,containLabel:true},
-    xAxis:{type:'category',data:hrs,...axisBase,splitArea:{show:false}},yAxis:{type:'category',data:zns,...axisBase},
-    visualMap:{min:0,max:18,calculable:false,orient:'horizontal',left:'center',bottom:0,itemWidth:10,itemHeight:90,textStyle:{color:C.tx3,fontSize:9},inRange:{color:['#15181D','#3a3417','#7a6a14','#F2A900','#FFC400']}},
-    series:[{type:'heatmap',data:hd,itemStyle:{borderColor:'#0B0C0E',borderWidth:2},emphasis:{itemStyle:{borderColor:C.y,borderWidth:1.5}}}]});
+    xAxis:{type:'category',data:hrs,...s.axis,splitArea:{show:false}},yAxis:{type:'category',data:zns,...s.axis},
+    visualMap:{min:0,max:18,calculable:false,orient:'horizontal',left:'center',bottom:0,itemWidth:10,itemHeight:90,textStyle:{color:s.tx3,fontSize:9},
+      inRange:{color:s.isLight ? ['#f8fafc', '#fef3c7', '#fde68a', '#f59e0b', '#d97706'] : ['#15181D','#3a3417','#7a6a14','#F2A900','#FFC400']}},
+    series:[{type:'heatmap',data:hd,itemStyle:{borderColor:s.isLight ? '#ffffff' : '#0B0C0E',borderWidth:2},emphasis:{itemStyle:{borderColor:s.y,borderWidth:1.5}}}]});
   // Birim ekonomi (waterfall)
-  const ue=[{n:'Sepet',v:178,c:C.ok},{n:'Yemek mly',v:-86,c:C.bad},{n:'Kurye',v:-34,c:C.bad},{n:'Komisyon',v:-21,c:C.bad},{n:'Ödeme',v:-4,c:C.bad},{n:'Katkı',v:33,c:C.y}];
+  const ue=[{n:'Sepet',v:178,c:s.ok},{n:'Yemek mly',v:-86,c:s.bad},{n:'Kurye',v:-34,c:s.bad},{n:'Komisyon',v:-21,c:s.bad},{n:'Ödeme',v:-4,c:s.bad},{n:'Katkı',v:33,c:s.y}];
   let run=0; const helper=ue.map((x,i)=>{ if(i===0||i===ue.length-1){const v=run; run+= x.v; return 0;} const base=run; run+=x.v; return x.v<0?run:base; });
-  mkChart('r-unit').setOption({tooltip:{...baseTip,trigger:'axis',formatter:p=>{const x=ue[p[1]?p[1].dataIndex:p[0].dataIndex];return x.n+': <b>₺'+x.v+'</b>';}},grid:{left:6,right:12,top:14,bottom:22,containLabel:true},
-    xAxis:{type:'category',data:ue.map(x=>x.n),...axisBase,axisLabel:{...axisBase.axisLabel,rotate:18,fontSize:9}},yAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:'₺{value}'}},
+  mkChart('r-unit').setOption({tooltip:{...s.tip,trigger:'axis',formatter:p=>{const x=ue[p[1]?p[1].dataIndex:p[0].dataIndex];return x.n+': <b>₺'+x.v+'</b>';}},grid:{left:6,right:12,top:14,bottom:22,containLabel:true},
+    xAxis:{type:'category',data:ue.map(x=>x.n),...s.axis,axisLabel:{...s.axis.axisLabel,rotate:18,fontSize:9}},yAxis:{type:'value',...s.axis,axisLabel:{...s.axis.axisLabel,formatter:'₺{value}'}},
     series:[{type:'bar',stack:'t',itemStyle:{color:'transparent'},data:helper},
-      {type:'bar',stack:'t',barWidth:'55%',data:ue.map(x=>({value:Math.abs(x.v),itemStyle:{color:x.c,borderRadius:2}})),label:{show:true,position:'top',color:C.tx2,fontSize:9,formatter:(p)=>'₺'+ue[p.dataIndex].v}}]});
+      {type:'bar',stack:'t',barWidth:'55%',data:ue.map(x=>({value:Math.abs(x.v),itemStyle:{color:x.c,borderRadius:2}})),label:{show:true,position:'top',color:s.tx2,fontSize:9,formatter:(p)=>'₺'+ue[p.dataIndex].v}}]});
   // Bölge ciro
   const zc=[['Çapanoğlu',4200],['Cumhuriyet',3850],['Köseoğlu',3100],['Fatih',2600],['Medrese',2200],['Bahçelievler',1800]].sort((a,b)=>a[1]-b[1]);
-  mkChart('r-zone').setOption({tooltip:{trigger:'axis',...baseTip,formatter:p=>p[0].name+': <b>₺'+p[0].value.toLocaleString('tr')+'</b>'},grid:{left:6,right:16,top:10,bottom:6,containLabel:true},
-    xAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:v=>'₺'+(v/1000)+'K'}},yAxis:{type:'category',data:zc.map(x=>x[0]),...axisBase},
-    series:[{type:'bar',data:zc.map((x,i)=>({value:x[1],itemStyle:{color:i===zc.length-1?C.y:'#3a4048',borderRadius:[0,4,4,0]}})),barWidth:'60%',label:{show:true,position:'right',color:C.tx2,fontSize:10,formatter:p=>'₺'+(p.value/1000).toFixed(1)+'K'}}]});
+  mkChart('r-zone').setOption({tooltip:{trigger:'axis',...s.tip,formatter:p=>p[0].name+': <b>₺'+p[0].value.toLocaleString('tr')+'</b>'},grid:{left:6,right:16,top:10,bottom:6,containLabel:true},
+    xAxis:{type:'value',...s.axis,axisLabel:{...s.axis.axisLabel,formatter:v=>'₺'+(v/1000)+'K'}},yAxis:{type:'category',data:zc.map(x=>x[0]),...s.axis},
+    series:[{type:'bar',data:zc.map((x,i)=>({value:x[1],itemStyle:{color:i===zc.length-1?s.y:(s.isLight?'#cbd5e1':'#3a4048'),borderRadius:[0,4,4,0]}})),barWidth:'60%',label:{show:true,position:'right',color:s.tx2,fontSize:10,formatter:p=>'₺'+(p.value/1000).toFixed(1)+'K'}}]});
   // Kurye performans scatter
   const sc=D.COURIERS.slice(0,12).map(c=>[c.today, 86+(c.id*3)%14, c.earn]);
-  mkChart('r-perf').setOption({tooltip:{...baseTip,formatter:p=>'Teslimat: <b>'+p.value[0]+'</b><br>Zamanında: <b>%'+p.value[1]+'</b><br>Kazanç: <b>₺'+p.value[2]+'</b>'},grid:{left:6,right:14,top:14,bottom:6,containLabel:true},
-    xAxis:{type:'value',name:'teslimat',...axisBase},yAxis:{type:'value',name:'zamanında %',min:80,max:100,...axisBase},
-    series:[{type:'scatter',data:sc,symbolSize:v=>8+v[2]/90,itemStyle:{color:C.y,opacity:.85,borderColor:'#0B0C0E',borderWidth:1}}]});
+  mkChart('r-perf').setOption({tooltip:{...s.tip,formatter:p=>'Teslimat: <b>'+p.value[0]+'</b><br>Zamanında: <b>%'+p.value[1]+'</b><br>Kazanç: <b>₺'+p.value[2]+'</b>'},grid:{left:6,right:14,top:14,bottom:6,containLabel:true},
+    xAxis:{type:'value',name:'teslimat',...s.axis},yAxis:{type:'value',name:'zamanında %',min:80,max:100,...s.axis},
+    series:[{type:'scatter',data:sc,symbolSize:v=>8+v[2]/90,itemStyle:{color:s.y,opacity:.85,borderColor:s.isLight ? '#ffffff' : '#0B0C0E',borderWidth:1}}]});
 
   setTimeout(()=>charts.forEach(c=>c.resize()),60);
 }
@@ -237,7 +275,10 @@ function buildKuryeler(){
       </div></div>`;}).join('')+`</div>`;
 }
 function courierDrawer(id){
+  activeCourierId = id;
+  activeDukkanId = null;
   const c=D.COURIERS.find(x=>x.id===id); const d=$('#drawer');
+  const s=getThemeStyles();
   d.innerHTML = `<div class="card-h" style="border-radius:0"><div class="t"><div class="av busy" style="width:34px;height:34px">${c.name.split(' ').map(p=>p[0]).join('')}</div> ${c.name}</div>
     <button class="btn btn-ghost btn-icon" onclick="VZ.closeDrawer()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <div style="overflow:auto;padding:16px;flex:1">
@@ -256,11 +297,16 @@ function courierDrawer(id){
     <div style="padding:13px;border-top:1px solid var(--line);display:flex;gap:8px"><button class="btn btn-y" style="flex:1" onclick="VZ.toast('${c.name} aranıyor…')">Ara</button><button class="btn" style="flex:1" onclick="VZ.toast('Mesaj gönderildi')">Mesaj</button></div>`;
   $('#scrim').classList.add('on'); d.classList.add('on');
   const ch=echarts.init(document.getElementById('dc1')); charts.push(ch);
-  ch.setOption({grid:{left:4,right:8,top:12,bottom:4,containLabel:true},xAxis:{type:'category',data:['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'],...axisBase},yAxis:{type:'value',...axisBase},
-    series:[{type:'bar',data:[8,11,9,13,16,19,c.today],itemStyle:{color:C.y,borderRadius:[3,3,0,0]},barWidth:'55%'}]});
+  ch.setOption({grid:{left:4,right:8,top:12,bottom:4,containLabel:true},xAxis:{type:'category',data:['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'],...s.axis},yAxis:{type:'value',...s.axis},
+    series:[{type:'bar',data:[8,11,9,13,16,19,c.today],itemStyle:{color:s.y,borderRadius:[3,3,0,0]},barWidth:'55%'}]});
   setTimeout(()=>ch.resize(),50);
 }
-function closeDrawer(){$('#scrim').classList.remove('on');$('#drawer').classList.remove('on');}
+function closeDrawer(){
+  $('#scrim').classList.remove('on');
+  $('#drawer').classList.remove('on');
+  activeCourierId = null;
+  activeDukkanId = null;
+}
 $('#scrim').onclick=closeDrawer;
 
 function buildFinans(){
@@ -333,7 +379,10 @@ function buildDukkanlar(){
      `</tbody></table></div></div>`;
 }
 function dukkanDrawer(id){
+  activeCourierId = null;
+  activeDukkanId = id;
   const r=D.RESTAURANTS.find(x=>x.id===id); const f=rfin(r); const d=$('#drawer');
+  const s=getThemeStyles();
   const items=r.menu.map((m,i)=>({n:m[0],c:Math.max(1,Math.round(f.paket*(0.45-i*0.09)))})).sort((a,b)=>b.c-a.c).slice(0,4);
   const maxc=Math.max(...items.map(x=>x.c),1);
   d.innerHTML=`<div class="card-h" style="border-radius:0"><div class="t"><img src="${D.IMG(r.cover)}" onerror="VIZZ.imgFallback(this,'${r.cover}')" style="width:32px;height:32px;border-radius:9px;object-fit:cover"> ${r.name}</div>
@@ -357,8 +406,8 @@ function dukkanDrawer(id){
    <div style="padding:13px;border-top:1px solid var(--line);display:flex;gap:8px"><button class="btn btn-y" style="flex:1" onclick="VZ.toast('${r.name} menüsü')">Menüyü Gör</button><button class="btn" style="flex:1" onclick="VZ.toast('${r.name} aranıyor…')">Ara</button></div>`;
   $('#scrim').classList.add('on'); d.classList.add('on');
   const ch=echarts.init(document.getElementById('dk1')); charts.push(ch);
-  ch.setOption({grid:{left:4,right:10,top:12,bottom:4,containLabel:true},xAxis:{type:'category',data:['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'],...axisBase},yAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:v=>'₺'+(v/1000).toFixed(0)+'K'}},
-    series:[{type:'bar',data:[.7,.85,.8,.95,1,1.2,1.1].map(k=>Math.round(f.ciro*k)),itemStyle:{color:C.y,borderRadius:[3,3,0,0]},barWidth:'55%'}]});
+  ch.setOption({grid:{left:4,right:10,top:12,bottom:4,containLabel:true},xAxis:{type:'category',data:['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'],...s.axis},yAxis:{type:'value',...s.axis,axisLabel:{...s.axis.axisLabel,formatter:v=>'₺'+(v/1000).toFixed(0)+'K'}},
+    series:[{type:'bar',data:[.7,.85,.8,.95,1,1.2,1.1].map(k=>Math.round(f.ciro*k)),itemStyle:{color:s.y,borderRadius:[3,3,0,0]},barWidth:'55%'}]});
   setTimeout(()=>ch.resize(),50);
 }
 
@@ -379,5 +428,21 @@ $('#alertChip').onclick=()=>toast('3 uyarı: 1 kurye 6dk hareketsiz · VZ-7743 S
 
 /* init */
 renderKPIs(); renderQueue('all'); renderCouriers(); initMap();
+
+window.addEventListener('vizz-theme-change', () => {
+  charts.forEach(c => c.dispose());
+  charts.length = 0;
+  reportsBuilt = false;
+  renderKPIs();
+  if ($('#v-raporlar').classList.contains('on')) {
+    buildReports();
+  }
+  if (activeCourierId !== null) {
+    courierDrawer(activeCourierId);
+  } else if (activeDukkanId !== null) {
+    dukkanDrawer(activeDukkanId);
+  }
+});
+
 window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer};
 })();
