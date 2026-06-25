@@ -155,3 +155,74 @@ ORDERS.push(
 );
 
 window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IMG,EMOJI,imgFallback,MARKET};
+
+// ==========================================
+// VIZZ Theme Manager - Global Theme Toggle
+// ==========================================
+(function() {
+  function applyTheme(theme) {
+    if (theme === 'light') {
+      document.body.classList.add('light-theme');
+      document.documentElement.classList.add('light-theme');
+    } else {
+      document.body.classList.remove('light-theme');
+      document.documentElement.classList.remove('light-theme');
+    }
+  }
+
+  // Load theme immediately to prevent flashing
+  const savedTheme = localStorage.getItem('vizz-theme') || 'dark';
+  applyTheme(savedTheme);
+
+  // Inject Theme Toggle Switch once DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    // Avoid double toggle button injection
+    if (document.getElementById('vizz-theme-toggle')) return;
+    
+    // Do not show the button on the presentation landing page (index.html)
+    // as it already has its own light styling.
+    const path = window.location.pathname;
+    if (path.endsWith('index.html') || path === '/' || path.endsWith('/vizz/') || path.endsWith('/vizz')) {
+      return;
+    }
+
+    const toggle = document.createElement('button');
+    toggle.id = 'vizz-theme-toggle';
+    toggle.title = 'Aydınlık / Karanlık Tema Değiştir';
+    
+    // Style toggle button floating at bottom-right
+    toggle.style.position = 'fixed';
+    toggle.style.bottom = '18px';
+    toggle.style.right = '18px';
+    toggle.style.zIndex = '99999';
+    toggle.style.width = '42px';
+    toggle.style.height = '42px';
+    toggle.style.borderRadius = '50%';
+    toggle.style.border = '1px solid var(--line-2)';
+    toggle.style.background = 'var(--s2)';
+    toggle.style.color = 'var(--tx)';
+    toggle.style.cursor = 'pointer';
+    toggle.style.display = 'flex';
+    toggle.style.alignItems = 'center';
+    toggle.style.justifyContent = 'center';
+    toggle.style.boxShadow = 'var(--shadow-pop)';
+    toggle.style.fontSize = '18px';
+    toggle.style.transition = 'all 0.2s ease';
+
+    const setToggleContent = (theme) => {
+      toggle.innerHTML = theme === 'light' ? '🌙' : '☀️';
+    };
+
+    const currentTheme = localStorage.getItem('vizz-theme') || 'dark';
+    setToggleContent(currentTheme);
+
+    toggle.addEventListener('click', () => {
+      const theme = localStorage.getItem('vizz-theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem('vizz-theme', theme);
+      applyTheme(theme);
+      setToggleContent(theme);
+    });
+
+    document.body.appendChild(toggle);
+  });
+})();

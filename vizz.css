@@ -58,3 +58,97 @@ button{font-family:inherit;cursor:pointer}
 /* toast */
 .vz-toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;font-weight:600;font-size:14px;opacity:0;transition:.3s;z-index:9999;display:flex;gap:8px;align-items:center;box-shadow:var(--shadow)}
 .vz-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* modeller.html light theme overrides */
+body.light-theme {
+  background: radial-gradient(circle at 50% -20%, #eff6ff 0%, #f8fafc 100%) !important;
+  color: #334155 !important;
+}
+body.light-theme .top {
+  border-bottom-color: #e2e8f0 !important;
+}
+body.light-theme .top .vz-brand b {
+  color: #0f172a !important;
+}
+body.light-theme .top .t {
+  color: #475569 !important;
+}
+body.light-theme model-viewer {
+  background: radial-gradient(circle at 50% 38%,rgba(37,99,235,.05),transparent 60%),linear-gradient(#f8fafc,#eff6ff) !important;
+}
+body.light-theme .loader {
+  background: #f8fafc !important;
+}
+body.light-theme .loader .bar {
+  background: #e2e8f0 !important;
+}
+body.light-theme .loader .pct {
+  color: #475569 !important;
+}
+body.light-theme .side {
+  background: #ffffff !important;
+  border-left-color: #e2e8f0 !important;
+}
+body.light-theme .glab {
+  color: #64748b !important;
+}
+body.light-theme .gcard {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+body.light-theme .gcard:hover {
+  border-color: #cbd5e1 !important;
+}
+body.light-theme .gcard.active {
+  border-color: var(--honey) !important;
+  background: #fffbeb !important;
+}
+body.light-theme .gcard .nm {
+  color: #0f172a !important;
+}
+body.light-theme .gcard .sz {
+  color: #64748b !important;
+}
+body.light-theme .gcard.active .nm {
+  color: var(--honey) !important;
+}
+body.light-theme .info {
+  border-top-color: #e2e8f0 !important;
+}
+body.light-theme .info h2 {
+  color: #0f172a !important;
+}
+body.light-theme .desc {
+  color: #475569 !important;
+}
+body.light-theme .specs {
+  border: 1px solid #e2e8f0 !important;
+}
+body.light-theme .specs .r {
+  background: #ffffff !important;
+}
+body.light-theme .specs .r span {
+  color: #64748b !important;
+}
+body.light-theme .specs .r b {
+  color: #0f172a !important;
+}
+body.light-theme .badge {
+  background: rgba(0,0,0,0.03) !important;
+  border-color: rgba(0,0,0,0.06) !important;
+  color: #475569 !important;
+}
+body.light-theme .hint {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+body.light-theme .ctl button {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+body.light-theme .ctl button:hover {
+  background: var(--honey) !important;
+  color: #ffffff !important;
+}
