@@ -130,7 +130,10 @@ table.grid td b,table.grid td .strong{color:var(--tx);font-weight:600}
 @keyframes sk{0%{background-position:100% 0}100%{background-position:-100% 0}}
 
 /* ==========================================
-   LIGHT THEME VARIABLES & OVERRIDES
+   LIGHT THEME — VARIABLES & FULL OVERRIDES
+   Covers: operasyon, restoran-panel, musteri-web,
+   musteri-mobil, kurye-mobil, restoran-mobil,
+   market-depo, market-web, market-mobil, modeller
    ========================================== */
 body.light-theme, html.light-theme, [data-theme="light"] {
   --bg: #f8fafc;
@@ -138,74 +141,126 @@ body.light-theme, html.light-theme, [data-theme="light"] {
   --s2: #f1f5f9;
   --s3: #e2e8f0;
   --s4: #cbd5e1;
-  --line: rgba(0, 0, 0, 0.08);
-  --line-2: rgba(0, 0, 0, 0.12);
-  --line-3: rgba(0, 0, 0, 0.18);
+  --line: rgba(0,0,0,.08);
+  --line-2: rgba(0,0,0,.12);
+  --line-3: rgba(0,0,0,.18);
   --tx: #0f172a;
   --tx-2: #334155;
   --tx-3: #64748b;
   --tx-4: #94a3b8;
   --y: #d97706;
   --y-2: #b45309;
-  --y-soft: rgba(245, 158, 11, 0.12);
-  --y-line: rgba(245, 158, 11, 0.25);
-  --y-glow: rgba(245, 158, 11, 0.10);
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-  --shadow-pop: 0 16px 40px rgba(0, 0, 0, 0.08);
+  --y-soft: rgba(245,158,11,.12);
+  --y-line: rgba(245,158,11,.25);
+  --y-glow: rgba(245,158,11,.10);
+  --ok-bg: rgba(38,194,129,.08);
+  --warn-bg: rgba(245,166,35,.08);
+  --bad-bg: rgba(255,90,82,.08);
+  --info-bg: rgba(76,141,255,.08);
+  --shadow: 0 8px 24px rgba(0,0,0,.05);
+  --shadow-pop: 0 16px 40px rgba(0,0,0,.08);
 }
-
-body.light-theme .leaflet-tile {
-  filter: none;
-}
-body.light-theme ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border: 2px solid #ffffff;
-}
-body.light-theme ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-body.light-theme .maptop {
-  background: linear-gradient(180deg, rgba(255,255,255,.9), transparent);
-}
-body.light-theme .maptop .t {
-  color: #0f172a;
-}
-body.light-theme .maplegend {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(0, 0, 0, 0.08);
-}
-body.light-theme .maptools button {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 0, 0, 0.08);
-  color: #475569;
-}
-body.light-theme .zone-lbl {
-  background: rgba(255, 255, 255, 0.9);
-  color: #334155;
-  border-color: rgba(0, 0, 0, 0.08);
-}
-body.light-theme .hl {
-  color: #b45309;
-}
-body.light-theme .rail .lg {
-  background: #f1f5f9;
-}
-body.light-theme .rail .ni.on {
-  background: var(--y-soft);
-  color: var(--y);
-}
-body.light-theme .rail .ni.on::before {
-  background: var(--y);
-}
-body.light-theme .btn-y {
-  color: #ffffff;
-}
-body.light-theme .kpi.accent {
-  background: linear-gradient(135deg,rgba(245,158,11,.10),var(--s2) 60%);
-  border-color: var(--y-line);
-}
-body.light-theme .ord.live {
-  border-color: var(--y-line);
-  box-shadow: 0 0 0 1px var(--y-line);
-}
+body.light-theme { background:var(--bg) !important; color:var(--tx) !important }
+body.light-theme ::-webkit-scrollbar-thumb { background:#cbd5e1; border:2px solid #fff }
+body.light-theme ::-webkit-scrollbar-thumb:hover { background:#94a3b8 }
+/* rail / sidebar logos */
+body.light-theme .rail .lg,
+body.light-theme .top .brand .lg,
+body.light-theme .top .lg { background:#f1f5f9 !important }
+body.light-theme .hl { color:var(--y-2) !important }
+body.light-theme .btn-y { color:#fff !important }
+body.light-theme .rail .ni.on { background:var(--y-soft); color:var(--y) }
+body.light-theme .rail .ni.on::before { background:var(--y) }
+body.light-theme .rail .ni .cnt { color:#fff !important }
+/* KPI accent */
+body.light-theme .kpi.accent { background:linear-gradient(135deg,rgba(245,158,11,.08),var(--s2) 60%); border-color:var(--y-line) }
+/* order card live */
+body.light-theme .ord.live { border-color:var(--y-line); box-shadow:0 0 0 1px var(--y-line) }
+/* map containers */
+body.light-theme .leaflet-container { background:#f0f0f0 !important }
+body.light-theme .leaflet-tile { filter:none !important }
+body.light-theme .mapwrap,
+body.light-theme .hmap { background:#f0f0f0 !important }
+/* map overlays */
+body.light-theme .maptop,
+body.light-theme .hmap-top { background:linear-gradient(180deg,rgba(255,255,255,.92),transparent) !important }
+body.light-theme .maptop .t,
+body.light-theme .hmap-top .t { color:#0f172a !important }
+body.light-theme .maplegend { background:rgba(255,255,255,.92) !important; border-color:rgba(0,0,0,.08) !important; color:#334155 !important }
+body.light-theme .maptools button { background:rgba(255,255,255,.95) !important; border-color:rgba(0,0,0,.08) !important; color:#475569 !important }
+body.light-theme .maptools button:hover,
+body.light-theme .maptools button.on { background:var(--y) !important; color:#fff !important; border-color:var(--y) !important }
+body.light-theme .zone-lbl { background:rgba(255,255,255,.9) !important; color:#334155 !important; border-color:rgba(0,0,0,.08) !important }
+body.light-theme .hmap-cap { background:rgba(255,255,255,.92) !important; border-color:rgba(0,0,0,.08) !important; color:#334155 !important }
+body.light-theme .hmap-cap b { color:#0f172a !important }
+body.light-theme .leaflet-tooltip.vz-zonetip { background:rgba(255,255,255,.9) !important; color:#334155 !important; border-color:rgba(0,0,0,.1) !important }
+/* courier markers */
+body.light-theme .cm .pin { border-color:#fff !important }
+body.light-theme .cm .pin svg { stroke:#0f172a !important }
+body.light-theme .cm.idle .pin svg { stroke:#06130d !important }
+/* drawer */
+body.light-theme .scrim { background:rgba(0,0,0,.2) !important }
+body.light-theme .drawer { background:#fff !important; border-left-color:rgba(0,0,0,.08) !important }
+/* toast */
+body.light-theme .toast { background:#fff !important; border-color:rgba(0,0,0,.08) !important; color:#0f172a !important }
+/* toggle switch */
+body.light-theme .sw i { background:#fff !important }
+body.light-theme .openTgl.closed .sw i { background:#94a3b8 !important }
+/* kanban columns */
+body.light-theme .kcol { background:var(--s1) !important }
+/* skeleton loader */
+body.light-theme .sk { background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 37%,#e2e8f0 63%) !important; background-size:400% 100% }
+/* mobile pages: shell, header, tabbar */
+body.light-theme .shell { background:var(--bg) !important }
+body.light-theme .mob-head, body.light-theme .mob-top, body.light-theme .topbar { background:#fff !important; border-bottom-color:rgba(0,0,0,.06) !important }
+body.light-theme .mob-head .nm, body.light-theme .mob-top .nm, body.light-theme .topbar .nm,
+body.light-theme .mob-head h1, body.light-theme .topbar h1 { color:#0f172a !important }
+body.light-theme .tabbar { background:#fff !important; border-top-color:rgba(0,0,0,.06) !important }
+body.light-theme .tabbar button { color:#94a3b8 !important }
+body.light-theme .tabbar button.on { color:var(--y) !important }
+body.light-theme .tabbar .nb { color:#fff !important }
+/* bottom sheets / modals */
+body.light-theme .bsheet { background:#fff !important; border-color:rgba(0,0,0,.06) !important }
+body.light-theme .modal { background:#fff !important }
+body.light-theme .modal-scrim { background:rgba(0,0,0,.2) !important }
+/* search bar */
+body.light-theme .search { background:#fff !important; border-color:rgba(0,0,0,.08) !important }
+body.light-theme .search input { color:#0f172a !important }
+body.light-theme .search input::placeholder { color:#94a3b8 !important }
+/* quick filter pills */
+body.light-theme .quick button { background:#fff !important; border-color:rgba(0,0,0,.08) !important; color:#334155 !important }
+body.light-theme .quick button:hover { color:var(--y) !important; border-color:var(--y-line) !important; background:var(--y-soft) !important }
+/* restaurant/category cards */
+body.light-theme .rcard { background:#fff !important; border-color:rgba(0,0,0,.06) !important }
+body.light-theme .rcard .nm { color:#0f172a !important }
+body.light-theme .rcard:hover { border-color:var(--y-line) !important }
+/* product cards (market) */
+body.light-theme .prod { background:#fff !important; border-color:rgba(0,0,0,.06) !important }
+body.light-theme .prod .nm { color:#0f172a !important }
+/* cart sidebar */
+body.light-theme #cart { background:#fff !important; border-color:rgba(0,0,0,.06) !important }
+body.light-theme .checkout { background:var(--y) !important; color:#fff !important }
+/* category buttons */
+body.light-theme .cats button { background:#fff !important; border-color:rgba(0,0,0,.06) !important; color:#334155 !important }
+body.light-theme .cats button.on { background:var(--y-soft) !important; border-color:var(--y-line) !important; color:var(--y) !important }
+/* kurye task invite modal */
+body.light-theme .invite { background:#fff !important }
+body.light-theme .invite .cover { background:linear-gradient(135deg,#eff6ff,#dbeafe) !important }
+/* market track modal */
+body.light-theme .track { background:#fff !important }
+body.light-theme .trackTop { background:radial-gradient(circle at 70% 30%,rgba(245,158,11,.08),transparent 55%),#f8fafc !important }
+body.light-theme .trackBody { color:#0f172a !important }
+body.light-theme .step { color:#64748b !important }
+body.light-theme .step.done .b { background:var(--ok) !important; color:#fff !important }
+body.light-theme .step.act .b { background:var(--y) !important; color:#fff !important }
+body.light-theme .step .b { background:#e2e8f0 !important }
+/* close buttons on modals */
+body.light-theme .close, body.light-theme .mclose { background:#f1f5f9 !important; border-color:rgba(0,0,0,.06) !important; color:#334155 !important }
+body.light-theme .close:hover, body.light-theme .mclose:hover { background:#e2e8f0 !important }
+/* bar-mini (progress bars in tables) */
+body.light-theme .bar-mini { background:#e2e8f0 !important }
+/* avatar circles */
+body.light-theme .av { background:#e2e8f0 !important }
+/* KPI sparklines */
+body.light-theme .kpi .spark { opacity:.6 }
 
