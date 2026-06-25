@@ -5,23 +5,23 @@ const VIZZ_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQABLAEsAAD/4QCARXhpZg
    Harita bunlara fitBounds yapar → bölge çerçevelenir, kümelenme/çakışma olmaz. */
 const YOZGAT = { center:[39.8225,34.8065], zoom:14,
   zones:[
-    {n:"Karatepe",     c:[39.8292,34.8024]},
-    {n:"Şehitler",     c:[39.8299,34.8112]},
-    {n:"Köseoğlu",     c:[39.8270,34.8083]},
-    {n:"Yukarınohutlu",c:[39.8262,34.8157]},
-    {n:"Çapanoğlu",    c:[39.8232,34.8032]},
-    {n:"Cumhuriyet",   c:[39.8240,34.8090]},
-    {n:"Aşağınohutlu", c:[39.8218,34.8165]},
-    {n:"Eskipazar",    c:[39.8236,34.7973]},
-    {n:"Medrese",      c:[39.8202,34.8073]},
-    {n:"Fatih",        c:[39.8168,34.8140]},
-    {n:"Karşıyaka",    c:[39.8162,34.7990]},
-    {n:"Bahçelievler", c:[39.8148,34.8082]},
+    {n:"Karatepe",     c:[39.8345,34.7930]},
+    {n:"Şehitler",     c:[39.8350,34.8125]},
+    {n:"Köseoğlu",     c:[39.8295,34.8045]},
+    {n:"Yukarınohutlu",c:[39.8290,34.8270]},
+    {n:"Eskipazar",    c:[39.8258,34.7820]},
+    {n:"Çapanoğlu",    c:[39.8235,34.7990]},
+    {n:"Cumhuriyet",   c:[39.8222,34.8095]},
+    {n:"Aşağınohutlu", c:[39.8195,34.8290]},
+    {n:"Medrese",      c:[39.8180,34.8050]},
+    {n:"Karşıyaka",    c:[39.8120,34.7910]},
+    {n:"Fatih",        c:[39.8110,34.8205]},
+    {n:"Bahçelievler", c:[39.8090,34.8070]},
   ],
-  // teslimat kapsama sınırı — mahalleleri sıkı sarar (fitBounds bunu çerçeveler → kare dolar, etiketler ayrışır)
+  // teslimat kapsama sınırı — gerçek Yozgat şehir extent'i (~4 km, vadi boyunca D-B uzun)
   coverage:[
-    [39.8312,34.8010],[39.8314,34.8128],[39.8276,34.8176],[39.8208,34.8186],
-    [39.8156,34.8158],[39.8133,34.8085],[39.8150,34.7972],[39.8244,34.7952]
+    [39.8372,34.7905],[39.8378,34.8145],[39.8302,34.8305],[39.8185,34.8325],
+    [39.8090,34.8245],[39.8066,34.8060],[39.8098,34.7885],[39.8275,34.7790]
   ]};
 
 /* dish photo: Gemini ile üretildi → başlıkla birebir uyumlu */
