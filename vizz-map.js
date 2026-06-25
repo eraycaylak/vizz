@@ -36,10 +36,12 @@
       });
     }
     if(opts.showZones){
-      Y.zones.forEach(z=>L.marker(z.c,{icon:L.divIcon({html:`<span class="vz-zonelbl">${z.n}</span>`,className:"",iconSize:[10,10]})}).addTo(map));
+      Y.zones.forEach(z=>L.marker(z.c,{opacity:0,interactive:false,keyboard:false}).addTo(map)
+        .bindTooltip(z.n,{permanent:true,direction:"top",className:"vz-zonetip",offset:[0,4]}));
     }
-    const hull=[[39.829,34.801],[39.827,34.817],[39.819,34.819],[39.812,34.815],[39.813,34.802],[39.820,34.798]];
-    L.polygon(hull,{color:"#F2A900",weight:2,dashArray:"6 6",fillColor:"#FFC400",fillOpacity:.06}).addTo(map);
+    // teslimat kapsama poligonu + haritayı bu bölgeye çerçevele (fitBounds)
+    const coverage=L.polygon(Y.coverage||[],{color:"#F2A900",weight:2.5,dashArray:"7 6",fillColor:"#FFC400",fillOpacity:.07}).addTo(map);
+    if(Y.coverage&&Y.coverage.length){ map.fitBounds(coverage.getBounds(),{padding:opts.mini?[10,10]:[26,26]}); }
 
     const list = (opts.couriers||window.VIZZ.COURIERS).filter(c=>opts.all?true:c.status!=="break");
     const N = opts.max||list.length;
