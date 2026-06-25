@@ -5,95 +5,121 @@
 <link rel="stylesheet" href="vizz.css">
 <style>
   body{background:radial-gradient(circle at 50% -20%,#26231a,#0c0b09 60%);color:#ece9e0;min-height:100vh;display:flex;flex-direction:column}
-  .top{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid #ffffff10}
-  .top .vz-brand b{color:#fff;font-size:20px}
-  .top .t{color:#9c988c;font-size:13px;font-weight:600}
-  .stage{flex:1;display:grid;grid-template-columns:1fr 300px;gap:0;min-height:0}
+  .top{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid #ffffff10;flex:none}
+  .top .vz-brand b{color:#fff;font-size:20px}.top .t{color:#9c988c;font-size:13px;font-weight:600}
+  .stage{flex:1;display:grid;grid-template-columns:1fr 320px;min-height:0}
   model-viewer{width:100%;height:100%;background:
-     radial-gradient(circle at 50% 40%,rgba(255,196,0,.10),transparent 60%),
-     linear-gradient(#1a1813,#0e0d0b);--poster-color:transparent}
-  /* loader */
+     radial-gradient(circle at 50% 38%,rgba(255,196,0,.10),transparent 60%),linear-gradient(#1a1813,#0e0d0b);--poster-color:transparent}
+  .left{position:relative;min-width:0}
   .loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none}
   .loader .bee{font-size:54px;animation:bz 1.6s ease-in-out infinite}
   @keyframes bz{0%,100%{transform:translate(-6px,0) rotate(-6deg)}50%{transform:translate(6px,-8px) rotate(6deg)}}
-  .loader .bar{width:200px;height:6px;background:#ffffff14;border-radius:6px;overflow:hidden}
-  .loader .bar i{display:block;height:100%;width:0;background:var(--honey);transition:width .2s}
+  .loader .bar{width:210px;height:6px;background:#ffffff14;border-radius:6px;overflow:hidden}
+  .loader .bar i{display:block;height:100%;width:0;background:var(--honey);transition:width .15s}
   .loader .pct{font-size:12px;color:#9c988c}
-  .left{position:relative;min-width:0}
-  /* controls overlay */
   .hint{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(20,19,15,.82);backdrop-filter:blur(6px);border:1px solid #ffffff14;border-radius:30px;padding:9px 16px;font-size:12px;color:#cfcabb;display:flex;gap:14px;z-index:5}
   .hint b{color:var(--honey)}
   .ctl{position:absolute;top:16px;right:16px;display:flex;flex-direction:column;gap:8px;z-index:5}
   .ctl button{background:rgba(27,25,21,.9);border:1px solid #ffffff16;color:#ece9e0;width:42px;height:42px;border-radius:12px;font-size:18px;cursor:pointer;transition:.15s}
   .ctl button:hover{background:var(--honey);color:#14130f;border-color:var(--honey)}
-  /* side info */
-  .side{background:#16140f;border-left:1px solid #ffffff10;padding:22px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
-  .side h2{font-size:20px;color:#fff}
+  /* side */
+  .side{background:#16140f;border-left:1px solid #ffffff10;padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+  .glab{font-size:11px;color:#8c887c;text-transform:uppercase;letter-spacing:.7px;margin-bottom:-4px}
+  .gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .gcard{background:#1b1915;border:1.5px solid #ffffff12;border-radius:14px;padding:13px 10px;text-align:center;cursor:pointer;transition:.16s;position:relative}
+  .gcard:hover{border-color:#ffffff30;transform:translateY(-2px)}
+  .gcard.active{border-color:var(--honey);background:#241f12;box-shadow:0 8px 18px rgba(242,169,0,.18)}
+  .gcard .ic{font-size:30px}.gcard .nm{font-size:12px;color:#ece9e0;margin-top:6px;font-weight:700;line-height:1.2}
+  .gcard .sz{font-size:10px;color:#8c887c;margin-top:3px}
+  .gcard.active .nm{color:var(--honey)}
+  .info{border-top:1px solid #ffffff10;padding-top:16px;display:flex;flex-direction:column;gap:13px}
   .badge{display:inline-flex;align-items:center;gap:7px;background:#ffffff0c;border:1px solid #ffffff14;border-radius:30px;padding:6px 12px;font-size:12px;color:#cfcabb;width:fit-content}
-  .desc{font-size:13.5px;color:#9c988c;line-height:1.55}
+  .info h2{font-size:19px;color:#fff}
+  .desc{font-size:13px;color:#9c988c;line-height:1.55}
   .specs{display:flex;flex-direction:column;gap:1px;background:#ffffff0a;border-radius:12px;overflow:hidden}
-  .specs .r{display:flex;justify-content:space-between;gap:12px;padding:11px 14px;font-size:12.5px;background:#1b1915}
-  .specs .r b{text-align:right}
-  .specs .r span{color:#8c887c}.specs .r b{color:#fff}
-  .gal{margin-top:4px}.gal .lbl{font-size:11px;color:#8c887c;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
-  .thumbs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .thumb{background:#1b1915;border:1.5px solid var(--honey);border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:.15s}
-  .thumb.soon{border:1.5px dashed #ffffff1a;cursor:default;opacity:.6}
-  .thumb .ic{font-size:30px}.thumb .nm{font-size:11.5px;color:#cfcabb;margin-top:6px;font-weight:600}
+  .specs .r{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;font-size:12.5px;background:#1b1915}
+  .specs .r span{color:#8c887c}.specs .r b{color:#fff;text-align:right}
   .arbtn{background:var(--honey);color:#14130f;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
-  @media(max-width:820px){.stage{grid-template-columns:1fr;grid-template-rows:1fr auto}.side{border-left:none;border-top:1px solid #ffffff10;flex-direction:row;flex-wrap:wrap;align-items:center}}
+  @media(max-width:820px){.stage{grid-template-columns:1fr;grid-template-rows:1fr auto}.side{border-left:none;border-top:1px solid #ffffff10}}
 </style>
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 </head><body>
   <div class="top">
     <div class="vz-brand"><img id="logo" style="height:32px;width:32px" alt=""><b><i style="color:var(--honey);font-style:italic">V</i>IZZ</b> <span class="t">· 3D Modeller</span></div>
-    <span class="t">🐝 Meshy AI ile modellendi</span>
+    <span class="t">🐝 Meshy AI ile modellendi · 4 model</span>
   </div>
   <div class="stage">
     <div class="left">
-      <model-viewer id="mv" src="models/topcase-bee.glb" alt="VIZZ Motor Top-Case 3D model"
-        camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="0" rotation-per-second="22deg"
-        shadow-intensity="1.1" shadow-softness="0.8" exposure="1.05" environment-image="neutral"
-        camera-orbit="35deg 75deg 105%" min-camera-orbit="auto auto 60%" interaction-prompt="none">
-        <div class="loader" slot="progress-bar"><div class="bee">🐝</div><div class="bar"><i id="pbar"></i></div><div class="pct" id="ppct">Model yükleniyor… (32 MB)</div></div>
+      <model-viewer id="mv" alt="VIZZ 3D model"
+        camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="0" rotation-per-second="20deg"
+        shadow-intensity="1.1" shadow-softness="0.85" exposure="1.05" environment-image="neutral"
+        camera-orbit="35deg 75deg 100%" interaction-prompt="none">
+        <div class="loader" slot="progress-bar"><div class="bee">🐝</div><div class="bar"><i id="pbar"></i></div><div class="pct" id="ppct">Model yükleniyor…</div></div>
       </model-viewer>
       <div class="ctl">
-        <button title="Otomatik dönüş" onclick="toggleRotate()" id="rotBtn">⏸</button>
+        <button title="Otomatik dönüş" id="rotBtn" onclick="toggleRotate()">⏸</button>
         <button title="Görünümü sıfırla" onclick="resetView()">⟳</button>
         <button title="Tam ekran" onclick="fs()">⛶</button>
       </div>
       <div class="hint">🖱️ <b>Sürükle</b> döndür · <b>Tekerlek</b> zoom · <b>Sağ tık</b> kaydır</div>
     </div>
     <div class="side">
-      <span class="badge">🛵 Saha Ekipmanı</span>
-      <h2>VIZZ Motor Top-Case</h2>
-      <p class="desc">Arı logolu izoleli teslimat kutusunun gerçek 3D modeli. Üretim, kalıp ve marka uygulaması için döndürerek incele. Kurye motorlarının arkasına monte edilen kutu.</p>
-      <div class="specs">
-        <div class="r"><span>Format</span><b>glTF binary (.glb)</b></div>
-        <div class="r"><span>Doku</span><b>PBR · gömülü</b></div>
-        <div class="r"><span>Boyut</span><b>32 MB</b></div>
-        <div class="r"><span>Renk</span><b>Sarı / Siyah 🐝</b></div>
-      </div>
-      <button class="arbtn" onclick="document.getElementById('mv').activateAR()">📱 Telefonda AR'da Gör</button>
-      <div class="gal">
-        <div class="lbl">Modeller</div>
-        <div class="thumbs">
-          <div class="thumb"><div class="ic">📦</div><div class="nm">Top-Case</div></div>
-          <div class="thumb soon"><div class="ic">➕</div><div class="nm">Yakında</div></div>
-        </div>
-      </div>
+      <div class="glab">🐝 Model Galerisi</div>
+      <div class="gallery" id="gallery"></div>
+      <div class="info" id="info"></div>
     </div>
   </div>
 <script src="vizz-data.js"></script>
 <script>
 document.getElementById('logo').src=VIZZ.LOGO;
+const MODELS=[
+ {id:"bee",   file:"models/vizz-bee.glb",        name:"VIZZ Arı Maskotu", icon:"🐝", tag:"Marka Maskotu",
+  desc:"Markanın kahraman arısı — kasklı, hızlı, yumruğu ileri. Logonun 3D hali.", size:"37 MB", color:"Sarı / Siyah"},
+ {id:"scooter",file:"models/courier-scooter.glb", name:"Arı Kurye + Motor", icon:"🛵", tag:"Saha Sahnesi",
+  desc:"Top-case'li teslimat motoru + arı kurye maskotu — tam saha sahnesi.", size:"69 MB", color:"Sarı / Siyah"},
+ {id:"topcase",file:"models/topcase-bee.glb",     name:"Motor Top-Case",  icon:"📦", tag:"Saha Ekipmanı",
+  desc:"Arı logolu izoleli teslimat kutusu. Kurye motorlarının arkasına monte edilir.", size:"32 MB", color:"Sarı / Siyah"},
+ {id:"coll",   file:"models/bee-collection.glb",  name:"Arı Koleksiyonu", icon:"🎁", tag:"Koleksiyon",
+  desc:"VIZZ arı maskotunun varyasyonları bir arada — marka kütüphanesi.", size:"48 MB", color:"Sarı / Siyah"},
+];
 const mv=document.getElementById('mv');
+let current=null;
+function renderGallery(){
+ document.getElementById('gallery').innerHTML=MODELS.map(m=>`
+   <div class="gcard ${m.id===current?'active':''}" id="g-${m.id}" onclick="select('${m.id}')">
+     <div class="ic">${m.icon}</div><div class="nm">${m.name}</div><div class="sz">${m.size}</div></div>`).join('');
+}
+function renderInfo(m){
+ document.getElementById('info').innerHTML=`
+   <span class="badge">${m.icon} ${m.tag}</span>
+   <h2>${m.name}</h2>
+   <p class="desc">${m.desc}</p>
+   <div class="specs">
+     <div class="r"><span>Format</span><b>glTF binary (.glb)</b></div>
+     <div class="r"><span>Doku</span><b>PBR · gömülü</b></div>
+     <div class="r"><span>Boyut</span><b>${m.size}</b></div>
+     <div class="r"><span>Renk</span><b>${m.color} 🐝</b></div>
+   </div>
+   <button class="arbtn" onclick="mv.activateAR()">📱 Telefonda AR'da Gör</button>`;
+}
+function select(id){
+ const m=MODELS.find(x=>x.id===id); if(!m||id===current && mv.src) return;
+ current=id;
+ document.getElementById('pbar').style.width='0%';
+ document.getElementById('ppct').textContent='Model yükleniyor…';
+ mv.src=m.file; mv.cameraOrbit='35deg 75deg 100%';
+ document.querySelectorAll('.gcard').forEach(c=>c.classList.remove('active'));
+ document.getElementById('g-'+id)?.classList.add('active');
+ renderInfo(m);
+}
 mv.addEventListener('progress',e=>{const p=Math.round(e.detail.totalProgress*100);
-  document.getElementById('pbar').style.width=p+'%';document.getElementById('ppct').textContent=p<100?`Model yükleniyor… %${p}`:'Hazır 🐝';});
+ document.getElementById('pbar').style.width=p+'%';
+ document.getElementById('ppct').textContent=p<100?`Yükleniyor… %${p}`:'Hazır 🐝';});
+mv.addEventListener('load',()=>{mv.cameraOrbit='35deg 75deg 100%';mv.jumpCameraToGoal&&mv.jumpCameraToGoal();});
 let rotating=true;
-function toggleRotate(){rotating=!rotating;if(rotating)mv.setAttribute('auto-rotate','');else mv.removeAttribute('auto-rotate');
-  document.getElementById('rotBtn').textContent=rotating?'⏸':'▶︎';}
-function resetView(){mv.cameraOrbit='35deg 75deg 105%';mv.fieldOfView='auto';mv.jumpCameraToGoal&&mv.jumpCameraToGoal();}
+function toggleRotate(){rotating=!rotating;if(rotating)mv.setAttribute('auto-rotate','');else mv.removeAttribute('auto-rotate');document.getElementById('rotBtn').textContent=rotating?'⏸':'▶︎';}
+function resetView(){mv.cameraOrbit='35deg 75deg 100%';mv.fieldOfView='auto';mv.jumpCameraToGoal&&mv.jumpCameraToGoal();}
 function fs(){const l=mv.closest('.left');if(!document.fullscreenElement)l.requestFullscreen?.();else document.exitFullscreen?.();}
+renderGallery(); select('bee');
 </script>
 </body></html>
