@@ -78,4 +78,80 @@ function imgFallback(el,slug){
   el.style.display="grid";el.style.placeItems="center";el.style.fontSize="34px";
   el.textContent=(EMOJI[slug]||"🍽️");el.onerror=null;
 }
-window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IMG,EMOJI,imgFallback};
+
+/* =================================================================
+   VIZZ MARKET — q-commerce atıştırmalık dikeyi (mock veri)
+   Aynı kurye filosu + dispatcher + tasarım sistemi üzerine kurulur.
+   ================================================================= */
+const MARKET_DEPO = { name:"VIZZ Market Deposu", zone:"Cumhuriyet", sla:"15-25" };
+const MARKET_CATS = [
+  {id:"tum", n:"Tümü", emo:"🛒"},{id:"cikolata", n:"Çikolata & Gofret", emo:"🍫"},
+  {id:"cips", n:"Cips & Çerez", emo:"🥔"},{id:"biskuvi", n:"Bisküvi & Kraker", emo:"🍪"},
+  {id:"icecek", n:"İçecek", emo:"🥤"},{id:"dondurma", n:"Dondurma", emo:"🍦"},
+  {id:"seker", n:"Şeker & Sakız", emo:"🍬"},{id:"kuruyemis", n:"Kuruyemiş", emo:"🥜"},
+  {id:"atistir", n:"Atıştırmalık", emo:"🌭"},{id:"acil", n:"Acil İhtiyaç", emo:"🔋"},
+];
+
+const MARKET_PRODUCTS = [
+  {id:"m-sutlu-cik",n:"Sütlü Çikolata",cat:"cikolata",price:34,old:40,unit:"80 g",emo:"🍫",stock:42,tag:"Çok Satan"},
+  {id:"m-findikli",n:"Fındıklı Çikolata",cat:"cikolata",price:38,unit:"80 g",emo:"🍫",stock:30},
+  {id:"m-gofret",n:"Çikolatalı Gofret",cat:"cikolata",price:18,unit:"36 g",emo:"🍫",stock:120},
+  {id:"m-kakaolu-bar",n:"Kakaolu Bar",cat:"cikolata",price:22,unit:"50 g",emo:"🍫",stock:64},
+  {id:"m-beyaz-cik",n:"Beyaz Çikolata",cat:"cikolata",price:36,unit:"80 g",emo:"🍫",stock:0,tag:"Tükendi"},
+  {id:"m-findik-krem",n:"Fındık Kreması",cat:"cikolata",price:96,old:115,unit:"350 g",emo:"🍯",stock:18,tag:"Fırsat"},
+  {id:"m-klasik-cips",n:"Klasik Patates Cipsi",cat:"cips",price:42,unit:"107 g",emo:"🥔",stock:58,tag:"Çok Satan"},
+  {id:"m-baharatli",n:"Baharatlı Cips",cat:"cips",price:42,unit:"107 g",emo:"🌶️",stock:47},
+  {id:"m-misir-cips",n:"Mısır Cipsi (Nacho)",cat:"cips",price:38,unit:"140 g",emo:"🌽",stock:33},
+  {id:"m-cubuk-kraker",n:"Çubuk Kraker",cat:"cips",price:16,unit:"45 g",emo:"🥨",stock:90},
+  {id:"m-citir-misir",n:"Çıtır Mısır",cat:"cips",price:28,unit:"100 g",emo:"🍿",stock:25},
+  {id:"m-soslu-cips",n:"Soslu Cips + Dip",cat:"cips",price:54,old:64,unit:"160 g",emo:"🥔",stock:12,tag:"Fırsat"},
+  {id:"m-kakaolu-bisk",n:"Kakaolu Bisküvi",cat:"biskuvi",price:24,unit:"100 g",emo:"🍪",stock:70},
+  {id:"m-sandvic-bisk",n:"Sandviç Bisküvi",cat:"biskuvi",price:20,unit:"70 g",emo:"🍪",stock:85,tag:"Çok Satan"},
+  {id:"m-kremali-bisk",n:"Kremalı Bisküvi",cat:"biskuvi",price:22,unit:"90 g",emo:"🍪",stock:48},
+  {id:"m-tuzlu-kraker",n:"Tuzlu Kraker",cat:"biskuvi",price:14,unit:"75 g",emo:"🧂",stock:110},
+  {id:"m-yulaf-bar",n:"Yulaf Bar",cat:"biskuvi",price:26,unit:"40 g",emo:"🌾",stock:36,tag:"Yeni"},
+  {id:"m-kola",n:"Kola (Kutu)",cat:"icecek",price:28,unit:"330 ml",emo:"🥤",stock:140,tag:"Çok Satan"},
+  {id:"m-kola-zero",n:"Kola Zero (Kutu)",cat:"icecek",price:28,unit:"330 ml",emo:"🥤",stock:96},
+  {id:"m-gazoz",n:"Limonlu Gazoz",cat:"icecek",price:22,unit:"250 ml",emo:"🍋",stock:60},
+  {id:"m-su",n:"Su",cat:"icecek",price:8,unit:"500 ml",emo:"💧",stock:200},
+  {id:"m-maden-suyu",n:"Maden Suyu",cat:"icecek",price:14,unit:"200 ml",emo:"🫧",stock:88},
+  {id:"m-meyve-suyu",n:"Meyve Suyu (Şeftali)",cat:"icecek",price:24,unit:"200 ml",emo:"🧃",stock:54},
+  {id:"m-enerji",n:"Enerji İçeceği",cat:"icecek",price:46,old:55,unit:"250 ml",emo:"⚡",stock:40,tag:"Fırsat"},
+  {id:"m-soguk-kahve",n:"Soğuk Kahve",cat:"icecek",price:52,unit:"250 ml",emo:"☕",stock:28,tag:"Yeni"},
+  {id:"m-ayran",n:"Ayran",cat:"icecek",price:18,unit:"300 ml",emo:"🥛",stock:64},
+  {id:"m-kulah",n:"Külah Dondurma",cat:"dondurma",price:38,unit:"110 ml",emo:"🍦",stock:35,tag:"Çok Satan"},
+  {id:"m-cubuk-dond",n:"Çubuk Dondurma",cat:"dondurma",price:30,unit:"70 ml",emo:"🍡",stock:44},
+  {id:"m-sandvic-dond",n:"Sandviç Dondurma",cat:"dondurma",price:34,unit:"90 ml",emo:"🍨",stock:22},
+  {id:"m-kutu-dond",n:"Kutu Dondurma",cat:"dondurma",price:120,old:140,unit:"900 ml",emo:"🍨",stock:10,tag:"Fırsat"},
+  {id:"m-sakiz",n:"Naneli Sakız",cat:"seker",price:12,unit:"14'lü",emo:"🍬",stock:150},
+  {id:"m-jelibon",n:"Jelibon",cat:"seker",price:26,unit:"80 g",emo:"🐻",stock:58,tag:"Çok Satan"},
+  {id:"m-lolipop",n:"Lolipop",cat:"seker",price:6,unit:"1 adet",emo:"🍭",stock:200},
+  {id:"m-cikolata-top",n:"Çikolatalı Toplar",cat:"seker",price:30,unit:"90 g",emo:"🟤",stock:40},
+  {id:"m-nane-sekeri",n:"Nane Şekeri",cat:"seker",price:16,unit:"50 g",emo:"🌿",stock:75},
+  {id:"m-findik",n:"Kavrulmuş Fındık",cat:"kuruyemis",price:64,unit:"150 g",emo:"🌰",stock:30,tag:"Çok Satan"},
+  {id:"m-leblebi",n:"Leblebi",cat:"kuruyemis",price:28,unit:"150 g",emo:"🟡",stock:52},
+  {id:"m-cekirdek",n:"Çekirdek",cat:"kuruyemis",price:24,unit:"180 g",emo:"🌻",stock:88},
+  {id:"m-karisik",n:"Karışık Kuruyemiş",cat:"kuruyemis",price:86,old:99,unit:"200 g",emo:"🥜",stock:16,tag:"Fırsat"},
+  {id:"m-fistik",n:"Antep Fıstığı",cat:"kuruyemis",price:140,unit:"150 g",emo:"🟢",stock:9},
+  {id:"m-badem",n:"Çiğ Badem",cat:"kuruyemis",price:78,unit:"150 g",emo:"🌰",stock:21},
+  {id:"m-tost",n:"Hazır Tost",cat:"atistir",price:48,unit:"1 adet",emo:"🥪",stock:18,tag:"Çok Satan"},
+  {id:"m-pogaca",n:"Peynirli Poğaça",cat:"atistir",price:22,unit:"1 adet",emo:"🥐",stock:26},
+  {id:"m-simit",n:"Susamlı Simit",cat:"atistir",price:15,unit:"1 adet",emo:"🥯",stock:30},
+  {id:"m-borek",n:"Su Böreği (Dilim)",cat:"atistir",price:34,unit:"1 dilim",emo:"🥧",stock:14},
+  {id:"m-sandvic",n:"Hazır Sandviç",cat:"atistir",price:52,unit:"1 adet",emo:"🥖",stock:12,tag:"Yeni"},
+  {id:"m-cakmak",n:"Çakmak",cat:"acil",price:18,unit:"1 adet",emo:"🔥",stock:80},
+  {id:"m-pil",n:"Kalem Pil (4'lü)",cat:"acil",price:64,unit:"4'lü",emo:"🔋",stock:34},
+  {id:"m-mum",n:"Mum (Paket)",cat:"acil",price:30,unit:"6'lı",emo:"🕯️",stock:22},
+  {id:"m-mendil",n:"Islak Mendil",cat:"acil",price:26,unit:"60'lı",emo:"🧻",stock:48},
+  {id:"m-pecete",n:"Kağıt Peçete",cat:"acil",price:20,unit:"100'lü",emo:"🧻",stock:60},
+];
+const MARKET = {depo:MARKET_DEPO,cats:MARKET_CATS,products:MARKET_PRODUCTS,freeOver:150,fee:19.90,minBasket:0};
+
+ORDERS.forEach(o=>o.vertical=o.vertical||"food");
+ORDERS.push(
+  {id:"VZ-M204",rest:"VIZZ Market",cust:"B. Aksu",zone:"Cumhuriyet",items:4,total:138,pay:"Online",status:"Hazırlanıyor",min:4,courier:null,vertical:"market"},
+  {id:"VZ-M205",rest:"VIZZ Market",cust:"N. Tok",zone:"Bahçelievler",items:2,total:64,pay:"Kapıda Kart",status:"Atanıyor",min:1,courier:null,vertical:"market"},
+  {id:"VZ-M206",rest:"VIZZ Market",cust:"R. Gül",zone:"Şehitler",items:3,total:92,pay:"Online",status:"Kurye yolda",min:7,courier:"Okan V.",vertical:"market"},
+);
+
+window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IMG,EMOJI,imgFallback,MARKET};

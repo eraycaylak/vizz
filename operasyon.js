@@ -55,6 +55,7 @@ const cum=p=>{let d=[0];for(let i=1;i<p.length;i++)d.push(d[i-1]+Math.hypot(p[i]
 const bike='<svg viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8m6.5 6 2-6h2.5"/></svg>';
 function courierIcon(c){return L.divIcon({className:'',html:`<div class="cm ${c.status==='delivering'?'deliver':'idle'}"><div class="pin">${bike}</div></div>`,iconSize:[26,26],iconAnchor:[13,13]});}
 function restIcon(){return L.divIcon({className:'',html:'<div class="rest-pin"><svg viewBox="0 0 24 24"><path d="M4 3v7a2 2 0 0 0 2 2h0V3M6 3v18M14 3c-1 1-2 3-2 6s2 4 3 4v8"/></svg></div>',iconSize:[16,16],iconAnchor:[8,8]});}
+function marketIcon(){return L.divIcon({className:'',html:'<div class="rest-pin" style="width:22px;height:22px;border-radius:8px;background:var(--y);color:#15140F;font-size:13px;font-weight:900">🛒</div>',iconSize:[22,22],iconAnchor:[11,11]});}
 
 function initMap(){
   if(map){ setTimeout(()=>map.invalidateSize(),60); return; }
@@ -64,6 +65,7 @@ function initMap(){
   map.fitBounds(cov.getBounds(),{padding:[30,30]});
   Y.zones.forEach(z=>L.marker(z.c,{opacity:0,interactive:false}).addTo(map).bindTooltip(z.n,{permanent:true,direction:'top',className:'zone-lbl'}));
   D.RESTAURANTS.forEach(r=>{const z=Y.zones.find(x=>x.n===r.zone)||Y.zones[0];L.marker([z.c[0]+rnd(-.001,.001),z.c[1]+rnd(-.001,.001)],{icon:restIcon()}).addTo(map).bindTooltip(r.name,{direction:'top'});});
+  const mz=Y.zones.find(x=>x.n==='Cumhuriyet')||Y.zones[6]; L.marker([mz.c[0]+.0008,mz.c[1]-.0009],{icon:marketIcon()}).addTo(map).bindTooltip('VIZZ Market Deposu',{direction:'top'});
   D.COURIERS.filter(c=>c.status!=='break').forEach((c,i)=>{ const m=L.marker(c.pos.slice(),{icon:courierIcon(c)}).addTo(map).bindTooltip(`${c.name} · ${c.statusTr}`,{direction:'top',offset:[0,-8]});
     const h={c,m,path:null,cum:null,t:0,dur:1,total:0,busy:false}; courierHandles.push(h); setTimeout(()=>leg(h),i*320); });
   requestAnimationFrame(tick);
@@ -89,21 +91,25 @@ function tick(now){ const dt=Math.min(.05,(now-last)/1000); last=now;
 let orders = D.ORDERS.map(o=>({...o}));
 const slaCls=s=>s==='Hazırlanıyor'?'b-warn':s==='Atanıyor'?'b-bad':s==='Kurye yolda'?'b-info':'b-ok';
 function renderQueue(filter){
-  const list = filter==='wait'?orders.filter(o=>!o.courier):orders;
-  $('#queue').innerHTML = list.map(o=>`<div class="ord ${o.status==='Atanıyor'?'live':''}">
-    <div class="r1"><span class="id">${o.id}</span><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></div>
-    <div class="meta"><span>🍽 <b>${o.rest}</b></span><span>📍 ${o.zone}</span><span>${o.items} ürün · <b class="num">₺${o.total}</b></span><span>${o.pay}</span></div>
+  const list = filter==='wait' ? orders.filter(o=>!o.courier) : filter==='market' ? orders.filter(o=>o.vertical==='market') : orders;
+  $('#queue').innerHTML = list.map(o=>{
+    const isM=o.vertical==='market';
+    return `<div class="ord ${o.status==='Atanıyor'?'live':''}">
+    <div class="r1"><span class="id">${o.id}</span><span style="display:flex;gap:6px;align-items:center"><span class="badge ${isM?'b-y':'b-mute'}" style="font-size:10px"><span class="dot"></span>${isM?'Market':'Yemek'}</span><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></span></div>
+    <div class="meta"><span>${isM?'🛒':'🍽'} <b>${o.rest}</b></span><span>📍 ${o.zone}</span><span>${o.items} ürün · <b class="num">₺${o.total}</b></span><span>${o.pay}</span></div>
     ${o.courier
-      ? `<div class="sla" style="color:var(--info)"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/></svg> ${o.courier} · ${o.min} dk · <span class="muted">SLA güvenli</span></div>`
-      : `<div class="act"><button class="btn btn-y" onclick="VZ.assign('${o.id}')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="m13 2-3 7h6l-5 13 2-9H7l4-11Z"/></svg>Otomatik Ata</button><button class="btn" onclick="VZ.toast('Manuel atama paneli — kurye seç')">Manuel</button></div>`}
-  </div>`).join('') || '<div class="dim" style="text-align:center;padding:28px;font-size:12px">Kuyruk temiz 🐝</div>';
+      ? `<div class="sla" style="color:var(--info)"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/></svg> ${o.courier} · ${o.min} dk · <span class="muted">${isM?'market SLA 15-25 dk':'SLA güvenli'}</span></div>`
+      : `<div class="act"><button class="btn btn-y" onclick="VZ.assign('${o.id}')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="m13 2-3 7h6l-5 13 2-9H7l4-11Z"/></svg>Otomatik Ata</button><button class="btn" onclick="VZ.toast('${isM?'Market':'Yemek'} manuel atama paneli — kurye seç')">Manuel</button></div>`}
+  </div>`}).join('') || '<div class="dim" style="text-align:center;padding:28px;font-size:12px">Kuyruk temiz 🐝</div>';
 }
 function assign(id){ const o=orders.find(x=>x.id===id); const free=D.COURIERS.filter(c=>c.status==='online'); const k=free[Math.floor(Math.random()*free.length)]||D.COURIERS[0];
   o.courier=k.name; o.status='Kurye yolda'; o.min=Math.floor(rnd(5,13)); renderQueue(curFilter);
   toast(`<b>${id}</b> → ${k.name} atandı · gerekçe: en yakın + düşük yük`); }
 let curFilter='all';
-$('#q-all').onclick=()=>{curFilter='all';$('#q-all').classList.add('on');$('#q-wait').classList.remove('on');renderQueue('all');};
-$('#q-wait').onclick=()=>{curFilter='wait';$('#q-wait').classList.add('on');$('#q-all').classList.remove('on');renderQueue('wait');};
+function qseg(id){ ['q-all','q-wait','q-market'].forEach(x=>$('#'+x)?.classList.toggle('on',x===id)); }
+$('#q-all').onclick=()=>{curFilter='all';qseg('q-all');renderQueue('all');};
+$('#q-wait').onclick=()=>{curFilter='wait';qseg('q-wait');renderQueue('wait');};
+$('#q-market').onclick=()=>{curFilter='market';qseg('q-market');renderQueue('market');};
 
 /* ---------- canlı kurye listesi ---------- */
 function renderCouriers(){
@@ -203,11 +209,11 @@ function buildGorevler(){
   $('#v-gorevler').innerHTML = `<div class="rhead"><div><h2>Tüm Görevler</h2><p>canlı sipariş akışı · filtrele, ata, izle</p></div>
     <div class="seg"><button class="on">Tümü</button><button>Aktif</button><button>Bekleyen</button><button>Tamamlanan</button></div></div>
     <div class="card"><div style="overflow:auto;max-height:calc(100vh - 150px)"><table class="grid"><thead><tr>
-    <th>Sipariş</th><th>Restoran</th><th>Müşteri</th><th>Bölge</th><th>Durum</th><th>Kurye</th><th>Tutar</th><th>SLA</th><th></th></tr></thead><tbody>`+
+    <th>Sipariş</th><th>Dikey</th><th>Restoran</th><th>Müşteri</th><th>Bölge</th><th>Durum</th><th>Kurye</th><th>Tutar</th><th>SLA</th><th></th></tr></thead><tbody>`+
     orders.concat([
       {id:'VZ-7744',rest:'Honey Burger House',cust:'E. Şahin',zone:'Bahçelievler',items:4,total:295,pay:'Kapıda Kart',status:'Teslim edildi',min:0,courier:'Caner T.'},
       {id:'VZ-7740',rest:'Sarı Kovan Kahvaltı',cust:'K. Öz',zone:'Köseoğlu',items:2,total:430,pay:'Online',status:'Hazırlanıyor',min:14,courier:null},
-    ]).map(o=>`<tr><td><b>${o.id}</b></td><td>${o.rest}</td><td>${o.cust||'—'}</td><td>${o.zone}</td>
+    ]).map(o=>`<tr><td><b>${o.id}</b></td><td><span class="badge ${o.vertical==='market'?'b-y':'b-mute'}" style="font-size:10px">${o.vertical==='market'?'Market':'Yemek'}</span></td><td>${o.rest}</td><td>${o.cust||'—'}</td><td>${o.zone}</td>
       <td><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></td>
       <td>${o.courier||'<span class="dim">—</span>'}</td><td class="num"><b>₺${o.total}</b></td>
       <td>${o.min?`<span class="num" style="color:${o.min<6?'var(--bad)':'var(--ok)'}">${o.min} dk</span>`:'<span class="dim">—</span>'}</td>
