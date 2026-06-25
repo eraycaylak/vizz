@@ -11,7 +11,8 @@
   model-viewer{width:100%;height:100%;background:
      radial-gradient(circle at 50% 38%,rgba(255,196,0,.10),transparent 60%),linear-gradient(#1a1813,#0e0d0b);--poster-color:transparent}
   .left{position:relative;min-width:0}
-  .loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none}
+  .loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;pointer-events:none;transition:opacity .45s;z-index:4}
+  .loader.done{opacity:0;visibility:hidden}
   .loader .bee{font-size:54px;animation:bz 1.6s ease-in-out infinite}
   @keyframes bz{0%,100%{transform:translate(-6px,0) rotate(-6deg)}50%{transform:translate(6px,-8px) rotate(6deg)}}
   .loader .bar{width:210px;height:6px;background:#ffffff14;border-radius:6px;overflow:hidden}
@@ -54,7 +55,7 @@
         camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="0" rotation-per-second="20deg"
         shadow-intensity="1.1" shadow-softness="0.85" exposure="1.05" environment-image="neutral"
         camera-orbit="35deg 75deg 100%" interaction-prompt="none">
-        <div class="loader" slot="progress-bar"><div class="bee">🐝</div><div class="bar"><i id="pbar"></i></div><div class="pct" id="ppct">Model yükleniyor…</div></div>
+        <div class="loader" id="loader" slot="progress-bar"><div class="bee">🐝</div><div class="bar"><i id="pbar"></i></div><div class="pct" id="ppct">Model yükleniyor…</div></div>
       </model-viewer>
       <div class="ctl">
         <button title="Otomatik dönüş" id="rotBtn" onclick="toggleRotate()">⏸</button>
@@ -72,15 +73,16 @@
 <script src="vizz-data.js"></script>
 <script>
 document.getElementById('logo').src=VIZZ.LOGO;
+const V="?v=q1";   // cache-bust for optimized (quantized) models
 const MODELS=[
- {id:"bee",   file:"models/vizz-bee.glb",        name:"VIZZ Arı Maskotu", icon:"🐝", tag:"Marka Maskotu",
-  desc:"Markanın kahraman arısı — kasklı, hızlı, yumruğu ileri. Logonun 3D hali.", size:"37 MB", color:"Sarı / Siyah"},
- {id:"scooter",file:"models/courier-scooter.glb", name:"Arı Kurye + Motor", icon:"🛵", tag:"Saha Sahnesi",
-  desc:"Top-case'li teslimat motoru + arı kurye maskotu — tam saha sahnesi.", size:"69 MB", color:"Sarı / Siyah"},
- {id:"topcase",file:"models/topcase-bee.glb",     name:"Motor Top-Case",  icon:"📦", tag:"Saha Ekipmanı",
-  desc:"Arı logolu izoleli teslimat kutusu. Kurye motorlarının arkasına monte edilir.", size:"32 MB", color:"Sarı / Siyah"},
- {id:"coll",   file:"models/bee-collection.glb",  name:"Arı Koleksiyonu", icon:"🎁", tag:"Koleksiyon",
-  desc:"VIZZ arı maskotunun varyasyonları bir arada — marka kütüphanesi.", size:"48 MB", color:"Sarı / Siyah"},
+ {id:"bee",   file:"models/vizz-bee.glb"+V,        name:"VIZZ Arı Maskotu", icon:"🐝", tag:"Marka Maskotu",
+  desc:"Markanın kahraman arısı — kasklı, hızlı, yumruğu ileri. Logonun 3D hali.", size:"7 MB", color:"Sarı / Siyah"},
+ {id:"scooter",file:"models/courier-scooter.glb"+V, name:"Arı Kurye + Motor", icon:"🛵", tag:"Saha Sahnesi",
+  desc:"Top-case'li teslimat motoru + arı kurye maskotu — tam saha sahnesi.", size:"22 MB", color:"Sarı / Siyah"},
+ {id:"topcase",file:"models/topcase-bee.glb"+V,     name:"Motor Top-Case",  icon:"📦", tag:"Saha Ekipmanı",
+  desc:"Arı logolu izoleli teslimat kutusu. Kurye motorlarının arkasına monte edilir.", size:"12 MB", color:"Sarı / Siyah"},
+ {id:"coll",   file:"models/bee-collection.glb"+V,  name:"Arı Koleksiyonu", icon:"🎁", tag:"Koleksiyon",
+  desc:"VIZZ arı maskotunun varyasyonları bir arada — marka kütüphanesi.", size:"12 MB", color:"Sarı / Siyah"},
 ];
 const mv=document.getElementById('mv');
 let current=null;
@@ -105,6 +107,8 @@ function renderInfo(m){
 function select(id){
  const m=MODELS.find(x=>x.id===id); if(!m||id===current && mv.src) return;
  current=id;
+ const ld=document.getElementById('loader'); ld.classList.remove('done');
+ ld.style.opacity='1'; ld.style.visibility='visible';
  document.getElementById('pbar').style.width='0%';
  document.getElementById('ppct').textContent='Model yükleniyor…';
  mv.src=m.file; mv.cameraOrbit='35deg 75deg 100%';
@@ -112,10 +116,12 @@ function select(id){
  document.getElementById('g-'+id)?.classList.add('active');
  renderInfo(m);
 }
+function hideLoader(){const ld=document.getElementById('loader');ld.classList.add('done');ld.style.opacity='0';ld.style.visibility='hidden';}
 mv.addEventListener('progress',e=>{const p=Math.round(e.detail.totalProgress*100);
  document.getElementById('pbar').style.width=p+'%';
- document.getElementById('ppct').textContent=p<100?`Yükleniyor… %${p}`:'Hazır 🐝';});
-mv.addEventListener('load',()=>{mv.cameraOrbit='35deg 75deg 100%';mv.jumpCameraToGoal&&mv.jumpCameraToGoal();});
+ // download done but mesh still decoding → honest message, hide only on real 'load'
+ document.getElementById('ppct').textContent=p<100?`İndiriliyor… %${p}`:'Model işleniyor… 🐝';});
+mv.addEventListener('load',()=>{hideLoader();mv.cameraOrbit='35deg 75deg 100%';mv.jumpCameraToGoal&&mv.jumpCameraToGoal();});
 let rotating=true;
 function toggleRotate(){rotating=!rotating;if(rotating)mv.setAttribute('auto-rotate','');else mv.removeAttribute('auto-rotate');document.getElementById('rotBtn').textContent=rotating?'⏸':'▶︎';}
 function resetView(){mv.cameraOrbit='35deg 75deg 100%';mv.fieldOfView='auto';mv.jumpCameraToGoal&&mv.jumpCameraToGoal();}
