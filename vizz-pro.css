@@ -326,4 +326,302 @@ body.light-theme .tabbar button .cart-dot {
   border-color: var(--s1) !important;
 }
 
+/* ==========================================
+   LIGHT THEME — Additional Fixes
+   Hardcoded dark backgrounds & text fixes
+   ========================================== */
+
+/* Sticky nav bars with hardcoded rgba dark backgrounds */
+body.light-theme nav,
+body.light-theme .nav-wrap {
+  background: rgba(255,255,255,0.92) !important;
+  border-bottom-color: rgba(0,0,0,0.08) !important;
+}
+
+/* musteri-web nav inner */
+body.light-theme nav .nav {
+  background: transparent !important;
+}
+
+/* market-web .nav */
+body.light-theme .nav {
+  background: rgba(255,255,255,0.92) !important;
+  border-bottom-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Brand text in navbars */
+body.light-theme .brand b,
+body.light-theme .brand span.y-text { color: var(--y) !important; }
+body.light-theme .brand { color: #0f172a !important; }
+
+/* Nav links */
+body.light-theme .nlinks a { color: #475569 !important; }
+body.light-theme .nlinks a:hover { background: #f1f5f9 !important; color: #0f172a !important; }
+
+/* Location chip in musteri-web nav */
+body.light-theme .loc {
+  background: #f1f5f9 !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  color: #475569 !important;
+}
+
+/* Segment controls (tab strips like Bugün/7 gün/30 gün) */
+body.light-theme .seg {
+  background: #f1f5f9 !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+body.light-theme .seg button { color: #64748b !important; }
+body.light-theme .seg button.on {
+  background: #fff !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+}
+
+/* Chip items in top bars */
+body.light-theme .chip {
+  background: #f1f5f9 !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  color: #475569 !important;
+}
+body.light-theme .chip b { color: #0f172a !important; }
+body.light-theme .chip .ic { color: #94a3b8 !important; }
+
+/* Cart button in market-web nav */
+body.light-theme .cartBtn {
+  background: var(--y) !important;
+  color: #fff !important;
+}
+body.light-theme .cartBtn .n {
+  background: rgba(0,0,0,0.15) !important;
+  color: #fff !important;
+}
+
+/* Panel card headers */
+body.light-theme .panel,
+body.light-theme .panel .card-h { background: #fff !important; }
+body.light-theme .card-h { border-bottom-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .card-h .t { color: #0f172a !important; }
+body.light-theme .card-h .t .ic { color: #94a3b8 !important; }
+
+/* Top bar brand area */
+body.light-theme .top { background: #fff !important; border-bottom-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .top .title { color: #0f172a !important; }
+body.light-theme .top .brand .nm { color: #0f172a !important; }
+body.light-theme .top .r .chip { background: #f1f5f9 !important; border-color: rgba(0,0,0,0.08) !important; }
+
+/* KPI cards */
+body.light-theme .kpi { background: #fff !important; border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .kpi .lab { color: #64748b !important; }
+body.light-theme .kpi .val { color: #0f172a !important; }
+body.light-theme .kpi .val small { color: #475569 !important; }
+
+/* Rail sidebar */
+body.light-theme .rail { background: #fff !important; border-right-color: rgba(0,0,0,0.08) !important; }
+body.light-theme .rail .ni { color: #94a3b8 !important; }
+body.light-theme .rail .ni:hover { background: #f1f5f9 !important; color: #0f172a !important; }
+
+/* KDS Kanban columns */
+body.light-theme .kcol-h { border-bottom-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .kcol-h .t { color: #0f172a !important; }
+body.light-theme .kcol-h .n { background: #f1f5f9 !important; color: #475569 !important; }
+
+/* Order cards */
+body.light-theme .oc { background: #fff !important; border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .oc:hover { border-color: rgba(0,0,0,0.12) !important; }
+body.light-theme .oc .id { color: #0f172a !important; }
+body.light-theme .oc .cust { color: #64748b !important; }
+body.light-theme .oc .it .nm { color: #0f172a !important; }
+body.light-theme .oc .it .q { color: var(--y) !important; }
+body.light-theme .oc .ftr { border-top-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .oc .tot { color: #0f172a !important; }
+
+/* Menu list (catlist) in restoran-panel */
+body.light-theme .catlist button { color: #475569 !important; }
+body.light-theme .catlist button:hover { background: #f1f5f9 !important; color: #0f172a !important; }
+body.light-theme .catlist button.on { background: var(--y-soft) !important; border-color: var(--y-line) !important; color: var(--y) !important; }
+body.light-theme .catlist button .c { color: #94a3b8 !important; }
+body.light-theme .catlist button.on .c { color: var(--y) !important; }
+
+/* Menu cards */
+body.light-theme .menucard .info h4 { color: #0f172a !important; }
+body.light-theme .menucard .info .ds { color: #64748b !important; }
+body.light-theme .menucard .info .px { color: var(--y) !important; }
+
+/* Hero section in musteri-web */
+body.light-theme .hero { background: transparent !important; border-bottom-color: rgba(0,0,0,0.06) !important; }
+body.light-theme h1.hero-h { color: #0f172a !important; }
+body.light-theme h1.hero-h i { color: var(--y) !important; }
+body.light-theme .hero-p { color: #475569 !important; }
+
+/* Eyebrow badges */
+body.light-theme .eyebrow {
+  background: var(--y-soft) !important;
+  border-color: var(--y-line) !important;
+  color: var(--y) !important;
+}
+
+/* Hero map top gradient */
+body.light-theme .hmap-top {
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), transparent) !important;
+}
+body.light-theme .hmap-top .t { color: #0f172a !important; }
+
+/* Trust strip */
+body.light-theme .trust { background: #fff !important; border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .titem { border-right-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .titem .v { color: #0f172a !important; }
+body.light-theme .titem .v b { color: var(--y) !important; }
+body.light-theme .titem .l { color: #64748b !important; }
+
+/* Value band */
+body.light-theme .vband { background: #f8fafc !important; border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .vitem { background: #fff !important; border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .vitem h3 { color: #0f172a !important; }
+body.light-theme .vitem p { color: #475569 !important; }
+
+/* Section headings */
+body.light-theme .shead h2 { color: #0f172a !important; }
+body.light-theme .shead p { color: #64748b !important; }
+body.light-theme .rhead h2 { color: #0f172a !important; }
+body.light-theme .rhead p { color: #64748b !important; }
+
+/* Category pills in musteri-web */
+body.light-theme .cat {
+  background: #fff !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  color: #475569 !important;
+}
+body.light-theme .cat:hover { color: #0f172a !important; border-color: rgba(0,0,0,0.14) !important; }
+body.light-theme .cat.on {
+  background: var(--y) !important;
+  color: #fff !important;
+  border-color: var(--y) !important;
+}
+body.light-theme .cat .ic { color: #94a3b8 !important; }
+body.light-theme .cat.on .ic { color: #fff !important; }
+
+/* Restaurant card rate badge */
+body.light-theme .rcard .rate {
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  color: #0f172a !important;
+}
+
+/* Modal */
+body.light-theme .modal { background: #fff !important; border-color: rgba(0,0,0,0.08) !important; }
+body.light-theme .modal .mclose {
+  background: rgba(255,255,255,0.92) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  color: #0f172a !important;
+}
+body.light-theme .modal .mcov::after {
+  background: linear-gradient(180deg, rgba(255,255,255,0.25), #fff) !important;
+}
+body.light-theme .modal .mhead .nm { color: #0f172a !important; }
+body.light-theme .mitem { border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .mitem:hover { background: #f8fafc !important; border-color: rgba(0,0,0,0.10) !important; }
+body.light-theme .mitem .info .t { color: #0f172a !important; }
+body.light-theme .mitem .info .d { color: #64748b !important; }
+body.light-theme .mitem .info .pr { color: var(--y) !important; }
+
+/* Cart drawer */
+body.light-theme .cart { background: #fff !important; border-left-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .cart-h { border-bottom-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .cart-h .t { color: #0f172a !important; }
+
+/* Product grid (market-web) */
+body.light-theme .prod { background: #fff !important; border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .prod .nm { color: #0f172a !important; }
+body.light-theme .prod .unit { color: #64748b !important; }
+body.light-theme .prod .ph { background: linear-gradient(135deg,#f1f5f9,#e2e8f0) !important; }
+body.light-theme .prod .bt .price { color: var(--y) !important; }
+body.light-theme .prod .bt .price del { color: #94a3b8 !important; }
+body.light-theme .add { background: var(--y) !important; }
+body.light-theme .qty { background: #f1f5f9 !important; border-color: rgba(0,0,0,0.08) !important; }
+body.light-theme .qty button { background: #e2e8f0 !important; color: #0f172a !important; }
+body.light-theme .qty .n { color: #0f172a !important; }
+
+/* Cart sidebar in market-web */
+body.light-theme .cart .head { border-bottom-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .cart .head b { color: #0f172a !important; }
+body.light-theme .ci { background: #f8fafc !important; border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .ci .e { background: #f1f5f9 !important; }
+body.light-theme .ci .n { color: #0f172a !important; }
+body.light-theme .ci .s { color: #64748b !important; }
+body.light-theme .sum { border-top-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .sum .ln { color: #475569 !important; }
+body.light-theme .sum .ln b { color: #0f172a !important; }
+body.light-theme .sum .total { border-top-color: rgba(0,0,0,0.06) !important; }
+
+/* Footer */
+body.light-theme footer { border-top-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .fcol h4 { color: #94a3b8 !important; }
+body.light-theme .fcol a { color: #475569 !important; }
+body.light-theme .fcol a:hover { color: var(--y) !important; }
+body.light-theme .fcol .desc { color: #64748b !important; }
+body.light-theme .fbottom { border-top-color: rgba(0,0,0,0.06) !important; color: #94a3b8 !important; }
+
+/* openTgl (restoran-panel açık/kapalı toggle) */
+body.light-theme .openTgl { background: #f8fafc !important; border-color: rgba(0,0,0,0.08) !important; }
+
+/* Stepper (courier flow) */
+body.light-theme .stepper .st .bub { background: #e2e8f0 !important; border-color: rgba(0,0,0,0.10) !important; color: #64748b !important; }
+body.light-theme .stepper .st::before { background: rgba(0,0,0,0.10) !important; }
+body.light-theme .stepper .st.done::before,
+body.light-theme .stepper .st.act::before { background: var(--ok) !important; }
+
+/* Big numbers in raporlar */
+body.light-theme .big { color: #0f172a !important; }
+body.light-theme .big small { color: #475569 !important; }
+
+/* Market hero ops mini cards */
+body.light-theme .mini { background: #fff !important; border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .mini h3 { color: #0f172a !important; }
+body.light-theme .tl .b { background: #f1f5f9 !important; border-color: rgba(0,0,0,0.08) !important; color: #64748b !important; }
+body.light-theme .tl.on .b { background: var(--y) !important; color: #fff !important; border-color: var(--y) !important; }
+body.light-theme .tl .t { color: #0f172a !important; }
+body.light-theme .tl .s { color: #64748b !important; }
+body.light-theme .weather .w { background: #fff !important; border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .weather .w .t { color: #475569 !important; }
+body.light-theme .weather .w b { color: #0f172a !important; }
+
+/* Market basket art decoration */
+body.light-theme .basketArt { background: var(--y) !important; }
+
+/* Market hcard (hero card) text fix */
+body.light-theme .hcard {
+  background: linear-gradient(135deg, #fef3c7, #fffbeb 62%) !important;
+  border-color: rgba(217,119,6,0.20) !important;
+}
+body.light-theme .hcard h1 { color: #0f172a !important; }
+body.light-theme .hcard p { color: #475569 !important; }
+
+/* Drawer inside panels */
+body.light-theme .drawer { background: #fff !important; border-left-color: rgba(0,0,0,0.08) !important; }
+
+/* Map container light mode */
+body.light-theme .mapwrap { background: #e8ecf0 !important; border-color: rgba(0,0,0,0.08) !important; }
+body.light-theme .maptop {
+  background: linear-gradient(180deg, rgba(255,255,255,0.88), transparent) !important;
+}
+body.light-theme .maptop .t { color: #0f172a !important; }
+
+/* Live/CANLI badge */
+body.light-theme .top .live { background: rgba(38,194,129,0.10) !important; color: var(--ok) !important; border-color: rgba(38,194,129,0.20) !important; }
+
+/* Market categories aside */
+body.light-theme .cats { background: #fff !important; border-color: rgba(0,0,0,0.06) !important; }
+body.light-theme .cats button { color: #475569 !important; }
+body.light-theme .cats button:hover { background: #f1f5f9 !important; color: #0f172a !important; }
+body.light-theme .cats button.on { background: var(--y-soft) !important; border-color: var(--y-line) !important; color: var(--y) !important; }
+
+/* Depo market app rail */
+body.light-theme .app { background: #f8fafc !important; }
+
+/* Table grid header in light theme */
+body.light-theme table.grid th { background: #f8fafc !important; color: #64748b !important; border-bottom-color: rgba(0,0,0,0.08) !important; }
+body.light-theme table.grid td { color: #475569 !important; border-bottom-color: rgba(0,0,0,0.05) !important; }
+body.light-theme table.grid tr:hover td { background: #f1f5f9 !important; }
+body.light-theme table.grid td b,
+body.light-theme table.grid td .strong { color: #0f172a !important; }
 
