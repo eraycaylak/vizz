@@ -288,8 +288,76 @@ function buildAyarlar(){
   </div>`;
 }
 
+/* ---------- DÜKKANLAR (restoranlar) ---------- */
+function rfin(r){
+  const s=r.id;
+  const paket=20+(s*11)%42;                       // bugün paket/siparis
+  const avg=110+(s*19)%90;                         // ort sepet
+  const ciro=paket*avg;
+  const komOran=[8,10,7,9,8,10,7,9][s%8]/100;      // komisyon orani
+  const komisyon=Math.round(ciro*komOran);
+  const iade=Math.round(ciro*(0.01+(s%3)*0.01));
+  const hakedis=ciro-komisyon-iade;                // net hakedis (cari)
+  const haz=(parseInt(r.time)||20)+(s%6);          // ort hazirlik
+  const durum=paket>50?['Yoğun','b-y']:['Aktif','b-ok'];
+  return {paket,avg,ciro,komOran,komisyon,iade,hakedis,haz,durum};
+}
+function buildDukkanlar(){
+  const fins=D.RESTAURANTS.map(r=>({r,f:rfin(r)}));
+  const totalCiro=fins.reduce((a,x)=>a+x.f.ciro,0), totalKom=fins.reduce((a,x)=>a+x.f.komisyon,0);
+  const totalPaket=fins.reduce((a,x)=>a+x.f.paket,0), aktif=fins.filter(x=>x.f.durum[0]!=='Kapalı').length;
+  $('#v-dukkanlar').innerHTML=`<div class="rhead"><div><h2>Dükkanlar</h2><p>${D.RESTAURANTS.length} işletme · Yozgat · paket, ciro, komisyon, cari hakediş</p></div>
+    <button class="btn btn-y"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Dükkan Ekle</button></div>
+   <div class="kstrip" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+     <div class="kpi"><div class="lab">Toplam dükkan</div><div class="val num">${D.RESTAURANTS.length}</div><div class="sub flat">${aktif} aktif</div></div>
+     <div class="kpi"><div class="lab">Bugünkü toplam ciro</div><div class="val">₺<span class="num">${(totalCiro/1000).toFixed(1)}K</span></div><div class="sub up">▲ %14 dün</div></div>
+     <div class="kpi accent"><div class="lab">VIZZ komisyon</div><div class="val">₺<span class="num">${(totalKom/1000).toFixed(1)}K</span></div><div class="sub">ort %8.5</div></div>
+     <div class="kpi"><div class="lab">Toplam paket</div><div class="val num">${totalPaket}</div><div class="sub up">▲ bugün</div></div></div>
+   <div class="card"><div style="overflow:auto;max-height:calc(100vh - 250px)"><table class="grid"><thead><tr>
+     <th>Dükkan</th><th>Kategori</th><th>Bölge</th><th>Bugün paket</th><th>Ciro</th><th>Komisyon</th><th>Net hakediş (cari)</th><th>Ort. hazırlık</th><th>Puan</th><th>Durum</th><th></th></tr></thead><tbody>`+
+     fins.map(({r,f})=>`<tr style="cursor:pointer" onclick="VZ.dukkanDrawer(${r.id})">
+       <td><div style="display:flex;align-items:center;gap:10px"><img src="${D.IMG(r.cover)}" onerror="VIZZ.imgFallback(this,'${r.cover}')" style="width:30px;height:30px;border-radius:8px;object-fit:cover;flex:none"><b>${r.name}</b></div></td>
+       <td>${r.cat}</td><td>${r.zone}</td><td class="num"><b>${f.paket}</b></td>
+       <td class="num"><b>₺${f.ciro.toLocaleString('tr')}</b></td>
+       <td class="num">₺${f.komisyon.toLocaleString('tr')} <span class="dim">%${Math.round(f.komOran*100)}</span></td>
+       <td class="num"><b style="color:var(--ok)">₺${f.hakedis.toLocaleString('tr')}</b></td>
+       <td class="num">${f.haz} dk</td><td class="num">${r.rate}</td>
+       <td><span class="badge ${f.durum[1]}"><span class="dot"></span>${f.durum[0]}</span></td>
+       <td><svg class="ic ic-sm" viewBox="0 0 24 24" style="color:var(--tx-3)"><path d="M9 18l6-6-6-6"/></svg></td></tr>`).join('')+
+     `</tbody></table></div></div>`;
+}
+function dukkanDrawer(id){
+  const r=D.RESTAURANTS.find(x=>x.id===id); const f=rfin(r); const d=$('#drawer');
+  const items=r.menu.map((m,i)=>({n:m[0],c:Math.max(1,Math.round(f.paket*(0.45-i*0.09)))})).sort((a,b)=>b.c-a.c).slice(0,4);
+  const maxc=Math.max(...items.map(x=>x.c),1);
+  d.innerHTML=`<div class="card-h" style="border-radius:0"><div class="t"><img src="${D.IMG(r.cover)}" onerror="VIZZ.imgFallback(this,'${r.cover}')" style="width:32px;height:32px;border-radius:9px;object-fit:cover"> ${r.name}</div>
+    <button class="btn btn-ghost btn-icon" onclick="VZ.closeDrawer()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+   <div style="overflow:auto;padding:16px;flex:1">
+     <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"><span class="badge ${f.durum[1]}">${f.durum[0]}</span><span class="badge b-mute">${r.cat}</span><span class="badge b-mute">📍 ${r.zone}</span><span class="badge b-y">★ ${r.rate}</span></div>
+     <div class="kstrip" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+       <div class="kpi"><div class="lab">Bugün paket</div><div class="val num">${f.paket}</div></div>
+       <div class="kpi"><div class="lab">Bugün ciro</div><div class="val">₺<span class="num">${(f.ciro/1000).toFixed(1)}K</span></div></div>
+       <div class="kpi"><div class="lab">Komisyon</div><div class="val">₺<span class="num">${f.komisyon}</span></div></div>
+       <div class="kpi"><div class="lab">Ort. hazırlık</div><div class="val"><span class="num">${f.haz}</span><small> dk</small></div></div></div>
+     <div class="card" style="margin-bottom:13px"><div class="card-h"><div class="t">Son 7 gün ciro</div></div><div style="padding:10px"><div class="chart" id="dk1" style="height:140px"></div></div></div>
+     <div class="card" style="margin-bottom:13px"><div class="card-h"><div class="t">En çok satan</div></div><div style="padding:12px 14px">
+       ${items.map(it=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span class="muted">${it.n}</span><b class="num">${it.c} adet</b></div><div class="bar-mini" style="height:7px"><i style="width:${Math.round(it.c/maxc*100)}%"></i></div></div>`).join('')}</div></div>
+     <div class="card"><div class="card-h"><div class="t">Cari Hesap (bugün)</div></div><div style="padding:10px 14px 12px;font-size:12.5px">
+       <div style="display:flex;justify-content:space-between;padding:5px 0"><span class="muted">Brüt ciro</span><b class="num">₺${f.ciro.toLocaleString('tr')}</b></div>
+       <div style="display:flex;justify-content:space-between;padding:5px 0"><span class="muted">VIZZ komisyon (%${Math.round(f.komOran*100)})</span><b class="num" style="color:var(--bad)">−₺${f.komisyon.toLocaleString('tr')}</b></div>
+       <div style="display:flex;justify-content:space-between;padding:5px 0"><span class="muted">İade / iptal</span><b class="num" style="color:var(--bad)">−₺${f.iade.toLocaleString('tr')}</b></div>
+       <div style="display:flex;justify-content:space-between;padding:9px 0 2px;border-top:1px dashed var(--line-2);margin-top:4px"><b>Net hakediş</b><b class="num" style="color:var(--ok);font-size:16px">₺${f.hakedis.toLocaleString('tr')}</b></div></div></div>
+   </div>
+   <div style="padding:13px;border-top:1px solid var(--line);display:flex;gap:8px"><button class="btn btn-y" style="flex:1" onclick="VZ.toast('${r.name} menüsü')">Menüyü Gör</button><button class="btn" style="flex:1" onclick="VZ.toast('${r.name} aranıyor…')">Ara</button></div>`;
+  $('#scrim').classList.add('on'); d.classList.add('on');
+  const ch=echarts.init(document.getElementById('dk1')); charts.push(ch);
+  ch.setOption({grid:{left:4,right:10,top:12,bottom:4,containLabel:true},xAxis:{type:'category',data:['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'],...axisBase},yAxis:{type:'value',...axisBase,axisLabel:{...axisBase.axisLabel,formatter:v=>'₺'+(v/1000).toFixed(0)+'K'}},
+    series:[{type:'bar',data:[.7,.85,.8,.95,1,1.2,1.1].map(k=>Math.round(f.ciro*k)),itemStyle:{color:C.y,borderRadius:[3,3,0,0]},barWidth:'55%'}]});
+  setTimeout(()=>ch.resize(),50);
+}
+
 /* ---------- görünüm yönetimi ---------- */
-const names={komuta:'Komuta',gorevler:'Görevler',kuryeler:'Kuryeler',bolgeler:'Bölgeler',finans:'Finans',raporlar:'Raporlar',ayarlar:'Ayarlar'};
+const names={komuta:'Komuta',gorevler:'Görevler',kuryeler:'Kuryeler',dukkanlar:'Dükkanlar',bolgeler:'Bölgeler',finans:'Finans',raporlar:'Raporlar',ayarlar:'Ayarlar'};
 const built={};
 function go(v){
   document.querySelectorAll('.rail .ni').forEach(n=>n.classList.toggle('on',n.dataset.v===v));
@@ -297,7 +365,7 @@ function go(v){
   $('#v-'+v).classList.add('on'); $('#viewName').textContent='· '+names[v];
   if(v==='komuta') initMap();
   if(v==='raporlar') buildReports();
-  if(!built[v]){ built[v]=true; ({gorevler:buildGorevler,kuryeler:buildKuryeler,finans:buildFinans,bolgeler:buildBolgeler,ayarlar:buildAyarlar}[v]||(()=>{}))(); }
+  if(!built[v]){ built[v]=true; ({gorevler:buildGorevler,kuryeler:buildKuryeler,dukkanlar:buildDukkanlar,finans:buildFinans,bolgeler:buildBolgeler,ayarlar:buildAyarlar}[v]||(()=>{}))(); }
   setTimeout(()=>charts.forEach(c=>c.resize()),80);
 }
 document.querySelectorAll('.rail .ni').forEach(n=>n.onclick=()=>go(n.dataset.v));
@@ -305,5 +373,5 @@ $('#alertChip').onclick=()=>toast('3 uyarı: 1 kurye 6dk hareketsiz · VZ-7743 S
 
 /* init */
 renderKPIs(); renderQueue('all'); renderCouriers(); initMap();
-window.VZ={assign,toast,courierDrawer,closeDrawer};
+window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer};
 })();
