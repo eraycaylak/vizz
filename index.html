@@ -131,11 +131,8 @@
 <script>
 document.getElementById('logo').src=VIZZ.LOGO;
 let curUrl='';
-function openV(url,type,title){curUrl=url;document.getElementById('vtitle').textContent=title;
- const stage=document.getElementById('stage');
- if(type==='lap'){stage.innerHTML=`<div class="lap"><div class="bezel"><div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div><iframe src="${url}"></iframe></div><div class="base"></div></div>`;}
- else{stage.innerHTML=`<div class="ph"><iframe src="${url}"></iframe></div>`;}
- document.getElementById('viewer').classList.add('show');
+function openV(url,type,title){
+  window.open(url, '_blank');
 }
 function closeV(){document.getElementById('viewer').classList.remove('show');document.getElementById('stage').innerHTML='';}
 function openTab(){window.open(curUrl,'_blank');}
