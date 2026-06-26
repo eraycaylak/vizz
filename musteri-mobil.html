@@ -694,8 +694,14 @@ function initTrackMap(){
   const home = (Y.zones.find(z=>z.n==='Cumhuriyet')||Y.zones[6]).c.slice();
   if(tmap){ tmap.remove(); tmap=null; }
   if(animRAF) cancelAnimationFrame(animRAF);
+  const TILE_DARK='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+  const TILE_LIGHT='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+  function getTileUrl(){ return document.body.classList.contains('light-theme') ? TILE_LIGHT : TILE_DARK; }
+  let trackTileLayer=null;
+
   tmap = L.map('trackmap',{zoomControl:false,attributionControl:false,dragging:true,scrollWheelZoom:false});
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(tmap);
+  trackTileLayer = L.tileLayer(getTileUrl(),{maxZoom:19}).addTo(tmap);
+  window.addEventListener('vizz-theme-change',()=>{ if(trackTileLayer) trackTileLayer.setUrl(getTileUrl()); });
 
   // restoran pin
   const restIcon = L.divIcon({className:'',html:'<div class="rest-pin" style="width:22px;height:22px;border-radius:7px"><svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M4 3v7a2 2 0 0 0 2 2V3M6 3v18M14 3c-1 1-2 3-2 6s2 4 3 4v8"/></svg></div>',iconSize:[22,22],iconAnchor:[11,11]});

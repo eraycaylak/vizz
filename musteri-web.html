@@ -334,9 +334,13 @@
 
   /* ============ HERO MAP (operasyon.js kalıbı) ============ */
   const Y = D.YOZGAT;
+  const TILE_DARK='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+  const TILE_LIGHT='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+  function getTileUrl(){ return document.body.classList.contains('light-theme') ? TILE_LIGHT : TILE_DARK; }
+  let heroTileLayer=null;
   function initHeroMap(){
     const map = L.map('heroMap',{zoomControl:false,attributionControl:false,scrollWheelZoom:false}).setView(Y.center,Y.zoom);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(map);
+    heroTileLayer=L.tileLayer(getTileUrl(),{maxZoom:19}).addTo(map);
     const cov = L.polygon(Y.coverage,{color:C.y,weight:2,dashArray:'7 6',fillColor:C.y,fillOpacity:.06}).addTo(map);
     map.fitBounds(cov.getBounds(),{padding:[26,26]});
     D.RESTAURANTS.forEach(r=>{ const z=Y.zones.find(x=>x.n===r.zone)||Y.zones[0];
@@ -359,6 +363,7 @@
       requestAnimationFrame(tick); }
     requestAnimationFrame(tick);
     setTimeout(()=>map.invalidateSize(),120);
+    window.addEventListener('vizz-theme-change',()=>{ if(heroTileLayer) heroTileLayer.setUrl(getTileUrl()); });
   }
 
   /* ============ STATE ============ */

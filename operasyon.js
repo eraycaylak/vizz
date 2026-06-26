@@ -94,10 +94,15 @@ function courierIcon(c){return L.divIcon({className:'',html:`<div class="cm ${c.
 function restIcon(){return L.divIcon({className:'',html:'<div class="rest-pin"><svg viewBox="0 0 24 24"><path d="M4 3v7a2 2 0 0 0 2 2h0V3M6 3v18M14 3c-1 1-2 3-2 6s2 4 3 4v8"/></svg></div>',iconSize:[16,16],iconAnchor:[8,8]});}
 function marketIcon(){return L.divIcon({className:'',html:'<div class="rest-pin" style="width:22px;height:22px;border-radius:8px;background:var(--y);color:#15140F;font-size:13px;font-weight:900">🛒</div>',iconSize:[22,22],iconAnchor:[11,11]});}
 
+const TILE_DARK='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_LIGHT='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+let tileLayer=null;
+function getTileUrl(){ return document.body.classList.contains('light-theme') ? TILE_LIGHT : TILE_DARK; }
+function swapTiles(){ if(tileLayer) tileLayer.setUrl(getTileUrl()); }
 function initMap(){
-  if(map){ setTimeout(()=>map.invalidateSize(),60); return; }
+  if(map){ setTimeout(()=>map.invalidateSize(),60); swapTiles(); return; }
   map=L.map('noc',{zoomControl:false,attributionControl:false}).setView(Y.center,Y.zoom);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(map);
+  tileLayer=L.tileLayer(getTileUrl(),{maxZoom:19}).addTo(map);
   const cov=L.polygon(Y.coverage,{color:C.y,weight:2,dashArray:'7 6',fillColor:C.y,fillOpacity:.05}).addTo(map);
   map.fitBounds(cov.getBounds(),{padding:[30,30]});
   Y.zones.forEach(z=>L.marker(z.c,{opacity:0,interactive:false}).addTo(map).bindTooltip(z.n,{permanent:true,direction:'top',className:'zone-lbl'}));
@@ -434,6 +439,7 @@ window.addEventListener('vizz-theme-change', () => {
   charts.length = 0;
   reportsBuilt = false;
   renderKPIs();
+  swapTiles();
   if ($('#v-raporlar').classList.contains('on')) {
     buildReports();
   }
