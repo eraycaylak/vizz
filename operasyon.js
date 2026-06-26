@@ -517,7 +517,7 @@ function buildOtomasyon(){
 }
 
 /* ---------- görünüm yönetimi ---------- */
-const names={komuta:'Komuta',gorevler:'Görevler',kuryeler:'Kuryeler',dukkanlar:'Dükkanlar',otomasyon:'Otomasyon',bolgeler:'Bölgeler',finans:'Finans',raporlar:'Raporlar',ayarlar:'Ayarlar'};
+const names={komuta:'Komuta',gorevler:'Siparişler',kuryeler:'Kuryeler',dukkanlar:'Dükkanlar',atama:'Atama Ayarları',otomasyon:'Otomasyon',bolgeler:'Bölgeler',tasima:'Taşıma Ücretleri',finans:'Finans & Hakediş',kontor:'Kontör / Bakiye',kullanicilar:'Kullanıcılar',raporlar:'Raporlar',duyurular:'Duyurular',ayarlar:'Ayarlar',destek:'Destek Merkezi'};
 const built={};
 function go(v){
   document.querySelectorAll('.rail .ni').forEach(n=>n.classList.toggle('on',n.dataset.v===v));
@@ -525,14 +525,30 @@ function go(v){
   $('#v-'+v).classList.add('on'); $('#viewName').textContent='· '+names[v];
   if(v==='komuta') initMap();
   if(v==='raporlar') buildReports();
-  if(!built[v]){ built[v]=true; ({gorevler:buildGorevler,kuryeler:buildKuryeler,dukkanlar:buildDukkanlar,otomasyon:buildOtomasyon,finans:buildFinans,bolgeler:buildBolgeler,ayarlar:buildAyarlar}[v]||(()=>{}))(); }
+  if(!built[v]){ built[v]=true; ({gorevler:buildGorevler,kuryeler:buildKuryeler,dukkanlar:buildDukkanlar,otomasyon:buildOtomasyon,finans:buildFinans,bolgeler:buildBolgeler,ayarlar:buildAyarlar}[v] || (window.VZEXT&&window.VZEXT[v]) || (()=>{}))(); }
   setTimeout(()=>charts.forEach(c=>c.resize()),80);
 }
 document.querySelectorAll('.rail .ni').forEach(n=>n.onclick=()=>go(n.dataset.v));
 $('#alertChip').onclick=()=>toast('3 uyarı: 1 kurye 6dk hareketsiz · VZ-7743 SLA riski · Bozok Lahmacun yavaş hazırlık');
 
+/* ---------- sabit üst KPI şeridi (her sayfada) ---------- */
+function renderKpiBar(){
+  const bar=$('#kpibar'); if(!bar)return;
+  const pills=[
+    {dot:C.ok, lab:'Bugün teslim', val:'142'},
+    {dot:C.ok, lab:'Aktif kurye', val:online+'/15'},
+    {dot:C.tx3, lab:'Max paket', val:'2'},
+    {dot:C.y, lab:'Oto atama', val:'Açık'},
+    {dot:C.info, lab:'Bakiye', val:'₺48.2K'},
+    {dot:C.ok, lab:'SLA', val:'%94'},
+    {dot:C.warn, lab:'Yoğunluk', val:'Orta'},
+    {dot:C.purple, lab:'Hazırlık', val:'18 dk'},
+  ];
+  bar.innerHTML=pills.map(p=>`<div class="pill"><span class="dot" style="background:${p.dot}"></span><span class="lab">${p.lab}</span><span class="val num">${p.val}</span></div>`).join('')+'<div class="grow"></div>';
+}
+
 /* init */
-renderKPIs(); renderQueue('all'); renderCouriers(); initMap();
+renderKPIs(); renderQueue('all'); renderCouriers(); renderKpiBar(); initMap();
 
 window.addEventListener('vizz-theme-change', () => {
   charts.forEach(c => c.dispose());
