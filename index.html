@@ -175,6 +175,17 @@ const introOverlay = document.getElementById('introOverlay');
 const introVid = document.getElementById('introVid');
 const startBtn = document.getElementById('startIntroBtn');
 
+const bgMusic = document.createElement('audio');
+bgMusic.src = 'img/whatsapp-rap.mp3';
+bgMusic.loop = true;
+document.body.appendChild(bgMusic);
+
+function startMainPage() {
+  introOverlay.classList.add('hidden'); 
+  setTimeout(()=>introOverlay.remove(), 500);
+  bgMusic.play().catch(e=>console.log(e));
+}
+
 startBtn.onclick = (e) => {
   e.stopPropagation();
   startBtn.style.opacity = '0';
@@ -182,10 +193,10 @@ startBtn.onclick = (e) => {
   introVid.play();
 };
 
-introVid.onended = () => { introOverlay.classList.add('hidden'); setTimeout(()=>introOverlay.remove(), 500); };
+introVid.onended = startMainPage;
 introOverlay.onclick = () => { 
   if(!introVid.paused || introVid.currentTime > 0) {
-    introOverlay.classList.add('hidden'); setTimeout(()=>introOverlay.remove(), 500); 
+    startMainPage();
   }
 };
 
