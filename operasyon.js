@@ -424,6 +424,37 @@ function closeDrawer(){
 }
 $('#scrim').onclick=closeDrawer;
 
+function funnelRow(lab,v,h){return `<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${lab}</span><span><b style="color:var(--ok)">${v}</b> <span class="dim">/ ${h} hedef</span></span></div><div class="bar-mini" style="width:100%"><i style="width:${Math.min(100,v/h*100)}%;background:var(--ok)"></i></div></div>`;}
+function etkiRow(lab,val){return `<div style="display:flex;justify-content:space-between;align-items:center"><span class="dim" style="font-size:12.5px">${lab}</span><span style="font-weight:800;color:var(--tx)">${val}</span></div>`;}
+function buildBuyume(){
+  const G=D.GROWTH, f=n=>'₺'+Math.round(n).toLocaleString('tr-TR');
+  const bar=(h,b,c)=>`<div class="bar-mini" style="width:130px"><i style="width:${Math.min(100,h/b*100)}%;background:${c}"></i></div>`;
+  const kpi=(lab,val,sub,acc)=>`<div class="kpi${acc?' accent':''}"><div class="lab">${lab}</div><div class="val">${val}</div><div class="sub ${acc?'':'flat'}">${sub}</div></div>`;
+  const row=k=>`<tr><td><b>${k.ikon} ${k.ad}</b></td><td><span class="badge ${k.tip==='kurye'?'b-y':'b-info'}">${k.tip==='kurye'?'Kurye':'İşletme'}</span></td><td class="dim" style="max-width:360px;font-size:11.5px">${k.desc}</td><td class="num" style="white-space:nowrap">${f(k.harcanan)} <span class="dim">/ ${f(k.butce)}</span><div style="margin-top:5px">${bar(k.harcanan,k.butce,k.harcanan/k.butce>.8?'var(--bad)':'var(--y)')}</div></td><td><div class="sw ${k.aktif?'on':''}" onclick="this.classList.toggle('on');VZ.toast('${k.ikon} <b>${k.ad}</b> '+(this.classList.contains('on')?'açıldı':'kapatıldı')+' · prototip')"><i></i></div></td></tr>`;
+  $('#v-buyume').innerHTML=`<div class="rhead"><div><h2>Büyüme & Rakipten Kazanım</h2><p>${G.rakip} şehirde <b style="color:var(--bad)">%${G.rakipPay}</b> — kurye ödülleri + işletme teşvikleriyle pay al</p></div>
+    <button class="btn btn-y" onclick="VZ.formModal('kampanya')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Yeni Kampanya</button></div>
+    <div class="kstrip" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+      ${kpi('VIZZ pazar payı','%'+G.vizzPay,'▲ hedef %25 · '+G.rakip+' %'+G.rakipPay)}
+      ${kpi('Bu ay geçen dükkan',G.gecenDukkanAy+'<small> /'+G.hedefDukkanAy+'</small>',G.rakip+"'dan kazanıldı")}
+      ${kpi('Bu ay geçen kurye',G.gecenKuryeAy+'<small> /'+G.hedefKuryeAy+'</small>',G.rakip+"'dan kazanıldı")}
+      ${kpi('Teşvik gideri (ay)',f(G.toplamHarcanan),'bütçe '+f(G.toplamButce),true)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="card"><div class="card-h"><div class="t">Rakipten Kazanım — ${G.rakip}</div><span class="badge b-bad">%${G.rakipPay} onlarda</span></div>
+        <div style="padding:14px 16px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--y);font-weight:700">VIZZ %${G.vizzPay}</span><span class="dim">${G.rakip} %${G.rakipPay}</span></div>
+          <div class="bar-mini" style="width:100%;height:14px"><i style="width:${G.vizzPay}%;background:var(--y)"></i></div>
+          <div style="margin-top:16px;display:grid;gap:13px">${funnelRow('Dükkan geçişi (bu ay)',G.gecenDukkanAy,G.hedefDukkanAy)}${funnelRow('Kurye geçişi (bu ay)',G.gecenKuryeAy,G.hedefKuryeAy)}</div>
+          <div class="hint" style="margin-top:14px">Hedef: 6 ayda pazar payını <b>%25</b>'e çıkar — ayda ${G.hedefDukkanAy} dükkan + ${G.hedefKuryeAy} kurye geçişi.</div></div></div>
+      <div class="card"><div class="card-h"><div class="t">Maliyet & Etki</div><span class="dim" style="font-size:11px">teşvik → econ peteğine bağlı</span></div>
+        <div style="padding:16px;display:grid;gap:13px">
+          ${etkiRow('Aktif kampanya',G.kampanyalar.filter(k=>k.aktif).length+' / '+G.kampanyalar.length)}
+          ${etkiRow('Toplam teşvik gideri (ay)',f(G.toplamHarcanan))}
+          ${etkiRow('Kazanım başına maliyet (CAC)',f(G.toplamHarcanan/(G.gecenDukkanAy+G.gecenKuryeAy)))}
+          ${etkiRow('Sipariş başı ek maliyet','~₺'+(G.toplamHarcanan/30/382).toFixed(1))}
+          <div class="hint">Teşvikler Finans'ta gider olarak işlenir, Dükkan Ekonomisi net kârından düşülür — <b>hepsi tek motordan</b>.</div></div></div></div>
+    <div class="card"><div class="card-h"><div class="t">Aktif Kampanyalar</div><span class="badge b-y">${G.kampanyalar.filter(k=>k.aktif).length} aktif</span></div>
+      <div style="overflow:auto"><table class="grid"><thead><tr><th>Kampanya</th><th>Hedef</th><th>Açıklama</th><th>Bütçe kullanımı</th><th>Durum</th></tr></thead><tbody>${G.kampanyalar.map(row).join('')}</tbody></table></div></div>`;
+}
 function buildFinans(){
   $('#v-finans').innerHTML=`<div class="rhead"><div><h2>Finans & Mutabakat</h2><p>Cuma ödeme · COD kasa · komisyon — üçlü cari</p></div>
     <button class="btn btn-y" onclick="VZ.toast('💸 Cuma ödeme listesi onaylandı — IBAN aktarımı başladı')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Tümünü Onayla & Öde</button></div>
@@ -639,7 +670,7 @@ function buildOtomasyon(){
 }
 
 /* ---------- görünüm yönetimi ---------- */
-const names={komuta:'Komuta',gorevler:'Siparişler',kuryeler:'Kuryeler',dukkanlar:'Dükkanlar',atama:'Atama Ayarları',otomasyon:'Otomasyon',bolgeler:'Bölgeler',tasima:'Taşıma Ücretleri',finans:'Finans & Hakediş',kontor:'Kontör / Bakiye',kullanicilar:'Kullanıcılar',raporlar:'Raporlar',duyurular:'Duyurular',ayarlar:'Ayarlar',destek:'Destek Merkezi'};
+const names={komuta:'Komuta',gorevler:'Siparişler',kuryeler:'Kuryeler',dukkanlar:'Dükkanlar',atama:'Atama Ayarları',otomasyon:'Otomasyon',buyume:'Büyüme & Ödüller',bolgeler:'Bölgeler',tasima:'Taşıma Ücretleri',finans:'Finans & Hakediş',kontor:'Kontör / Bakiye',kullanicilar:'Kullanıcılar',raporlar:'Raporlar',duyurular:'Duyurular',ayarlar:'Ayarlar',destek:'Destek Merkezi'};
 const built={};
 function go(v){
   document.querySelectorAll('.rail .ni').forEach(n=>n.classList.toggle('on',n.dataset.v===v));
@@ -647,7 +678,7 @@ function go(v){
   $('#v-'+v).classList.add('on'); $('#viewName').textContent='· '+names[v];
   if(v==='komuta') initMap();
   if(v==='raporlar') buildReports();
-  if(!built[v]){ built[v]=true; ({gorevler:buildGorevler,kuryeler:buildKuryeler,dukkanlar:buildDukkanlar,otomasyon:buildOtomasyon,finans:buildFinans,bolgeler:buildBolgeler,ayarlar:buildAyarlar}[v] || (window.VZEXT&&window.VZEXT[v]) || (()=>{}))(); }
+  if(!built[v]){ built[v]=true; ({gorevler:buildGorevler,kuryeler:buildKuryeler,dukkanlar:buildDukkanlar,otomasyon:buildOtomasyon,buyume:buildBuyume,finans:buildFinans,bolgeler:buildBolgeler,ayarlar:buildAyarlar}[v] || (window.VZEXT&&window.VZEXT[v]) || (()=>{}))(); }
   setTimeout(()=>charts.forEach(c=>c.resize()),80);
 }
 document.querySelectorAll('.rail .ni').forEach(n=>n.onclick=()=>go(n.dataset.v));
@@ -726,6 +757,7 @@ const FORMS={
   dukkan:{t:'Yeni Dükkan Ekle',f:[['İşletme adı','text',''],['Kategori','select',['Kebap','Pide','Lahmacun','Burger','Kahvaltı','Tatlı','Market']],['Adres','text',''],['Telefon','tel',''],['Ort. hazırlık (dk)','number','15'],['Komisyon (%)','number','8']]},
   kullanici:{t:'Yeni Kullanıcı',f:[['Ad Soyad','text',''],['E-posta','email',''],['Telefon','tel',''],['Rol','select',['Sahip','Operasyon Müdürü','Mağaza Yöneticisi','Muhasebe']],['Mağaza','select',['Tümü',...RNAMES]]]},
   tarife:{t:'Yeni Taşıma Ücreti',f:[['Restoran','select',RNAMES],['Ücret tipi','select',['Sabit','Mesafeli']],['Restoran ücreti (₺)','number','48'],['Kurye ücreti (₺)','number','29'],['Geçerlilik başlangıcı','text','01.07.2026']]},
+  kampanya:{t:'Yeni Kampanya',note:'Teşvik gideri Finans + Dükkan Ekonomisi net kârına otomatik işlenir.',f:[['Kampanya adı','text','Hafta Sonu Bonusu'],['Hedef kitle','select',['Kurye','İşletme']],['Tip','select',['Teslimat başı bonus','Şanslı çekiliş','Komisyon indirimi','Hacim primi']],['Tutar (₺)','number','30'],['Aylık bütçe (₺)','number','10000']]},
   duyuru:{t:'Yeni Duyuru',f:[['Başlık','text',''],['Mesaj','textarea','Duyuru metni…'],['Hedef','select',['Tüm ekip','Kuryeler','Yöneticiler']],['Durum','select',['Aktif','Pasif']]]},
   bolge:{t:'Yeni Bölge',f:[['Bölge adı','text',''],['Fiyat çarpanı','number','1.0'],['Kurye havuzu','select',['Tümü','Sadece sabit kuryeler']]],note:'Gerçek üründe haritada poligon çizilir; burada bölge bilgileri.'},
 };
@@ -751,7 +783,7 @@ function orderDetail(id){
   const row=(lab,val)=>`<div style="display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)"><span class="dim" style="font-size:12px;flex:none">${lab}</span><span style="font-size:13px;color:var(--tx);font-weight:600;text-align:right">${val}</span></div>`;
   const html=`<div style="display:flex;align-items:center;gap:7px;margin-bottom:14px;flex-wrap:wrap">${chanBadge(o.channel)}<span class="badge ${isM?'b-y':'b-mute'}" style="font-size:10px">${isM?'Market':'Yemek'}</span><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></div>
     ${row('Müşteri',o.custFull)}
-    ${row('Telefon',`<span style="color:var(--info)">${o.phone}</span>`)}
+    ${row('Telefon',`<span style="color:var(--info)">•••• ••• •• ${String(o.phone).slice(-2)}</span> <span class="badge b-mute" style="font-size:9px">proxy maskeli</span> <button class="btn" style="padding:3px 10px;font-size:11px;margin-left:4px" onclick="VZ.toast('📞 Gizli arama başlatıldı — kurye ↔ müşteri numaraları maskeli (proxy)')">Gizli Ara</button>`)}
     ${row('Adres',`<span style="max-width:280px;display:inline-block">${o.addr}</span>`)}
     ${row(isM?'Depo':'Restoran',o.rest+' · '+o.zone)}
     ${row('Ödeme',`<span style="color:${p.c}"><svg class="ic ic-sm" viewBox="0 0 24 24" style="display:inline;vertical-align:-3px">${p.ic}</svg> ${p.n}</span>`)}

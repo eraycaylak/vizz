@@ -91,7 +91,7 @@
 ### 5.1 Prototip Modül Envanteri (ekran ekran — backend bunları beslemeli)
 **Tasarım dili:** koyu NOC (`vizz-pro.css`), sarı `#FFC400` spotlight, çizgi-ikon (emoji-UI yok), ECharts grafik, Leaflet+CARTO koyu harita. Operasyon **ferah** düzen (1260px ortalı kolon) + **her sayfada sabit üst KPI şeridi** + light/dark tema.
 
-**① Dispatcher / Operasyon — 15 modül (sol rail):**
+**① Dispatcher / Operasyon — 16 modül (sol rail):**
 1. **Komuta** — NOC harita (kurye+restoran+bölge poligonu) + KPI şeridi + **Atama Kuyruğu** + **Canlı Kanal Akışı** (Getir/Yemeksepeti/Trendyol/VIZZ App marka rozetli sipariş düşüşü). KPI kartları → tıkla → modal (aktif sipariş/saha kurye/SLA/ciro…).
    - **⚠️ ATAMA MODELİ (kritik — dispatcher her siparişi TIKLAMAZ):** Varsayılan **Oto AÇIK** → sipariş düştüğü an **motor otomatik atar** (en yakın + skor + sıradaki); dispatcher sadece **izler**. Sipariş kuyrukta kısa süre `Atanıyor → [otomatik]` gösterir, saniyeler içinde kurye atanır. **Manuel = istisna:** "Hemen" (zorla şimdi at) / "Override" (belirli kurye seç) butonları sadece gerektiğinde. Header'da **Oto AÇIK/KAPALI** anahtarı — KAPALI = tam manuel mod (her siparişi dispatcher atar). Prototipte canlı: `autoAssignTick()` motoru bekleyenleri tek tek atıyor, kart "Otomatik atanıyor… en yakın+skor" gösteriyor. *Otomasyon yaptıysak dispatcher'a her sipariş için tıklatmak yanlıştır.*
 2. **Siparişler** — tüm sipariş geçmişi: tarih aralığı + filtre + **CSV** + durum pipeline filtresi + **Kaynak** (kanal) + Taşıma Ücr. + Ödeme kolonları.
@@ -108,6 +108,25 @@
 13. **Duyurular** — ekip/kurye bilgilendirme.
 14. **Ayarlar** — 3 sekme: **Operasyonel** (mola kuralları+yoğun saat, sipariş kuralları: fiş fotoğrafı/telefon/adres) · **Konum** (görünürlük, kurye adresi ne zaman görsün, **geofence teslim doğrulama**) · **Mali** (komisyon, Cuma ödeme, COD limiti, e-Fatura).
 15. **Destek** — canlı destek/telefon/talep + SSS.
+16. **Büyüme & Ödüller** — ⭐ rakipten pay alma motoru: **Rakipten Kazanım funnel** (rakip pazar payı vs VIZZ + bu ay geçen dükkan/kurye → hedef), **Aktif Kampanyalar** tablosu (kurye+işletme, bütçe kullanımı bar + aç/kapa toggle), **Maliyet & Etki** (CAC, sipariş başı ek maliyet — econ peteğine bağlı). Yeni Kampanya formu.
+
+### 🐝 Büyüme & Teşvik Motoru — "Hızır'dan pay al" (rakip %95)
+**Veri:** `GROWTH` (vizz-data.js) tek kaynak → kampanyalar {tip:kurye/dükkan, bonus, bütçe, harcanan, aktif}. Teşvik = **maliyet** → Finans gideri + Dükkan Ekonomisi net kârından düşülür (econ peteğine bağlı, ayrı hesap yok).
+- **Kurye ödülleri (kurye app'te görünür — geçiş sebebi):** 🎁 Geçiş Bonusu (Hızır'dan gelene ilk 100 teslimat +30₺) · ⚡ Günün Primi (her teslimat +5₺, yoğun saat ×2) · 🍀 Şanslı Teslimat (her ~20'de 1 sürpriz +50₺, ekranda kutlama animasyonu) · 🔥 Haftalık Seri (7 gün 10+ teslimat → +500₺). Kurye home'da **VIZZ Ödülleri kartı** (canlı ilerleme barları + "Şanslı Teslimat çevir").
+- **İşletme teşvikleri (restoran panelde görünür):** 🎰 Şanslı Gün (her gün rastgele 1 siparişin teslimatı VIZZ'ten — dükkana ₺0) · 🤝 Geçiş Paketi (Hızır'dan gelene ilk 30 gün komisyon %0) · 📈 Hacim Primi (günde 30+ sipariş → ertesi gün tarife %15 indirim). Panoda **Şanslı Gün banner'ı**.
+
+### ✅ Rakip-gap özellikleri — durum (pazar analizi sonrası)
+| Özellik | Durum |
+|---|---|
+| Proxy numara maskeleme (gizli arama) | ✅ prototipte (sipariş detayı: maskeli no + Gizli Ara) |
+| Kurye net kazanç şeffaflığı (önce göster) | ✅ kurye app ödül kartı + econ kırılım |
+| COD kasa mutabakatı · güven skoru · hız/mesafe | ✅ (önceden) |
+| **POD (foto+imza+GPS teslim kanıtı)** | 🟡 planlı — kurye app teslim ekranı (Ayarlar'da geofence doğrulama var) |
+| **Order batching (çoklu-pickup)** | 🟡 planlı — atama motoruna kümeleme (Atama Ayarları'nda "Kümeleme" var, algoritma eklenecek) |
+| **Suç atfı (geç pickup kanıtlı)** | 🟡 planlı — sipariş zaman damgalı event-log'dan |
+| **Status page / outage şeffaflığı** | 🟡 planlı — HA altyapısıyla (bkz. MİMARİ §HA) |
+| **Bayilik / white-label** | 🟡 planlı iş modeli — Maxijett tarzı, başka ilçeye VIZZ'i kirala |
+| **WhatsApp sipariş/takip linki** | 🟡 planlı — bildirim kanalı (sipariş değil) |
 
 **② Kurye App:** durum (çevrimiçi toggle) + görev kabul/ret makinesi + anlık konum yayını + **kazanç + Cuma ödeme sayacı** (ECharts) + performans + profil/belge.
 

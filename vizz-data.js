@@ -74,6 +74,27 @@ function econOrder(restName, foodTotal){
 function econDukkan(){ return RESTAURANTS.map(r=>{ const e=econOrder(r.name,260); return {id:r.id,name:r.name,zone:r.zone,tarife:r.tarife,kurye:r.kuryePay,adet:r.gunluk,
   gelir:e.gelir*r.gunluk, komisyon:e.komisyon*r.gunluk, kuryeGider:r.kuryePay*r.gunluk, net:e.net*r.gunluk}; }); }
 
+/* ===================================================================
+   BÜYÜME & ÖDÜL MOTORU — "Hızır'dan pay al" teşvik sistemi (tek kaynak)
+   Kurye ödülleri + işletme teşvikleri. operasyon yönetir, kurye+restoran
+   ekranı gösterir. Teşvik = maliyet → econ peteğine bağlanır.
+   =================================================================== */
+const GROWTH = {
+  rakip:'Hızır', rakipPay:95, vizzPay:5,
+  gecenDukkanAy:14, gecenKuryeAy:23, hedefDukkanAy:40, hedefKuryeAy:50,
+  kampanyalar:[
+    {id:'k1',tip:'kurye',ad:'Geçiş Bonusu',ikon:'🎁',desc:"Hızır'dan gelen kuryeye ilk 100 teslimatta teslimat başı +30₺",bonus:30,butce:30000,harcanan:18600,aktif:true},
+    {id:'k2',tip:'kurye',ad:'Günün Primi',ikon:'⚡',desc:'Bugün her teslimat +5₺ ekstra · yoğun saatte ×2',bonus:5,butce:8000,harcanan:5400,aktif:true},
+    {id:'k3',tip:'kurye',ad:'Şanslı Teslimat',ikon:'🍀',desc:"Her ~20 teslimattan 1'i sürpriz +50₺ (ekranda kutlama)",bonus:50,butce:6000,harcanan:3100,aktif:true},
+    {id:'k4',tip:'kurye',ad:'Haftalık Seri',ikon:'🔥',desc:'7 gün üst üste 10+ teslimat → +500₺',bonus:500,butce:7500,harcanan:4000,aktif:true},
+    {id:'k5',tip:'dukkan',ad:'Şanslı Gün',ikon:'🎰',desc:"Her gün rastgele 1 siparişin teslimatı VIZZ'ten — dükkana 0₺ (panelde kutlama)",bonus:0,butce:9000,harcanan:5200,aktif:true},
+    {id:'k6',tip:'dukkan',ad:'Geçiş Paketi',ikon:'🤝',desc:"Hızır'dan gelen dükkana ilk 30 gün komisyon %0",bonus:0,butce:15000,harcanan:9800,aktif:true},
+    {id:'k7',tip:'dukkan',ad:'Hacim Primi',ikon:'📈',desc:'Günde 30+ sipariş → ertesi gün tarifede %15 indirim',bonus:0,butce:6000,harcanan:2600,aktif:false},
+  ],
+};
+GROWTH.toplamButce = GROWTH.kampanyalar.reduce((a,k)=>a+k.butce,0);
+GROWTH.toplamHarcanan = GROWTH.kampanyalar.filter(k=>k.aktif).reduce((a,k)=>a+k.harcanan,0);
+
 const CAT_EMOJI = {"Tümü":"🔥",Kebap:"🥙",Pide:"🫓",Lahmacun:"🌮",Mantı:"🥟",Burger:"🍔",Kahvaltı:"🍳",Tatlı:"🍰"};
 const CATS = ["Tümü","Kebap","Pide","Lahmacun","Mantı","Burger","Kahvaltı","Tatlı"];
 
@@ -181,7 +202,7 @@ ORDERS.push(
   {id:"VZ-M206",rest:"VIZZ Market",cust:"R. Gül",zone:"Şehitler",items:3,total:92,pay:"Online",status:"Kurye yolda",min:7,courier:"Okan V.",vertical:"market"},
 );
 
-window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IMG,EMOJI,imgFallback,MARKET,ECON,feeOf,econOrder,econDukkan};
+window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IMG,EMOJI,imgFallback,MARKET,ECON,feeOf,econOrder,econDukkan,GROWTH};
 
 
 // ==========================================

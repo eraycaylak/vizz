@@ -77,6 +77,14 @@ Yazılımcı "para dönüyor, microservice + yedekli sunucu/backend olmalı, sun
 - **restoran-panel Sipariş Panosu: Kanban ↔ Liste(hepsi) toggle** — Eray "100 sipariş alt alta sığmaz, Minijett gibi hepsini gör" dedi → Liste modu = tek kompakt `table.grid` (id/kanal/müşteri/ürün/tutar/durum/SLA/kurye/aksiyon), stage'e göre sıralı, advance çalışır. `RP.panoView('kanban'|'liste')`, `refreshPano()`.
 - **Geliştirici devri:** repo **public kalsın** kararı (Eray). `docs/` + canlı prototip + **`memorybackup/` klasörü repoya konuldu** (github.com/eraycaylak/vizz/tree/main/memorybackup): `vizz-projesi.md` + `MEMORY.md` + `RESTORE-NASIL-KULLANILIR.md` (3 geri-yükleme yolu). Sadece VIZZ hafızası (kişisel/diğer-proje hariç).
 
+## 27 Haz (5) — Büyüme & Ödül motoru (Hızır'dan pay al) + rakip-gap'ler
+- **Bağlam:** Şehirde **Hızır %95** pazar payı. Eray: "ellerinden biraz almalıyız — kurye ödülleri (1 teslimat +30₺), işletmeye günlük şanslı sipariş indirimi, kurye/işletme ekranda görsün, şanslı gün vb. sen karar ver."
+- **Tek kaynak `GROWTH` (vizz-data.js):** kampanyalar {tip:kurye/dükkan, bonus, bütçe, harcanan, aktif}. Teşvik = maliyet → econ peteğine bağlı (Finans gideri + net kârdan düşer).
+- **operasyon "Büyüme" modülü (yeni rail):** Rakipten Kazanım funnel (VIZZ %5 vs Hızır %95 + geçen dükkan 14/40, kurye 23/50) + Aktif Kampanyalar tablosu (aç/kapa) + Maliyet&Etki (CAC ₺1.246). `buildBuyume()`, FORMS.kampanya.
+- **Kurye app (kurye-mobil):** home'da **VIZZ Ödülleri kartı** — Geçiş Bonusu (ilk 100 teslimat +30₺), Günün Primi (+5₺), Haftalık Seri (5/7), **🍀 Şanslı Teslimat çevir** (random +₺, kutlama pop). Kurye geçiş sebebini GÖRÜYOR.
+- **Restoran panel:** Pano'da **🎰 Şanslı Gün banner'ı** (rastgele 1 siparişe ₺0 teslimat + Geçiş Paketi ilk 30 gün komisyon %0).
+- **Rakip-gap'ler:** proxy numara maskeleme ✅ (sipariş detayı: maskeli no + Gizli Ara). POD/batching/suç-atfı/status-page/bayilik/WhatsApp → brief'te **planlı** işaretlendi. Cache `vizz-data.js?v=3`.
+
 ## 27 Haz (4) — Ekonomi tek-motor "arı peteği" (Eray'ın net istediği örüntü)
 - Eray: "her dükkana farklı tarife tanımlıyoruz (100/60/150...), tüm operasyon + raporlar **net + birbirine bağlı, arı peteği gibi** olmalı." → tek gerçek kaynak (single source of truth).
 - **Sorun:** Finans/Bölge/Raporlar ayrı ayrı uydurma sayılardı (paket başı 22, komisyon 6.4K hardcode), bağ yoktu.

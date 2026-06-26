@@ -99,6 +99,21 @@
   .earnrow .s{font-size:11px;color:var(--tx-3);margin-top:2px}
   .earnrow .a{font-size:15px;font-weight:800;color:var(--tx)}
   .earnrow .a.g{color:var(--y)}
+  /* VIZZ Ödül & Teşvik kartı (Hızır'dan geçiş motoru) */
+  .rewardcard{background:linear-gradient(135deg,rgba(255,196,0,.16),rgba(255,196,0,.03));border:1px solid rgba(255,196,0,.32);border-radius:18px;padding:14px 15px;margin-bottom:14px}
+  .rewardcard .rc-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .rewardcard .rc-badge{font-size:13px;font-weight:800;color:var(--y)}
+  .rewardcard .rc-live{font-size:10px;font-weight:700;color:var(--ok);background:rgba(38,194,129,.14);padding:3px 9px;border-radius:20px}
+  .rewardcard .rc-row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--tx-2);margin:10px 0 5px}
+  .rewardcard .rc-row b{color:var(--tx);font-weight:800}
+  .rewardcard .rc-bar{height:7px;background:var(--s3);border-radius:5px;overflow:hidden}
+  .rewardcard .rc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--y),#ffe07a);border-radius:5px}
+  .rewardcard .rc-luck{width:100%;margin-top:13px;padding:12px;border:none;border-radius:12px;background:var(--y);color:#15140f;font-weight:800;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:7px}
+  .luckpop{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:999;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);border-radius:42px}
+  .luckpop.on{display:flex;animation:fade .3s ease}
+  .luckpop .box{background:var(--s2);border:1px solid var(--y);border-radius:22px;padding:28px 34px;text-align:center;animation:pop .45s cubic-bezier(.2,1.5,.4,1)}
+  .luckpop .em{font-size:52px;line-height:1}.luckpop .amt{font-size:30px;font-weight:900;color:var(--y);margin:10px 0 3px}.luckpop .lbl{font-size:12.5px;color:var(--tx-2);max-width:200px}
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
 
   /* ---- PERFORMANS ---- */
   .metric{margin-bottom:15px}
@@ -242,6 +257,17 @@
           <div class="v"><span class="num">₺612</span></div>
           <div class="d muted">paket + prim + bahşiş</div>
         </div>
+      </div>
+
+      <!-- VIZZ Ödül & Teşvik — Hızır'dan geçiş motoru -->
+      <div class="rewardcard">
+        <div class="rc-h"><span class="rc-badge">🎁 VIZZ Ödülleri</span><span class="rc-live">● 4 kampanya aktif</span></div>
+        <div class="rc-row"><span>⚡ Günün primi · her teslimat +5₺</span><b style="color:var(--y)">+₺70 bugün</b></div>
+        <div class="rc-row"><span>🎁 Geçiş bonusu · ilk 100 teslimat +30₺</span><b>62 / 100</b></div>
+        <div class="rc-bar"><i style="width:62%"></i></div>
+        <div class="rc-row"><span>🔥 Haftalık seri · 7 gün 10+ teslimat → +₺500</span><b>5 / 7</b></div>
+        <div class="rc-bar"><i style="width:71%"></i></div>
+        <button class="rc-luck" id="luckBtn">🍀 Şanslı Teslimat çevir — sürpriz bonus</button>
       </div>
 
       <!-- haftalık birikim + CUMA sayacı -->
@@ -411,6 +437,7 @@
     <button data-s="perf"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 5-6"/></svg>Performans</button>
     <button data-s="profil"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
   </nav>
+  <div class="luckpop" id="luckPop"><div class="box"><div class="em">🍀</div><div class="amt" id="luckAmt">+₺50</div><div class="lbl" id="luckLbl">Şanslı Teslimat! Bonus cüzdanına eklendi 🐝</div></div></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -492,6 +519,12 @@
   $('#demoInvite').onclick=openInvite;
   $('#invReject').onclick=()=>{closeInvite();localStorage.setItem('vizz_courier_penalty_demo','true');toast('Davet reddedildi · sıra sonuna atıldınız');window.dispatchEvent(new Event('storage'));};
   $('#invAccept').onclick=()=>{closeInvite();toast('Görev kabul edildi → VZ-7743');$('#taskDot').style.display='block';resetTask();go('aktif');};
+  // 🍀 Şanslı Teslimat — geçiş motoru ödülü
+  $('#luckBtn').onclick=()=>{const wins=[30,50,50,75,100,'bos'];const w=wins[Math.floor(Math.random()*wins.length)];const p=$('#luckPop');
+    if(w==='bos'){$('#luckPop .em').textContent='🎲';$('#luckAmt').textContent='Bir dahaki sefere';$('#luckAmt').style.color='var(--tx-2)';$('#luckLbl').textContent='Her teslimatta tekrar çevirebilirsin 🍀';}
+    else{$('#luckPop .em').textContent='🍀';$('#luckAmt').textContent='+₺'+w;$('#luckAmt').style.color='var(--y)';$('#luckLbl').textContent='Şanslı Teslimat! Bonus cüzdanına eklendi 🐝';}
+    p.classList.add('on');setTimeout(()=>p.classList.remove('on'),2600);};
+  $('#luckPop').onclick=()=>$('#luckPop').classList.remove('on');
 
   /* ============ AKTİF GÖREV — durum makinesi ============ */
   const STEPS=[
