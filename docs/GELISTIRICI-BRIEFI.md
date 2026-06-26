@@ -80,6 +80,7 @@
 | Yüzey | Dosya (prototip) | Öncelik |
 |------|--------|---------|
 | **Dispatcher / Operasyon** (web) | `operasyon.html` | MVP çekirdek |
+| **Operasyon Mobil** (dispatcher cep) | `operasyon-mobil.html` — canlı atama kuyruğu + tek-tık ata + kurye/kasa + harita + kanal akışı (sahada yönet) | MVP/v1 |
 | **Kurye App** (Flutter) | `kurye-mobil.html` | MVP çekirdek |
 | **Restoran Panel** (web) + Mobil | `restoran-panel.html` · `restoran-mobil.html` | MVP/v1 |
 | **Müşteri App** (Flutter) + Web | `musteri-mobil.html` · `musteri-web.html` | MVP/v1 |
@@ -108,7 +109,7 @@
 
 **② Kurye App:** durum (çevrimiçi toggle) + görev kabul/ret makinesi + anlık konum yayını + **kazanç + Cuma ödeme sayacı** (ECharts) + performans + profil/belge.
 
-**③ Restoran Panel:** **Sipariş Panosu** (KDS kanban: Yeni/Hazırlanıyor/Hazır/Kuryede/Tamamlandı + kanal rozeti) · **Canlı Takip** (sol sipariş listesi + sağ Leaflet harita: restoran+kurye+teslim rotası) · Menü (opsiyon+**stok/86**) · Kurye · Raporlar · **Finans & Cari** · Ayarlar (+**Entegrasyon & Kanallar:** entegrasyon kodu + Yemeksepeti/Trendyol/Getir eşleme). Üst bar: **cari bakiye** + **Kurye Çağır** (manuel sipariş drawer: müşteri/telefon/adres+haritadan seç/fiyat/ödeme/hazırlık/araç/not + canlı tahmini ücret+en yakın kurye ETA) + **Ödeme Al** (kurye+tutar → **4 haneli onay kodu** nakit mutabakat).
+**③ Restoran Panel:** **Sipariş Panosu** (KDS kanban: Yeni/Hazırlanıyor/Hazır/Kuryede/Tamamlandı + kanal rozeti · **Kanban ↔ Liste(hepsi) görünüm toggle** — yüksek hacimde 100+ sipariş tek kompakt tabloda taranır: id/kanal/müşteri/ürün/tutar/durum/SLA/kurye/aksiyon) · **Canlı Takip** (sol sipariş listesi + sağ Leaflet harita: restoran+kurye+teslim rotası) · Menü (opsiyon+**stok/86**) · Kurye · Raporlar · **Finans & Cari** · Ayarlar (+**Entegrasyon & Kanallar:** entegrasyon kodu + Yemeksepeti/Trendyol/Getir eşleme). Üst bar: **cari bakiye** + **Kurye Çağır** (manuel sipariş drawer: müşteri/telefon/adres+haritadan seç/fiyat/ödeme/hazırlık/araç/not + canlı tahmini ücret+en yakın kurye ETA) + **Ödeme Al** (kurye+tutar → **4 haneli onay kodu** nakit mutabakat).
 
 **④ Müşteri App:** Keşfet/arama · Restoran/menü/opsiyon · Sepet/kupon · **Canlı Takip** (Domino's tarzı + harita) · Hesap + alt-ekranlar: **Favoriler · Geçmiş Siparişler (tekrar sipariş) · Kampanyalar (kupon) · Adres Yönetimi**. **Web:** keşfet + koyu Yozgat haritası + menü modal + sepet drawer.
 

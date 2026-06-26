@@ -43,8 +43,14 @@
   .rhead h2{font-size:18px;font-weight:800}.rhead p{font-size:12px;color:var(--tx-3);margin-top:2px}
 
   /* ---------- KDS KANBAN ---------- */
-  #v-pano{display:none;grid-template-rows:auto 1fr;gap:13px;padding:16px;position:absolute;inset:0;overflow:hidden}
+  #v-pano{display:none;grid-template-rows:auto auto 1fr;gap:13px;padding:16px;position:absolute;inset:0;overflow:hidden}
   #v-pano.on{display:grid}
+  .pano-tools{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  #orderList{min-height:0}
+  #orderList table.grid td{padding:10px 14px;font-size:12.5px}
+  #orderList table.grid th{padding:11px 14px}
+  .stb{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:30px;white-space:nowrap}
+  .stb .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
   /* CANLI TAKİP (harita + sipariş listesi — Minijett işletme dashboard'u, daha iyisi) */
   #v-takip{display:none;grid-template-rows:auto 1fr;gap:14px;padding:16px;position:absolute;inset:0;overflow:hidden}
   #v-takip.on{display:grid}
@@ -206,7 +212,12 @@
       <!-- ============ SİPARİŞ PANOSU (KDS KANBAN) ============ -->
       <section id="v-pano" class="on">
         <div class="kstrip" id="kpis"></div>
+        <div class="pano-tools">
+          <div class="seg"><button class="on" onclick="RP.panoView('kanban',this)">Kanban</button><button onclick="RP.panoView('liste',this)">Liste (hepsi)</button></div>
+          <span class="dim" id="panoCount" style="font-size:12px"></span>
+        </div>
         <div class="kanban" id="kanban"></div>
+        <div id="orderList" style="display:none;overflow:auto"></div>
       </section>
 
       <!-- ============ CANLI TAKİP (harita + sipariş listesi) ============ -->
@@ -371,6 +382,28 @@ function renderKanban(){
   renderKpis();
 }
 
+/* yüksek-hacim: Liste görünümü (100 sipariş = hepsi tek tabloda) */
+let panoMode='kanban';
+const STBCLS={yeni:['Yeni','b-bad'],hazirlaniyor:['Hazırlanıyor','b-warn'],hazir:['Pakette hazır','b-info'],kuryede:['Kuryede','b-y'],tamamlandi:['Teslim edildi','b-ok']};
+function stageBadge(k){const s=STBCLS[k]||['—','b-mute'];return `<span class="badge ${s[1]}"><span class="dot"></span>${s[0]}</span>`;}
+function renderList(){
+  const ord={yeni:0,hazirlaniyor:1,hazir:2,kuryede:3,tamamlandi:4};
+  const sorted=[...ORD].sort((a,b)=> a.stage!==b.stage ? ord[a.stage]-ord[b.stage] : a.sla-b.sla);
+  $('#orderList').innerHTML=`<div class="card" style="height:100%;display:flex;flex-direction:column"><div style="overflow:auto;flex:1">
+    <table class="grid"><thead><tr><th>Sipariş</th><th>Kanal</th><th>Müşteri</th><th>Ürünler</th><th>Tutar</th><th>Durum</th><th>SLA</th><th>Kurye</th><th></th></tr></thead><tbody>`+
+    sorted.map(o=>{const ch=CH[o.ch];const st=STAGES.find(s=>s.k===o.stage);const cd=cdLabel(o);const itTxt=o.items.map(it=>it[0]+'× '+it[1]).join(', ');
+      const cdCol=cd.cls==='bad'?'var(--bad)':cd.cls==='warn'?'var(--warn)':cd.cls==='ok'?'var(--ok)':'var(--tx-2)';
+      return `<tr id="ol-${o.id}"><td><b>${o.id}</b></td><td><span class="ch ${ch.c}"><svg class="ic" viewBox="0 0 24 24">${ch.i}</svg>${ch.t}</span></td><td>${o.cust}</td>
+        <td class="dim" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${itTxt}</td>
+        <td class="num"><b style="color:var(--tx)">₺${o.tot}</b></td><td>${stageBadge(o.stage)}</td><td class="num" style="color:${cdCol}">${cd.txt}</td>
+        <td>${o.courier?o.courier:'<span class="dim">—</span>'}</td>
+        <td>${st.next?`<button class="btn ${o.stage==='kuryede'||o.stage==='hazir'?'btn-y':''}" style="padding:6px 11px;font-size:11.5px" onclick="RP.advance('${o.id}')">${st.next}</button>`:''}</td></tr>`;}).join('')+
+    `</tbody></table></div></div>`;
+}
+function refreshPano(){ if(panoMode==='liste') renderList(); else renderKanban(); const live=ORD.filter(o=>o.stage!=='tamamlandi').length; const pc=$('#panoCount'); if(pc) pc.textContent=`${live} aktif · ${ORD.length} toplam`; }
+function panoView(m,btn){ panoMode=m; if(btn){btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+  $('#kanban').style.display=m==='kanban'?'grid':'none'; $('#orderList').style.display=m==='liste'?'block':'none'; refreshPano(); }
+
 /* tek-tik ileri */
 function advance(id){
   const o=ORD.find(x=>x.id===id); if(!o) return;
@@ -383,7 +416,7 @@ function advance(id){
   } else if(o.stage==='hazir'){ o.ready=true; toast(`<b>${id}</b> pakete hazır — kurye atanmayı bekliyor`); }
   else if(o.stage==='tamamlandi'){ o.cmin=0; toast(`<b>${id}</b> teslim edildi · tebrikler`); }
   else if(o.stage==='hazirlaniyor'){ toast(`<b>${id}</b> mutfağa düştü — hazırlanıyor`); }
-  renderKanban();
+  refreshPano();
   const el=$('#oc-'+id); if(el){ el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),900); }
 }
 
@@ -397,7 +430,7 @@ function newOrder(){
   for(let i=0;i<n+1;i++){ const m=M[Math.floor(Math.random()*M.length)]; const q=1+Math.floor(Math.random()*2); picks.push([q,m[0]]); tot+=q*m[3]; }
   const who=DEMO_CUST[Math.floor(Math.random()*DEMO_CUST.length)];
   const o={id,stage:'yeni',ch,cust:ch==='tel'?'Telefon ·'+who.split('·')[1]:who,sla:300,items:picks,tot};
-  ORD=[o,...ORD]; renderKanban();
+  ORD=[o,...ORD]; refreshPano();
   const el=$('#oc-'+id); if(el && $('#v-pano').classList.contains('on')){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}
   toast(`<b>${id}</b> · ${CH[ch].t} kanalından yeni sipariş · ₺${tot}`);
 }
@@ -649,7 +682,7 @@ function go(v){
 document.querySelectorAll('.rail .ni').forEach(n=>n.onclick=()=>go(n.dataset.v));
 
 /* init */
-renderKanban();
+refreshPano();
 
 window.addEventListener('vizz-theme-change', () => {
   charts.forEach(c => c.dispose());
@@ -769,7 +802,7 @@ function urunEkle(edit){
    <div class="dr-f"><button class="btn" style="flex:1" onclick="RP.closeDrawer()">İptal</button><button class="btn btn-y" style="flex:1.5" onclick="RP.urunKaydet()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Kaydet</button></div>`);
 }
 function urunKaydet(){ closeDrawer(); toast('<b>Ürün kaydedildi</b> · menüye + vitrine yansıdı (demo)'); }
-window.RP={advance,toggle86,cat,callCourier,flip,seg,toast,cagir,cagirTab,cagirGonder,odemeAl,kodOlustur,closeDrawer,urunEkle,urunKaydet};
+window.RP={advance,toggle86,cat,callCourier,flip,seg,toast,cagir,cagirTab,cagirGonder,odemeAl,kodOlustur,closeDrawer,urunEkle,urunKaydet,panoView};
 })();
 </script>
 </body></html>
