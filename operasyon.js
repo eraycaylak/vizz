@@ -235,7 +235,14 @@ function buildReports(){
     {id:'r-dist',col:5,t:'Mesafe Dağılımı (km)',s:'ort. 2.4 km · teslimat başına mesafe',h:240},
     {id:'r-speed',col:12,t:'Kurye Hız Sıralaması',s:'km/saat · en hızlı kurye üstte (ort. teslimat dk ↓)',h:260},
   ];
-  $('#reportGrid').innerHTML = cards.map(c=>`<div class="card col-${c.col}"><div class="card-h"><div class="t">${c.t}</div><span class="dim" style="font-size:11px">${c.s}</span></div><div style="padding:10px 12px 12px;flex:1;display:flex"><div class="chart" id="${c.id}" style="height:${c.h}px"></div></div></div>`).join('');
+  // 🍯 DÜKKAN EKONOMİSİ — tek kaynaktan (arı peteği): her dükkanın tarifesi → gelir−kurye−komisyon−vergi = net
+  const deko=D.econDukkan(), eFmt=n=>'₺'+Math.round(n).toLocaleString('tr-TR');
+  const eTot=deko.reduce((a,r)=>({adet:a.adet+r.adet,tes:a.tes+r.tarife*r.adet,kom:a.kom+r.komisyon,kur:a.kur+r.kuryeGider,net:a.net+r.net}),{adet:0,tes:0,kom:0,kur:0,net:0});
+  const dukkanCard=`<div class="card col-12"><div class="card-h"><div class="t">🍯 Dükkan Ekonomisi — tek kaynak (arı peteği)</div><span class="dim" style="font-size:11px">her dükkanın kendi tarifesi → teslimat geliri + komisyon − kurye − vergi = net · tüm raporlar tek motordan</span></div>
+    <div style="overflow:auto;padding:2px 6px 8px"><table class="grid"><thead><tr><th>Dükkan</th><th>Bölge</th><th>Teslimat tarifesi</th><th>Bugün sipariş</th><th>Teslimat geliri</th><th>Komisyon</th><th>Kurye gideri</th><th>Net kâr</th><th>Net/sipariş</th></tr></thead><tbody>`+
+    deko.map(r=>`<tr style="cursor:pointer" onclick="VZ.dukkanDrawer(${r.id})"><td><b>${r.name}</b></td><td class="dim">${r.zone}</td><td class="num">₺${r.tarife}</td><td class="num">${r.adet}</td><td class="num">${eFmt(r.tarife*r.adet)}</td><td class="num">${eFmt(r.komisyon)}</td><td class="num" style="color:var(--bad)">−${eFmt(r.kuryeGider)}</td><td class="num"><b style="color:var(--ok)">${eFmt(r.net)}</b></td><td class="num dim">₺${Math.round(r.net/r.adet)}</td></tr>`).join('')+
+    `</tbody><tfoot><tr style="border-top:2px solid var(--line-2)"><td><b>TOPLAM</b></td><td></td><td></td><td class="num"><b>${eTot.adet}</b></td><td class="num"><b>${eFmt(eTot.tes)}</b></td><td class="num"><b>${eFmt(eTot.kom)}</b></td><td class="num" style="color:var(--bad)"><b>−${eFmt(eTot.kur)}</b></td><td class="num" style="color:var(--ok)"><b>${eFmt(eTot.net)}</b></td><td></td></tr></tfoot></table></div></div>`;
+  $('#reportGrid').innerHTML = dukkanCard + cards.map(c=>`<div class="card col-${c.col}"><div class="card-h"><div class="t">${c.t}</div><span class="dim" style="font-size:11px">${c.s}</span></div><div style="padding:10px 12px 12px;flex:1;display:flex"><div class="chart" id="${c.id}" style="height:${c.h}px"></div></div></div>`).join('');
 
   // SLA gauge
   mkChart('r-sla').setOption({series:[{type:'gauge',startAngle:200,endAngle:-20,min:0,max:100,radius:'96%',center:['50%','72%'],
@@ -420,11 +427,12 @@ $('#scrim').onclick=closeDrawer;
 function buildFinans(){
   $('#v-finans').innerHTML=`<div class="rhead"><div><h2>Finans & Mutabakat</h2><p>Cuma ödeme · COD kasa · komisyon — üçlü cari</p></div>
     <button class="btn btn-y" onclick="VZ.toast('💸 Cuma ödeme listesi onaylandı — IBAN aktarımı başladı')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Tümünü Onayla & Öde</button></div>
-    <div class="kstrip" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
-      <div class="kpi"><div class="lab">Bu hafta hakediş</div><div class="val">₺<span class="num">42.8K</span></div><div class="sub up">▲ %9</div></div>
-      <div class="kpi"><div class="lab">COD toplanan nakit</div><div class="val">₺<span class="num">11.2K</span></div><div class="sub flat">14 kurye</div></div>
-      <div class="kpi"><div class="lab">VIZZ komisyon</div><div class="val">₺<span class="num">6.4K</span></div><div class="sub up">%8 ort.</div></div>
-      <div class="kpi accent"><div class="lab">Cuma ödenecek net</div><div class="val">₺<span class="num">31.6K</span></div><div class="sub">14 kuryeye</div></div></div>
+    ${(()=>{const de=D.econDukkan();const T=de.reduce((a,r)=>({g:a.g+r.gelir,kom:a.kom+r.komisyon,kur:a.kur+r.kuryeGider,net:a.net+r.net,ad:a.ad+r.adet}),{g:0,kom:0,kur:0,net:0,ad:0});const k=n=>(n/1000).toFixed(1)+'K';
+      return `<div class="kstrip" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+      <div class="kpi"><div class="lab">Bugün VIZZ geliri</div><div class="val">₺<span class="num">${k(T.g)}</span></div><div class="sub flat">${T.ad} sipariş · teslimat+komisyon</div></div>
+      <div class="kpi"><div class="lab">Kurye hakedişi (bugün)</div><div class="val">₺<span class="num">${k(T.kur)}</span></div><div class="sub flat">${D.COURIERS.length} kurye</div></div>
+      <div class="kpi"><div class="lab">Yemek komisyonu · %8</div><div class="val">₺<span class="num">${k(T.kom)}</span></div><div class="sub up">tek motordan</div></div>
+      <div class="kpi accent"><div class="lab">Net kâr (bugün, vergi sonrası)</div><div class="val">₺<span class="num">${k(T.net)}</span></div><div class="sub">Dükkan Ekonomisi ile aynı</div></div></div>`;})()}
     <div class="card"><div class="card-h"><div class="t">Cuma Ödeme Listesi — bu hafta</div><span class="badge b-y">Esnaf kurye hakedişi</span></div>
     <div style="overflow:auto;max-height:calc(100vh - 320px)"><table class="grid"><thead><tr><th>Kurye</th><th>Teslimat</th><th>Paket başı</th><th>Prim</th><th>Tahsil nakit</th><th>Net (Cuma)</th><th>Durum</th></tr></thead><tbody>`+
     D.COURIERS.map(c=>{const pkt=c.today*6*22,prim=c.today>12?180:c.today>8?90:0,nakit=c.id%2?c.today*6*40:0;return `<tr><td><b>${c.name}</b></td><td class="num">${c.today*6}</td><td class="num">₺${pkt}</td><td class="num">₺${prim}</td><td class="num">${nakit?'₺'+nakit+' <span class="dim">(mahsup)</span>':'—'}</td><td class="num"><b style="color:var(--y)">₺${pkt+prim}</b></td><td><span class="badge ${c.id%4===0?'b-warn':'b-ok'}">${c.id%4===0?'Bekliyor':'Hazır'}</span></td></tr>`;}).join('')+
@@ -749,6 +757,15 @@ function orderDetail(id){
     ${row('Ödeme',`<span style="color:${p.c}"><svg class="ic ic-sm" viewBox="0 0 24 24" style="display:inline;vertical-align:-3px">${p.ic}</svg> ${p.n}</span>`)}
     ${row('Tutar',`<b style="color:var(--y);font-size:15px">₺${o.total}</b> <span class="dim">· ${o.items} ürün</span>`)}
     ${row('Kurye',o.courier?`${o.courier} · ${o.min} dk yolda`:'<span style="color:var(--bad)">henüz atanmadı</span>')}
+    ${(()=>{const ec=D.econOrder(o.rest,o.total);const eRow=(l,v,c)=>`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px"><span class="dim">${l}</span><span style="color:${c||'var(--tx)'};font-weight:700">${v}</span></div>`;
+      return `<div class="sectitle" style="margin:16px 0 4px">VIZZ Ekonomisi · bu sipariş <span class="dim" style="font-weight:400;font-size:11px">— tek motordan</span></div>
+      <div style="background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:9px 13px">
+      ${eRow('Teslimat tarifesi (dükkandan)','+₺'+ec.tarife,'var(--ok)')}
+      ${eRow('Yemek komisyonu · %8','+₺'+ec.komisyon,'var(--ok)')}
+      ${eRow('Kurye ücreti','−₺'+ec.kurye,'var(--bad)')}
+      ${eRow('Sabit gider (PSP/app/destek)','−₺'+ec.sabit,'var(--bad)')}
+      ${eRow('Vergi (KDV + kurumlar)','−₺'+(ec.kdv+ec.kv),'var(--bad)')}
+      <div style="display:flex;justify-content:space-between;padding:8px 0 2px;margin-top:3px;border-top:1px solid var(--line-2)"><span style="font-weight:800;font-size:12.5px">NET KÂR</span><span style="font-weight:900;color:${ec.net>=0?'var(--ok)':'var(--bad)'};font-size:15px">₺${ec.net}</span></div></div>`;})()}
     <div class="sectitle" style="margin:16px 0 4px">Sipariş Akışı</div>${tl}
     <div style="display:flex;gap:9px;margin-top:16px">${o.courier?`<button class="btn btn-y" style="flex:1" onclick="VZ.toast('${o.courier} aranıyor…')">Kuryeyi Ara</button>`:`<button class="btn btn-y" style="flex:1" onclick="VZ.assign('${o.id}');VZ.orderDetail('${o.id}')">Hemen Ata</button>`}<button class="btn" style="flex:1" onclick="VZ.toast('Müşteri aranıyor…')">Müşteriyi Ara</button></div>`;
   openModal('order',o.id+' · Sipariş Detayı',html,'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 13h6"/>');

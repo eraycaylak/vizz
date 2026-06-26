@@ -47,6 +47,33 @@ const RESTAURANTS = [
   menu:[["Fıstıklı Baklava (1 kg)","Antep fıstığı","baklava",420],["Künefe","Antep fıstıklı","kunefe",95],["Sütlaç","Fırın","sutlac",55],["Kazandibi","Klasik","kazandibi",60]]},
 ];
 
+/* ===================================================================
+   TEK EKONOMİ MOTORU — single source of truth (arı peteği çekirdeği)
+   Her dükkanın kendi teslimat tarifesi var. HER rapor/sipariş bu
+   fonksiyonları çağırır → sayılar her yerde birbirini tutar.
+   =================================================================== */
+const ECON = { KDV:0.20, STOPAJ:0.01, KV:0.25, SABIT:6, KOMISYON:0.08 };
+//                  [dükkanın VIZZ'e ödediği teslimat ₺, kuryeye giden ₺]
+const TARIFE = {1:[100,62],2:[130,82],3:[90,56],4:[110,70],5:[95,60],6:[105,66],7:[140,88],8:[85,54]};
+const MARKET_TARIFE=[70,44];
+RESTAURANTS.forEach(r=>{ const t=TARIFE[r.id]||[100,62]; r.tarife=t[0]; r.kuryePay=t[1]; r.gunluk=22+(r.id*17)%58; });
+
+function feeOf(restName){ const r=RESTAURANTS.find(x=>x.name===restName); return r?{tarife:r.tarife,kurye:r.kuryePay}:{tarife:MARKET_TARIFE[0],kurye:MARKET_TARIFE[1]}; }
+/* bir siparişin TAM ekonomi kırılımı — petekteki tek hücre */
+function econOrder(restName, foodTotal){
+  const {tarife,kurye}=feeOf(restName);
+  const komisyon=Math.round((foodTotal||0)*ECON.KOMISYON);   // yemek tutarından VIZZ komisyonu
+  const gelir=tarife+komisyon;                                // VIZZ brüt gelir (teslimat + komisyon)
+  const gelirNet=gelir/(1+ECON.KDV), kdv=gelir-gelirNet;      // KDV ayrıştır
+  const brutKar=gelirNet-kurye-ECON.SABIT;                    // − kurye − sabit gider
+  const kv=Math.max(0,brutKar)*ECON.KV;                       // kurumlar vergisi
+  const net=Math.round(brutKar-kv);                           // vergi sonrası net kâr
+  return {tarife,kurye,komisyon,gelir,kdv:Math.round(kdv),sabit:ECON.SABIT,brutKar:Math.round(brutKar),kv:Math.round(kv),net,brutMarj:gelir-kurye};
+}
+/* dükkan bazlı günlük toplam — Dükkan Ekonomisi raporu bundan beslenir */
+function econDukkan(){ return RESTAURANTS.map(r=>{ const e=econOrder(r.name,260); return {id:r.id,name:r.name,zone:r.zone,tarife:r.tarife,kurye:r.kuryePay,adet:r.gunluk,
+  gelir:e.gelir*r.gunluk, komisyon:e.komisyon*r.gunluk, kuryeGider:r.kuryePay*r.gunluk, net:e.net*r.gunluk}; }); }
+
 const CAT_EMOJI = {"Tümü":"🔥",Kebap:"🥙",Pide:"🫓",Lahmacun:"🌮",Mantı:"🥟",Burger:"🍔",Kahvaltı:"🍳",Tatlı:"🍰"};
 const CATS = ["Tümü","Kebap","Pide","Lahmacun","Mantı","Burger","Kahvaltı","Tatlı"];
 
@@ -154,7 +181,7 @@ ORDERS.push(
   {id:"VZ-M206",rest:"VIZZ Market",cust:"R. Gül",zone:"Şehitler",items:3,total:92,pay:"Online",status:"Kurye yolda",min:7,courier:"Okan V.",vertical:"market"},
 );
 
-window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IMG,EMOJI,imgFallback,MARKET};
+window.VIZZ={LOGO:VIZZ_LOGO,YOZGAT,RESTAURANTS,COURIERS,ORDERS,CATS,CAT_EMOJI,IMG,EMOJI,imgFallback,MARKET,ECON,feeOf,econOrder,econDukkan};
 
 
 // ==========================================

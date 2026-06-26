@@ -77,6 +77,13 @@ Yazılımcı "para dönüyor, microservice + yedekli sunucu/backend olmalı, sun
 - **restoran-panel Sipariş Panosu: Kanban ↔ Liste(hepsi) toggle** — Eray "100 sipariş alt alta sığmaz, Minijett gibi hepsini gör" dedi → Liste modu = tek kompakt `table.grid` (id/kanal/müşteri/ürün/tutar/durum/SLA/kurye/aksiyon), stage'e göre sıralı, advance çalışır. `RP.panoView('kanban'|'liste')`, `refreshPano()`.
 - **Geliştirici devri:** repo **public kalsın** kararı (Eray). `docs/` + canlı prototip + **`memorybackup/` klasörü repoya konuldu** (github.com/eraycaylak/vizz/tree/main/memorybackup): `vizz-projesi.md` + `MEMORY.md` + `RESTORE-NASIL-KULLANILIR.md` (3 geri-yükleme yolu). Sadece VIZZ hafızası (kişisel/diğer-proje hariç).
 
+## 27 Haz (4) — Ekonomi tek-motor "arı peteği" (Eray'ın net istediği örüntü)
+- Eray: "her dükkana farklı tarife tanımlıyoruz (100/60/150...), tüm operasyon + raporlar **net + birbirine bağlı, arı peteği gibi** olmalı." → tek gerçek kaynak (single source of truth).
+- **Sorun:** Finans/Bölge/Raporlar ayrı ayrı uydurma sayılardı (paket başı 22, komisyon 6.4K hardcode), bağ yoktu.
+- **Uygulandı (`vizz-data.js`):** `RESTAURANTS[].tarife` + `.kuryePay` (dükkana özel: 85–140₺) + `ECON` sabitleri (KDV20/stopaj1/KV25/sabit6/komisyon8) + **tek fonksiyon `econOrder(restoran,yemekTutarı)`** → {tarife,komisyon,gelir,kurye,kdv,kv,net} + `econDukkan()` (dükkan bazlı günlük toplam). `VIZZ.econOrder/econDukkan/feeOf` export.
+- **Tüm görünümler buradan okuyor:** sipariş detayı (VIZZ Ekonomisi mini-defter, satırlar net'e tam denk), Raporlar **Dükkan Ekonomisi tablosu** (col-12, TOPLAM satırı), Finans KPI'ları. **Doğrulandı:** Dükkan TOPLAM net ₺9.431 = Finans net = Σ econOrder.net (birebir tutuyor). Cache `vizz-data.js?v=3` (12 yüzeyde bumplandı).
+- **Ders:** rapor başına ayrı hesap yazma → tek ledger/motor, her hücre komşusuna bağlı. Eray bu "örüntülü/bağlı" netliğe çok önem veriyor (bkz [[duzen-takintisi]]).
+
 ## 27 Haz (3) — Atama modeli düzeltmesi (Eray'ın yakaladığı ürün hatası)
 - Eray: "otomasyon yaptık (en yakın/yüksek puan/sıradaki) ama niye her siparişe **Otomatik Ata** tıklıyorum? mantıksız." → **HAKLI.**
 - **Doğru model:** varsayılan **Oto AÇIK** → motor sipariş düştüğü an otomatik atar (en yakın+skor), dispatcher sadece **izler**. **Manuel = istisna** (Hemen/Override butonları + header'da Oto AÇIK/KAPALI anahtarı; KAPALI=tam manuel).

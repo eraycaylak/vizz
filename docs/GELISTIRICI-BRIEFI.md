@@ -40,6 +40,7 @@
 - **Modüler monolit** (mikroservis değil). Go `internal/` paketleriyle sınır çiz.
 - **5 yüzey + market + entegrasyonlar = TEK backend / TEK veri modeli**, RBAC paylaşımlı API.
 - **Fiyat/komisyon/ücret hesabı TEK motor** (backend) — müşteri app + restoran panel + dispatcher aynı sonucu vermeli. Client tekrar yazmaz.
+- **⚠️ EKONOMİ TEK-MOTOR = "ARI PETEĞİ" (kritik):** Her dükkanın **kendi teslimat tarifesi** var (`restaurant.tarife` + `restaurant.kuryePay`, dükkana göre farklı: 85–140₺). TEK fonksiyon `econOrder(restoran, yemekTutarı)` her siparişin tam kırılımını üretir → **teslimat tarifesi + komisyon(%8) − kurye ücreti − sabit gider − vergi(KDV+kurumlar) = NET KÂR**. **Tüm raporlar/finans bu motordan okur** — sipariş detayı, Dükkan Ekonomisi tablosu, Finans KPI'ları, birim ekonomi hepsi aynı kaynaktan → sayılar **her yerde birbirini tutar** (prototipte doğrulandı: Dükkan Ekonomisi TOPLAM = Finans net = Σ econOrder.net). **Veri modeli:** `restaurant.tarife → order.delivery_fee + order.commission → ledger(order){gelir, kurye_gider, vergi, net} → reports`. Asla rapor başına ayrı hesap yazma — tek ledger, her hücre komşusuna bağlı.
 - **Her sipariş `vertical: food | market` ve `channel: vizz | telefon | yemeksepeti | trendyol | getir`** — tek `orders` çekirdeği iki dikeye + tüm kanallara hizmet eder.
 - **Olay-güdümlü:** her durum geçişi event-log'a yazılır (raporlama + otomasyon bunu okur).
 
