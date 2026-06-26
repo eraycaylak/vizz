@@ -113,6 +113,36 @@
   .ph iframe{width:100%;height:100%;border:none;border-radius:32px;background:#000;display:block}
   @media(max-width:820px){.grid{grid-template-columns:1fr 1fr}}
   @media(max-width:560px){.grid{grid-template-columns:1fr}}
+
+  /* Bee Particle Effects */
+  .bee-particle {
+    position: fixed; pointer-events: none; z-index: 999999;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease-out;
+  }
+  
+  /* Bee Chatbot Mascot */
+  .bee-bot {
+    position: fixed; bottom: -150px; right: 30px; z-index: 9000;
+    display: flex; flex-direction: column; align-items: flex-end;
+    transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+  }
+  .bee-bot.show {
+    transform: translateY(-180px); pointer-events: auto; 
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' style='font-size:24px'><text y='26'>🍯</text></svg>") 16 16, pointer !important;
+  }
+  .bee-bot .speech-bubble {
+    background: #fff; border: 3px solid var(--honey); padding: 14px 20px;
+    border-radius: 20px 20px 0 20px; font-weight: 800; color: var(--text-main);
+    box-shadow: 0 14px 30px rgba(0,0,0,0.12); margin-bottom: 12px; font-size: 16px;
+    opacity: 0; transform: scale(0.5); transform-origin: bottom right;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); transition-delay: 0.7s;
+  }
+  .bee-bot.show .speech-bubble { opacity: 1; transform: scale(1); }
+  .bee-bot .bee-avatar {
+    font-size: 70px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.25));
+    animation: floatBee 3s infinite ease-in-out alternate;
+  }
 </style></head>
 <body>
 <div id="introOverlay">
@@ -184,6 +214,11 @@
   <footer>VIZZ © 2026 · Yozgat merkez pilot · tüm yüzeyler tıklanabilir prototiptir 🐝</footer>
 </div>
 
+<div id="beeBot" class="bee-bot">
+  <div class="speech-bubble">Nasıl Yardım Edebilirim zzz ?</div>
+  <div class="bee-avatar">🐝</div>
+</div>
+
 <div class="viewer" id="viewer">
   <div class="vbar">
     <div class="vt" id="vtitle">—</div>
@@ -208,6 +243,10 @@ function startMainPage() {
   introOverlay.classList.add('hidden'); 
   setTimeout(()=>introOverlay.remove(), 500);
   bgMusic.play().catch(e=>console.log(e));
+  
+  setTimeout(() => {
+    document.getElementById('beeBot').classList.add('show');
+  }, 1000);
 }
 
 startBtn.onclick = (e) => {
@@ -232,5 +271,34 @@ function closeV(){document.getElementById('viewer').classList.remove('show');doc
 function openTab(){window.open(curUrl,'_blank');}
 document.getElementById('viewer').addEventListener('click',e=>{if(e.target.id==='viewer')closeV();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeV();});
+
+// Particle Effect on Click
+document.addEventListener('click', function(e) {
+  if(e.target.id === 'viewer' || e.target.id === 'introOverlay' || e.target.id === 'startIntroBtn') return;
+  
+  const count = 10 + Math.random()*10;
+  for(let i=0; i<count; i++) {
+    const bee = document.createElement('div');
+    bee.className = 'bee-particle';
+    bee.innerText = '🐝';
+    bee.style.left = e.clientX + 'px';
+    bee.style.top = e.clientY + 'px';
+    bee.style.fontSize = (12 + Math.random()*14) + 'px';
+    bee.style.transform = 'translate(-50%, -50%) scale(0.2)';
+    document.body.appendChild(bee);
+    
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 40 + Math.random() * 100;
+    const tx = Math.cos(angle) * distance;
+    const ty = Math.sin(angle) * distance;
+    
+    void bee.offsetWidth; // force reflow
+    
+    bee.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(${1 + Math.random()}) rotate(${(Math.random()-0.5)*180}deg)`;
+    bee.style.opacity = '0';
+    
+    setTimeout(() => bee.remove(), 600);
+  }
+});
 </script>
 </body></html>
