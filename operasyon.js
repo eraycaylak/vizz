@@ -436,8 +436,88 @@ function dukkanDrawer(id){
   setTimeout(()=>ch.resize(),50);
 }
 
+/* ---------- OTOMASYON (kural+skor motoru · güven skoru · anomali) ---------- */
+function ctrust(c){
+  const i=c.id;
+  const onTime=84+(i*3)%15;                 // zamanında teslim %
+  const gps=80+(i*13)%20;                   // GPS/rota tutarlılık %
+  let cancel=(i*7)%5;                        // kabul sonrası hızlı iptal
+  const accept=c.accept, rate=+c.rate;
+  const penalty=localStorage.getItem('vizz_courier_penalty_demo')==='true' && i===1;
+  if(penalty) cancel=Math.max(cancel,4);
+  let trust=Math.round(0.30*onTime+0.30*accept+0.20*(rate*20)+0.20*gps - cancel*6 - (gps<88?(88-gps)*0.5:0));
+  if(penalty) trust-=15;
+  trust=Math.max(48,Math.min(98,trust));
+  const flags=[];
+  if(cancel>=3) flags.push('kabul→iptal '+cancel+'×');
+  if(gps<86) flags.push('GPS '+(100-gps)+'% sapma');
+  if(accept<85) flags.push('düşük kabul %'+accept);
+  if(penalty) flags.unshift('görev reddi → sıra sonu');
+  const lvl=trust>=85?['Güvenilir','b-ok']:trust>=72?['İzleniyor','b-warn']:['Riskli','b-bad'];
+  return {trust,onTime,gps,cancel,accept,rate,flags,lvl,penalty};
+}
+let otoBuilt=false;
+function buildOtomasyon(){
+  const s=getThemeStyles();
+  const scored=D.COURIERS.map(c=>({c,s:ctrust(c)})).sort((a,b)=>a.s.trust-b.s.trust);
+  const flagged=scored.filter(x=>x.s.flags.length);
+  const f0=flagged[0]?.c.name||'Mehmet K.', f1=flagged[1]?.c.name||'Okan V.', f2=flagged[2]?.c.name||'Serkan O.';
+  const decisions=[
+   {t:'19:24',tag:'Sıra-sonu',tc:'b-bad',d:`VZ-7748 · kurye reddetti → kuyruk sonuna alındı, en yakın 2. kuryeye teklif`,r:'kural: red → ceza'},
+   {t:'19:21',tag:'Eskalasyon',tc:'b-warn',d:'VZ-7743 · kalan SLA 4 dk → süpervizöre bildirim + öncelik +1',r:'SLA < 5 dk'},
+   {t:'19:18',tag:'Yeniden ata',tc:'b-info',d:`${f0} arıza beyanı ("lastik") → görev Caner T.'ye taşındı, güven skoru gözden geçir`,r:'arıza → reassign'},
+   {t:'19:12',tag:'Soğuk zincir',tc:'b-y',d:'VZ-M207 Market · termal sepetli en yakın kuryeye yönlendirildi',r:'market SLA 15-25 dk'},
+   {t:'19:05',tag:'Bölge dengele',tc:'b-ok',d:'Çapanoğlu yoğunluk +40% → 2 boş kurye otomatik bölgeye kaydırıldı',r:'yük dengeleme'},
+   {t:'18:58',tag:'Otomatik ata',tc:'b-mute',d:'VZ-7746 · en yakın + düşük yük → Emre B. (gerekçe loglandı)',r:'skor motoru'},
+  ];
+  const radar=[
+   {sev:'b-bad',sevT:'Yüksek',ttl:'İşi sallama şüphesi',who:f0,d:'Kabul→iptal 90 sn içinde ×3, "lastik patladı" beyanı ama GPS 11 dk sabit',act:'Görüşme aç',id:flagged[0]?.c.id},
+   {sev:'b-bad',sevT:'Yüksek',ttl:'Geofence dışı teslim',who:'VZ-7740',d:'Teslim onayı müşteri adresine 280 m uzakta verildi — sahte teslim riski',act:'İncele'},
+   {sev:'b-warn',sevT:'Orta',ttl:'Hareketsizlik',who:f1,d:'"Yolda" durumunda 7 dk konum değişmedi (beklenen rota 1.2 km)',act:'Uyar',id:flagged[1]?.c.id},
+   {sev:'b-warn',sevT:'Orta',ttl:'Mola ihlali',who:f2,d:'Mola süresini 2× aştı (48 dk / hedef 20 dk)',act:'Bildir',id:flagged[2]?.c.id},
+  ];
+  $('#v-otomasyon').innerHTML=`<div class="rhead"><div><h2>Operasyon Otomasyonu</h2><p>kural + skor motoru · açıklanabilir kararlar · kurye güven skoru + anomali radarı</p></div>
+    <div style="display:flex;gap:9px;align-items:center"><span class="badge b-ok"><span class="dot pulse"></span>Motor çalışıyor</span><button class="btn" onclick="VZ.oto('Motor duraklatıldı — atamalar manuel moda geçti')">Motoru Duraklat</button></div></div>
+   <div class="kstrip" style="grid-template-columns:repeat(5,1fr);margin-bottom:14px">
+     <div class="kpi"><div class="lab">Bugün otomasyon kararı</div><div class="val num">148</div><div class="sub up">▲ %12 dün</div></div>
+     <div class="kpi accent"><div class="lab">Otomatik atama oranı</div><div class="val">%<span class="num">92</span></div><div class="sub flat">manuel %8</div></div>
+     <div class="kpi"><div class="lab">Ort. atama süresi</div><div class="val"><span class="num">38</span><small> sn</small></div><div class="sub up">▼ hedef altı</div></div>
+     <div class="kpi"><div class="lab">SLA eskalasyonu</div><div class="val num">6</div><div class="sub flat">otomatik müdahale</div></div>
+     <div class="kpi"><div class="lab">Yakalanan anomali</div><div class="val num" style="color:var(--bad)">${radar.length}</div><div class="sub down">güven motoru</div></div></div>
+   <div style="display:grid;grid-template-columns:1.45fr 1fr;gap:14px;margin-bottom:14px">
+     <div class="card"><div class="card-h"><div class="t"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg> Canlı Otomasyon Kararları</div><span class="dim" style="font-size:11px">her karar gerekçe loglu</span></div>
+       <div style="padding:6px 14px 12px;max-height:330px;overflow:auto">${decisions.map(x=>`<div style="display:flex;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)">
+         <div class="num dim" style="font-size:11px;min-width:34px;padding-top:1px">${x.t}</div>
+         <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px;margin-bottom:3px"><span class="badge ${x.tc}" style="font-size:10px">${x.tag}</span><span class="dim" style="font-size:10.5px">${x.r}</span></div>
+           <div style="font-size:12.5px;color:var(--tx-2);line-height:1.4">${x.d}</div></div></div>`).join('')}</div>
+       <div style="padding:4px 14px 14px"><div class="t" style="font-size:12px;margin-bottom:6px;color:var(--tx-3)">Karar tipleri · bugün</div><div class="chart" id="otoDonut" style="height:160px"></div></div></div>
+     <div class="card" style="border-color:rgba(255,90,82,.22)"><div class="card-h"><div class="t"><svg class="ic ic-sm" viewBox="0 0 24 24" style="color:var(--bad)"><path d="M12 2 2 7v6c0 5 4 8 10 9 6-1 10-4 10-9V7L12 2Z"/><path d="M12 8v5M12 16h.01"/></svg> Anomali & Sahtekârlık Radarı</div><span class="badge b-bad" style="font-size:10px">${radar.length} aktif</span></div>
+       <div style="padding:8px 12px 12px;display:flex;flex-direction:column;gap:9px">${radar.map(x=>`<div style="border:1px solid var(--line);border-radius:11px;padding:11px 12px;background:var(--s1)">
+         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px"><b style="font-size:12.5px;color:var(--tx)">${x.ttl}</b><span class="badge ${x.sev}" style="font-size:9.5px">${x.sevT}</span></div>
+         <div style="font-size:11.5px;color:var(--tx-2);line-height:1.45;margin-bottom:8px">${x.d}</div>
+         <div style="display:flex;align-items:center;justify-content:space-between"><span class="dim" style="font-size:11px">› ${x.who}</span>${x.id?`<button class="btn btn-icon" style="width:auto;height:28px;padding:0 11px;font-size:11px" onclick="VZ.courierDrawer(${x.id})">${x.act}</button>`:`<button class="btn btn-icon" style="width:auto;height:28px;padding:0 11px;font-size:11px" onclick="VZ.oto('${x.ttl} · ${x.who} → inceleme açıldı')">${x.act}</button>`}</div></div>`).join('')}</div></div></div>
+   <div class="card"><div class="card-h"><div class="t"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4Z"/><path d="M9 12l2 2 4-4"/></svg> Kurye Güven Skoru</div><span class="dim" style="font-size:11px">en riskli üstte · GPS + kabul + zamanında + iptal sinyalleri</span></div>
+     <div style="overflow:auto;max-height:calc(100vh - 250px)"><table class="grid"><thead><tr><th>Kurye</th><th>Güven skoru</th><th>Zamanında</th><th>Kabul</th><th>GPS tutarlılık</th><th>Şüpheli iptal</th><th>Sinyaller</th><th>Durum</th><th></th></tr></thead><tbody>`+
+     scored.map(({c,s:t})=>{const bc=t.trust>=85?'var(--ok)':t.trust>=72?'var(--y)':'var(--bad)';return `<tr style="cursor:pointer" onclick="VZ.courierDrawer(${c.id})">
+       <td><div style="display:flex;align-items:center;gap:9px"><div class="av ${c.status==='delivering'?'busy':c.status==='online'?'on':'off'}">${c.name.split(' ').map(p=>p[0]).join('')}</div><b>${c.name}</b></div></td>
+       <td><div style="display:flex;align-items:center;gap:9px;min-width:120px"><div class="bar-mini" style="flex:1;height:7px"><i style="width:${t.trust}%;background:${bc}"></i></div><b class="num" style="color:${bc};min-width:24px">${t.trust}</b></div></td>
+       <td class="num">%${t.onTime}</td><td class="num">%${t.accept}</td>
+       <td class="num" style="color:${t.gps<86?'var(--warn)':'var(--tx-2)'}">%${t.gps}</td>
+       <td class="num" style="color:${t.cancel>=3?'var(--bad)':'var(--tx-2)'}">${t.cancel}</td>
+       <td>${t.flags.length?t.flags.slice(0,2).map(fl=>`<span class="badge b-bad" style="font-size:9.5px;margin:1px 2px 1px 0">${fl}</span>`).join(''):'<span class="dim">temiz</span>'}</td>
+       <td><span class="badge ${t.lvl[1]}"><span class="dot"></span>${t.lvl[0]}</span></td>
+       <td><svg class="ic ic-sm" viewBox="0 0 24 24" style="color:var(--tx-3)"><path d="M9 18l6-6-6-6"/></svg></td></tr>`;}).join('')+
+     `</tbody></table></div></div>`;
+  const dn=echarts.init(document.getElementById('otoDonut')); charts.push(dn);
+  dn.setOption({tooltip:{...s.tip,trigger:'item',formatter:'{b}: <b>{c}</b> (%{d})'},legend:{show:true,bottom:0,textStyle:{color:s.tx3,fontSize:10},itemWidth:9,itemHeight:9,icon:'circle'},
+    series:[{type:'pie',radius:['44%','70%'],center:['50%','44%'],avoidLabelOverlap:true,itemStyle:{borderColor:s.isLight?'#fff':'#15181D',borderWidth:2},label:{show:false},
+      data:[{value:118,name:'Otomatik atama',itemStyle:{color:s.y}},{value:14,name:'Yeniden atama',itemStyle:{color:s.info}},{value:6,name:'SLA eskalasyon',itemStyle:{color:s.warn}},{value:4,name:'Sıra-sonu ceza',itemStyle:{color:s.bad}},{value:6,name:'Bölge dengeleme',itemStyle:{color:s.ok}}]}]});
+  setTimeout(()=>dn.resize(),50);
+  otoBuilt=true;
+}
+
 /* ---------- görünüm yönetimi ---------- */
-const names={komuta:'Komuta',gorevler:'Görevler',kuryeler:'Kuryeler',dukkanlar:'Dükkanlar',bolgeler:'Bölgeler',finans:'Finans',raporlar:'Raporlar',ayarlar:'Ayarlar'};
+const names={komuta:'Komuta',gorevler:'Görevler',kuryeler:'Kuryeler',dukkanlar:'Dükkanlar',otomasyon:'Otomasyon',bolgeler:'Bölgeler',finans:'Finans',raporlar:'Raporlar',ayarlar:'Ayarlar'};
 const built={};
 function go(v){
   document.querySelectorAll('.rail .ni').forEach(n=>n.classList.toggle('on',n.dataset.v===v));
@@ -445,7 +525,7 @@ function go(v){
   $('#v-'+v).classList.add('on'); $('#viewName').textContent='· '+names[v];
   if(v==='komuta') initMap();
   if(v==='raporlar') buildReports();
-  if(!built[v]){ built[v]=true; ({gorevler:buildGorevler,kuryeler:buildKuryeler,dukkanlar:buildDukkanlar,finans:buildFinans,bolgeler:buildBolgeler,ayarlar:buildAyarlar}[v]||(()=>{}))(); }
+  if(!built[v]){ built[v]=true; ({gorevler:buildGorevler,kuryeler:buildKuryeler,dukkanlar:buildDukkanlar,otomasyon:buildOtomasyon,finans:buildFinans,bolgeler:buildBolgeler,ayarlar:buildAyarlar}[v]||(()=>{}))(); }
   setTimeout(()=>charts.forEach(c=>c.resize()),80);
 }
 document.querySelectorAll('.rail .ni').forEach(n=>n.onclick=()=>go(n.dataset.v));
@@ -463,6 +543,9 @@ window.addEventListener('vizz-theme-change', () => {
   if ($('#v-raporlar').classList.contains('on')) {
     buildReports();
   }
+  if ($('#v-otomasyon').classList.contains('on')) {
+    buildOtomasyon();
+  }
   if (activeCourierId !== null) {
     courierDrawer(activeCourierId);
   } else if (activeDukkanId !== null) {
@@ -470,5 +553,5 @@ window.addEventListener('vizz-theme-change', () => {
   }
 });
 
-window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer};
+window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer,oto:toast};
 })();
