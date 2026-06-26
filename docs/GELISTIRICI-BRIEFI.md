@@ -19,7 +19,7 @@
 | Katman | Teknoloji |
 |--------|-----------|
 | Backend dili | **Go** (modüler monolit; Echo veya Fiber) |
-| Backend host | **Hetzner** (stateful), Docker Compose (k8s YOK) |
+| Backend host | **Hetzner** (stateful) · **≥2 app instance + yük dengeleyici + oto-failover** (SPOF yok, §6.6/§HA). k8s MVP'de gerekmez, Docker/systemd + LB yeter |
 | DB | **PostgreSQL 16 + PostGIS** (+ v2 TimescaleDB iz için) |
 | Cache / pub-sub | **Redis** (son konum + WS yayını + kuyruk) |
 | Gerçek-zaman | **Go-native WebSocket + Redis pub/sub** |
@@ -66,10 +66,12 @@
 
 ## 4. Veri Modeli — ZORUNLU Baştan (sonradan eklemek en pahalı migration)
 - **`order_events`** (append-only): `order_id, type(created/assigned/accepted/at_restaurant/picked/on_the_way/delivered/cancelled), at(timestamp), actor, lat/lng, reason`. → SLA, persentil, darboğaz, otomasyon, anlaşmazlık hepsi buna bağlı. **ATLAMA.**
-- **`orders`**: `vertical`, `channel`, `branch_id`, müşteri, adres+konum(geography), sepet(items+opsiyon), tutarlar(ara_toplam/teslimat/komisyon/iade), ödeme tipi, durum, **iptal nedeni + sorumluluk (zorunlu alan)**.
+- **`orders`**: `vertical`, `channel`, `branch_id`, **müşteri (ad + telefon)**, **tam adres + konum(geography)**, sepet(items+opsiyon), tutarlar(ara_toplam/teslimat/komisyon/iade), **ödeme tipi (nakit/kapıda_pos/online)**, durum, atanan kurye, **iptal nedeni + sorumluluk (zorunlu alan)**. *(UI'da: sipariş detay modalı bu alanları gösterir + akış zaman çizelgesi=order_events.)*
 - **`branch_id` / `tenant_id`** her tabloda (çoklu-şube v2 olsa bile şema baştan).
 - **`ledger`** (çift girişli, immutable): kurye hakediş / restoran hakediş / komisyon / iade / prim-ceza. Para hareketi izsiz olamaz.
 - **`courier_score`**: kabul_oranı, zamanında_%, iptal/red_sayısı, arıza_bildirim_sıklığı, idle_süre, güven_skoru (sürekli güncellenir).
+- **`courier_cash` / kasa** (COD mutabakat): kurye başına **cebindeki nakit**, **POS tahsilat**, **kasa limiti** (eşik aşılınca yeni sipariş otomatik durur), teslim/depozit kaydı, discrepancy. + **hız/mesafe metrikleri** (ort_teslimat_dk, ort_mesafe_km, km_saat) — UI: kurye scorecard kasası + Raporlar (kurye hız sıralaması, mesafe dağılımı).
+- **`delivery_metrics` / rollup**: yoğun-saat × restoran (paket/saat), mesafe dağılımı, kurye hızı, SLA persentil — `reporting` modülü replikadan üretir.
 - **`couriers/courier_locations`** (son konum Redis; örneklenmiş iz Timescale), **`restaurants/menu/menu_options`**, **`market_products/inventory`**, **`zones`**(PostGIS polygon), **`incidents`**, **`ratings`**, **`customers`**, **`audit_log`**, **`channel_orders`** (eşleştirme).
 
 ---
@@ -138,6 +140,9 @@
 
 ### 6.5 Veri kaybı / takılma YOK (mühendislik garantileri)
 PostgreSQL **senkron WAL + günlük + PITR yedek + replika/failover** · **idempotency** (çift sipariş/atama/tahsilat yok) · **outbox** · **event-log + audit** · son-konum-Redis (DB boğulmaz) · **Sentry/Prometheus alarm** (kullanıcıdan önce yakala) · Docker health+auto-restart.
+
+### 6.6 Yüksek Erişilebilirlik / SPOF YOK (yazılımcının haklı kaygısı) → tam tasarım: [MİMARİ §HA](VIZZ-MIMARI-KARARI.md)
+**Para sistemi = tek hata noktası olamaz.** Her katman **≥2 kopya + otomatik failover:** App **≥2 instance + yük dengeleyici** (stateless, biri çökerse kesintisiz) · Postgres **primary+replika+oto-failover (Patroni)** · Redis **Sentinel** · **blue-green deploy** + oto geri-alma · PITR yedek ayrı lokasyon. **Mimari kararı: yatay-ölçeklenebilir modüler monolit** (net modül sınırı); baskı gelince `realtime/channels/notify/reporting` **servise ayrılır**, ledger çekirdekte kalır. *Saf microservice şart değil — HA, redundancy ile gelir; ledger'ı bölme (dağıtık transaction riski).*
 
 ---
 

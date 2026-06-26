@@ -1,7 +1,7 @@
 # ⚙️ VIZZ — Mimari & Teknoloji Kararı (ADR)
 
-> **Karar tarihi:** 26 Haz 2026 · **Bağlam:** Para dönen, gerçek-zamanlı, veri-kaybı affetmeyen yemek+market teslimat platformu (Yozgat pilot). Master plan ([VIZZ-URUN-MASTER-PLAN.md](VIZZ-URUN-MASTER-PLAN.md)) tech bölümünün **kesin kararı**.
-> **Eray'ın kırmızı çizgileri:** kurye anlık konum (Hızır gibi ekranda canlı) · kurye çağrılınca **gecikmesiz bildirim** · **Yemeksepeti/Trendyol Yemek/Getir Yemek entegrasyonu** (sipariş direkt VIZZ ekranına) · **operasyonu yöneten otomasyon/AI ajanı** (manuel atama yok, red/arıza yönetimi, işi sallayan kurye yakalama) · **takılma/veri kaybı YOK** (hata = binlerce ₺ + piyasa kaybı).
+> **Karar tarihi:** 26 Haz 2026 · **Güncelleme:** 27 Haz 2026 (yazılımcı geri bildirimi → **Yüksek Erişilebilirlik/Yedeklilik bölümü §HA eklendi**). **Bağlam:** Para dönen, gerçek-zamanlı, veri-kaybı affetmeyen yemek+market teslimat platformu (Yozgat pilot). Master plan ([VIZZ-URUN-MASTER-PLAN.md](VIZZ-URUN-MASTER-PLAN.md)) tech bölümünün **kesin kararı**.
+> **Eray'ın kırmızı çizgileri:** kurye anlık konum (Hızır gibi ekranda canlı) · kurye çağrılınca **gecikmesiz bildirim** · **Yemeksepeti/Trendyol Yemek/Getir Yemek entegrasyonu** (sipariş direkt VIZZ ekranına) · **operasyonu yöneten otomasyon/AI ajanı** (manuel atama yok, red/arıza yönetimi, işi sallayan kurye yakalama) · **takılma/veri kaybı YOK** (hata = binlerce ₺ + piyasa kaybı) · **🆕 TEK HATA NOKTASI (SPOF) YOK — yedekli sunucu/backend + otomatik failover** (sunucu çökse sistem kesintisiz ayakta kalır; 1 saat kesinti = tüm trafik kilitlenir). → **bkz. §HA**.
 
 ---
 
@@ -98,34 +98,73 @@ Deterministik, hata yapmaz, %95'i halleder — manuel nöbete gerek bırakmaz:
 | "Ne oldu" belirsizliği | **Append-only event-log + audit trail** (her durum geçişi kayıtlı — raporlamayı da besler). KIRMIZI ÇİZGİ: MVP'de baştan. |
 | Takılma/yavaşlama | Go derlenmiş + öngörülebilir gecikme; son-konum Redis'te (DB boğulmaz); tek-binary izlenebilir. |
 | Sessiz hata | OTel trace + Prometheus alarm + Sentry → kullanıcıdan önce yakala. |
-| Sunucu çökmesi | Docker Compose + sağlık kontrolü + otomatik restart; replika + yedekten hızlı dönüş. |
+| Sunucu/backend çökmesi (SPOF) | **≥2 app instance + LB + Postgres primary→replika oto-failover + Redis Sentinel** — biri çökerse kesintisiz devam. Tek kutu yok. **→ tam tasarım: §HA.** |
+
+---
+
+## 🟢 §HA — Yüksek Erişilebilirlik, Yedeklilik & Servis Mimarisi (yazılımcının haklı kaygısı)
+
+> **Yazılımcının çekirdek noktası %100 doğru** ve kabul ediyoruz: para dönen sistemde **tek hata noktası (SPOF) olamaz.** Sunucu/backend çökse bile sistem **kesintisiz** ayakta kalmalı (yedekli + otomatik failover). 1 saat kesinti = tüm trafik kilitlenir + ₺ + güven kaybı. **Pazarlık dışı gereksinim.**
+
+### Önce dürüst ayrım: "Yüksek erişilebilirlik" ≠ "microservices"
+- **HA/yedeklilik** = aynı şeyin **birden çok kopyasını** çalıştır + **otomatik failover** + **veri replikasyonu**. Bu, **monolit'te de microservice'te de** birebir aynı şekilde sağlanır. Tek kopya çalıştırırsan microservice de olsa çöker.
+- **Microservices** = uygulamayı **bağımsız dağıtılan/ölçeklenen servislere** bölmek. *Fayda:* parça parça ölçek/deploy. *Bedel:* servisler arası ağ çağrısı, **dağıtık transaction** (para/ledger için TEHLİKELİ — tek DB transaction'ını kaybedersin), çok daha fazla hareketli parça = daha çok hata yüzeyi + DevOps. Küçük ekipte **erken microservice = daha çok kesinti** (ironik ama gerçek).
+- **Sonuç:** "sunucu çökse başka ayağa kalksın" = **yatay-ölçeklenebilir + yedekli mimari** işi; microservice şart koşmaz. Net servis sınırları kurarız ki **gerektiğinde** ayırmak kolay olsun.
+
+### VIZZ kararı: **Yatay-ölçeklenebilir Modüler Monolit + net servis sınırları → gerektiğinde servis çıkar**
+Olgun ekiplerin yolu (Shopify, erken Uber, Stripe): **monolit önce, baskı gelince servis çıkar.** Para tutarlılığı (ledger) tek DB transaction'ında kalır; sadece ölçek baskısı net olan parçalar ayrılır.
+
+**Günden bir HA (tek şehir + küçük ekip için yeterli, büyümeye hazır):**
+| Katman | Yedeklilik / Failover |
+|--------|------------------------|
+| **App (Go)** | **≥2 instance** (2 ayrı sunucu/AZ) + **yük dengeleyici** (health-check). Stateless → biri çökerse LB diğerine yönlendirir, **kesinti yok**. Yeni instance saniyeler içinde ayağa kalkar (oto-scale). |
+| **PostgreSQL** | **Primary + senkron replika + otomatik failover** (Patroni veya yönetilen Postgres). Primary çökerse replika **promote** olur. **PITR yedek** (günlük snapshot + WAL arşivi → herhangi bir saniyeye dön). |
+| **Redis** | **Sentinel/replika** (master çökerse failover). Son-konum + pub/sub → yedekli. |
+| **Deploy** | **Blue-green / rolling** (sıfır kesinti) + **otomatik geri-alma** (health bozulursa eski sürüm). |
+| **Sağlık** | `/health` + watchdog + otomatik restart + Prometheus alarm + Sentry (kullanıcıdan önce yakala). |
+| **Yedek** | DB PITR + günlük snapshot **ayrı lokasyonda** (R2/S3) + düzenli **restore tatbikatı**. |
+| **SPOF kontrol** | Her katman ≥2 kopya: LB · app(≥2) · DB(primary+replica) · Redis(master+replica). **Tek kutu yok.** |
+
+**Servis çıkarma yol haritası (microservice'e evrilme — baskı gelince):**
+Çekirdek `orders + dispatch + payment + couriers` **tek serviste** kalır (transaction/ledger tutarlılığı). İlk ayrılacaklar (bağımsız ölçeklenir; ayrı çökse çekirdek ayakta):
+1. **`realtime` (WS + konum)** — en çok eşzamanlı bağlantı; ayrı ölçeklenir, ledger'a dokunmaz.
+2. **`channels` (kanal webhook alımı)** — dış trafik ani sıçrar; ayrı + idempotent kuyruk.
+3. **`notify` (FCM/SMS outbox)** — fire-and-forget worker.
+4. **`reporting` (rollup/analitik)** — ağır sorgu; **replikadan okur**, çekirdeği yormaz.
+> Bu 4'ü zaten kod-içinde ayrı modül (`internal/...`); **API sınırı + event bus (Redis/NATS) ile servise dönüşür.** Mesaj: *monolit hapishane değil — sınırları net çiz, gerçekten gerekince ayır.*
+
+### "Tam microservice şimdi" istenirse — dürüst kural
+Yapılabilir ama: **ledger/para akışı TEK serviste kalmalı** (bölme = dağıtık transaction = veri tutarsızlığı = #1 korkun). Servis-arası: senkron gRPC + asenkron **event bus (NATS/Kafka) + outbox** (zaten planda). *Önerim hâlâ:* "HA modüler monolit + 4 servis" = **aynı erişilebilirlik, çok daha az risk**; saf microservice'i çok-şehir trafiği patlayınca yap.
 
 ---
 
 ## 🧱 Repo / Modül Yapısı (monorepo)
+> **(★)** = baskı gelince **ilk ayrılacak servisler** (kod-içi modül sınırı zaten net → API + event bus ile servise dönüşür). Çekirdek (orders+dispatch+payment+couriers) **tek serviste/tek transaction'da** kalır.
 ```
 vizz/
-├── backend/                  # Go modüler monolit
+├── backend/                  # Go modüler monolit — ≥2 INSTANCE, LB arkasında (stateless), yatay ölçeklenir
 │   └── internal/
-│       ├── dispatch/         # ATAMA MOTORU + kural motoru
-│       ├── ops_automation/   # operasyon ajanı: red/arıza/SLA + kurye güven skoru + anomali
-│       ├── orders/           # sipariş yaşam döngüsü + EVENT-LOG
-│       ├── couriers/         # kurye, vardiya, hakediş, güven skoru
-│       ├── restaurants/      # menü, stok, KDS
-│       ├── geo/              # PostGIS + OSRM + geofence
-│       ├── realtime/         # WS hub + Redis pubsub
-│       ├── channels/         # ENTEGRASYON adapterleri (yemeksepeti/trendyol/getir)
-│       ├── payment/          # iyzico Pazaryeri + ledger (idempotent)
-│       ├── notify/           # FCM + SMS + outbox
-│       └── auth/             # JWT + OTP + RBAC + audit
-├── mobile/                   # Flutter (flavor: courier | customer)
-├── web-dispatcher/ web-restaurant/ web-customer/   # → Cloudflare Pages
-└── infra/                    # docker-compose, OSRM, Prometheus, backup
+│       ├── dispatch/         # ATAMA MOTORU (Akıllı Skor / Sıralı / En Yakın, sıralama kriteri, kümeleme, sabitleme, kısıt) + kural motoru
+│       ├── ops_automation/   # red/arıza/SLA eskalasyon + kurye GÜVEN SKORU + anomali/sahtekârlık radarı
+│       ├── orders/           # sipariş yaşam döngüsü + EVENT-LOG + müşteri/telefon/TAM ADRES/ödeme tipi(Nakit/POS/Online) + kanal etiketi
+│       ├── couriers/         # kurye, vardiya, hakediş, güven skoru, KASA (nakit/POS cebindeki + kasa limiti→durdur), hız/mesafe(km, dk)
+│       ├── restaurants/      # menü+opsiyon+stok/86, KDS, Kurye Çağır(manuel sipariş), Ödeme Al(4-haneli nakit kod), entegrasyon kodu
+│       ├── market/           # VIZZ Market katalog + envanter/stok + toplama (picking)
+│       ├── geo/              # PostGIS (en-yakın kurye, bölge poligon, mesafe/km) + OSRM + geofence
+│       ├── realtime/    (★)  # WS hub + Redis pubsub (canlı konum + sipariş durumu + canlı kanal akışı)
+│       ├── channels/    (★)  # ENTEGRASYON adapterleri (yemeksepeti/trendyol/getir) — bkz. ENTEGRASYON-STRATEJISI.md
+│       ├── payment/          # iyzico Pazaryeri + LEDGER (idempotent, üçlü cari) + COD/kasa mutabakat — ÇEKİRDEKTE KALIR (bölme!)
+│       ├── notify/      (★)  # FCM + SMS + outbox
+│       ├── reporting/   (★)  # SLA/persentil/ısı/birim-ekonomi/YOĞUN-SAAT×RESTORAN/MESAFE-km/KURYE-HIZ (REPLİKADAN okur)
+│       └── auth/             # JWT + OTP + RBAC (Sahip/Operasyon/Mağaza/Muhasebe) + audit
+├── mobile/                   # Flutter (flavor: courier | customer) — flutter_background_geolocation
+├── web-dispatcher/ web-restaurant/ web-customer/ web-market/   # → Cloudflare Pages (statik, CDN'de küresel yedekli)
+└── infra/                    # ≥2 app sunucu + LB · Postgres primary+replica+Patroni(oto-failover)+PITR(R2) · Redis Sentinel · OSRM · Prometheus/Grafana/Sentry · blue-green deploy
 ```
 
 ---
 
 ## ✅ Tek Cümlelik Final Karar
-**Go (modüler monolit) + PostgreSQL/PostGIS + Redis, Hetzner'de stateful çekirdek; Flutter mobil; Cloudflare yalnızca DNS/CDN/DDoS/Pages(statik frontend)/R2; gerçek-zaman Go-WS+Redis; bildirim FCM+WS+ack-fallback; entegrasyon kanal-adaptörü; operasyon = kural+skor otomasyon motoru (ML v2); veri-kaybı = Postgres ACID+WAL+PITR+idempotency+outbox+event-log. Cloudflare Workers tek-başına backend DEĞİL — para+geo+stateful çekirdek için yanlış araç.**
+**Go (modüler monolit, ≥2 instance + LB ile yatay-ölçeklenebilir/yedekli) + PostgreSQL/PostGIS (primary+replika+oto-failover+PITR) + Redis (Sentinel), Hetzner'de stateful çekirdek; Flutter mobil; Cloudflare yalnızca DNS/CDN/DDoS/Pages(statik frontend)/R2; gerçek-zaman Go-WS+Redis; bildirim FCM+WS+ack-fallback; entegrasyon kanal-adaptörü; operasyon = kural+skor otomasyon motoru (ML v2); veri-kaybı = Postgres ACID+WAL+PITR+idempotency+outbox+event-log; SPOF yok = her katman ≥2 kopya + blue-green deploy. `realtime/channels/notify/reporting` baskı gelince servise ayrılır; ledger çekirdekte kalır. Cloudflare Workers tek-başına backend DEĞİL.**
 
 *Sonraki adım: bu karar onaylanınca → repo iskeleti + veri modeli (event-log/channel/ledger şemaları baştan).*
