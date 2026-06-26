@@ -151,6 +151,7 @@
     <button class="ni" data-v="menu" title="Menü"><svg class="ic" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h12"/></svg>Menü</button>
     <button class="ni" data-v="kurye" title="Kurye"><svg class="ic" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8m6.5 6 2-6h2.5"/></svg>Kurye</button>
     <button class="ni" data-v="raporlar" title="Raporlar"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="9" width="3" height="8" rx="1"/><rect x="13" y="5" width="3" height="12" rx="1"/></svg>Rapor</button>
+    <button class="ni" data-v="finans" title="Finans & Cari"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Finans</button>
     <div class="sp"></div>
     <button class="ni" data-v="ayarlar" title="Ayarlar"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 2.6 14H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4 8.4a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 4.6V4a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V10a2 2 0 1 1 0 4h-.1Z"/></svg>Ayar</button>
   </aside>
@@ -189,6 +190,9 @@
         <div class="kstrip" id="repKpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px"></div>
         <div id="reportGrid" class="rgrid"></div>
       </section>
+
+      <!-- ============ FİNANS & CARİ ============ -->
+      <section id="v-finans" class="view"></section>
 
       <!-- ============ AYARLAR ============ -->
       <section id="v-ayarlar" class="view"></section>
@@ -537,9 +541,54 @@ function flip(el,name){ el.classList.toggle('off'); toast(`<b>${name}</b> ${el.c
 function seg(el){ el.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); el.classList.add('on'); toast('Hazırlık süresi: <b>'+el.textContent+'</b>'); }
 
 /* ===================================================================
+   FİNANS & CARİ HESAP
+   =================================================================== */
+function buildFinans(){
+  const s=getThemeStyles();
+  const fmt=n=>n.toLocaleString('tr-TR');
+  const weeks=[
+   {w:'Bu hafta',ciro:52400,paid:false,date:'Cuma'},
+   {w:'16–22 Haz',ciro:47100,paid:true,date:'20 Haz'},
+   {w:'9–15 Haz',ciro:49800,paid:true,date:'13 Haz'},
+   {w:'2–8 Haz',ciro:44300,paid:true,date:'6 Haz'},
+   {w:'26 May–1 Haz',ciro:46900,paid:true,date:'30 May'},
+   {w:'19–25 May',ciro:43200,paid:true,date:'23 May'},
+  ].map(x=>{const kom=Math.round(x.ciro*0.08),iade=Math.round(x.ciro*0.015);return {...x,kom,iade,net:x.ciro-kom-iade};});
+  const cur=weeks[0];
+  $('#v-finans').innerHTML=`<div class="rhead"><div><h2>Finans & Cari Hesap</h2><p>Çapanoğlu Köftecisi · VIZZ mutabakatı · Cuma ödeme · komisyon şeffaflığı</p></div>
+    <button class="btn btn-y" onclick="RP.toast('Hakediş dekontu (PDF) indiriliyor')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Dekont İndir</button></div>
+   <div class="kstrip" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
+     <div class="kpi"><div class="lab">Bu hafta ciro</div><div class="val num">₺${(cur.ciro/1000).toFixed(1)}K</div><div class="sub up">▲ %11 geçen hafta</div></div>
+     <div class="kpi"><div class="lab">VIZZ komisyon</div><div class="val num">₺${fmt(cur.kom)}</div><div class="sub flat">%8 · yemek</div></div>
+     <div class="kpi"><div class="lab">İade / iptal</div><div class="val num">₺${fmt(cur.iade)}</div><div class="sub flat">%1.5</div></div>
+     <div class="kpi accent"><div class="lab">Net hakediş · Cuma</div><div class="val num">₺${fmt(cur.net)}</div><div class="sub">TR·· *** 4488</div></div></div>
+   <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:14px">
+     <div class="card"><div class="card-h"><div class="t">Haftalık ciro & net hakediş</div><span class="dim" style="font-size:11px">son 6 hafta</span></div><div style="padding:12px"><div id="finChart" style="height:208px"></div></div></div>
+     <div class="card"><div class="card-h"><div class="t">Cari Hesap · bu hafta</div></div><div style="padding:12px 16px 16px;font-size:13px">
+       <div style="display:flex;justify-content:space-between;padding:6px 0"><span class="muted">Brüt ciro</span><b class="num">₺${fmt(cur.ciro)}</b></div>
+       <div style="display:flex;justify-content:space-between;padding:6px 0"><span class="muted">VIZZ komisyon (%8)</span><b class="num" style="color:var(--bad)">−₺${fmt(cur.kom)}</b></div>
+       <div style="display:flex;justify-content:space-between;padding:6px 0"><span class="muted">İade / iptal</span><b class="num" style="color:var(--bad)">−₺${fmt(cur.iade)}</b></div>
+       <div style="display:flex;justify-content:space-between;padding:11px 0 4px;border-top:1px dashed var(--line-2);margin-top:6px"><b>Net hakediş</b><b class="num" style="color:var(--ok);font-size:18px">₺${fmt(cur.net)}</b></div>
+       <div style="margin-top:14px;background:var(--y-soft);border:1px solid var(--y-line);border-radius:11px;padding:11px 13px;font-size:12px;color:var(--tx-2)">⏱ Sonraki ödeme: <b class="hl">Cuma 18:00</b><br>IBAN TR·· **** **** 4488 · Çapanoğlu Köft. Ltd.</div></div></div></div>
+   <div class="card"><div class="card-h"><div class="t">Ödeme Geçmişi</div><span class="badge b-y">Haftalık mutabakat</span></div>
+     <div style="overflow:auto"><table class="grid"><thead><tr><th>Hafta</th><th>Ciro</th><th>Komisyon</th><th>İade</th><th>Net hakediş</th><th>Durum</th><th>Ödeme</th></tr></thead><tbody>`+
+     weeks.map(x=>`<tr><td><b>${x.w}</b></td><td class="num">₺${fmt(x.ciro)}</td><td class="num">₺${fmt(x.kom)}</td><td class="num">₺${fmt(x.iade)}</td><td class="num"><b style="color:var(--ok)">₺${fmt(x.net)}</b></td><td><span class="badge ${x.paid?'b-ok':'b-warn'}"><span class="dot"></span>${x.paid?'Ödendi':'Cuma bekliyor'}</span></td><td class="dim num">${x.date}</td></tr>`).join('')+
+     `</tbody></table></div></div>`;
+  const rev=[...weeks].reverse();
+  mkChart('finChart').setOption({tooltip:{trigger:'axis',...s.tip,formatter:p=>p[0].name+'<br>'+p.map(d=>d.seriesName+': <b>₺'+d.value.toLocaleString('tr')+'</b>').join('<br>')},
+    legend:{show:true,top:0,right:0,textStyle:{color:s.tx3,fontSize:10},itemWidth:9,itemHeight:9,icon:'circle'},
+    grid:{left:6,right:10,top:26,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:rev.map(x=>x.w.replace(' Haz','').replace(' May','')),...s.axis,axisLabel:{...s.axis.axisLabel,fontSize:9}},
+    yAxis:{type:'value',...s.axis,axisLabel:{...s.axis.axisLabel,formatter:v=>'₺'+(v/1000)+'K'}},
+    series:[{name:'Ciro',type:'bar',data:rev.map(x=>x.ciro),itemStyle:{color:s.isLight?'#cbd5e1':'#3a4048',borderRadius:[3,3,0,0]},barWidth:'34%'},
+      {name:'Net hakediş',type:'bar',data:rev.map(x=>x.net),itemStyle:{color:s.y,borderRadius:[3,3,0,0]},barWidth:'34%'}]});
+  setTimeout(()=>charts.forEach(c=>c.resize()),60);
+}
+
+/* ===================================================================
    GÖRÜNÜM YÖNETİMİ
    =================================================================== */
-const names={pano:'Sipariş Panosu',menu:'Menü Yönetimi',kurye:'Kurye',raporlar:'Raporlar',ayarlar:'Ayarlar'};
+const names={pano:'Sipariş Panosu',menu:'Menü Yönetimi',kurye:'Kurye',raporlar:'Raporlar',finans:'Finans & Cari',ayarlar:'Ayarlar'};
 const built={};
 function go(v){
   document.querySelectorAll('.rail .ni').forEach(n=>n.classList.toggle('on',n.dataset.v===v));
@@ -547,7 +596,7 @@ function go(v){
   $('#v-'+v).classList.add('on'); $('#viewName').textContent='· '+names[v];
   if(v==='raporlar') buildReports();
   if(v==='kurye') buildKurye();
-  if(!built[v]){ built[v]=true; ({menu:buildMenu,ayarlar:buildAyarlar}[v]||(()=>{}))(); }
+  if(!built[v]){ built[v]=true; ({menu:buildMenu,ayarlar:buildAyarlar,finans:buildFinans}[v]||(()=>{}))(); }
   setTimeout(()=>charts.forEach(c=>c.resize()),80);
 }
 document.querySelectorAll('.rail .ni').forEach(n=>n.onclick=()=>go(n.dataset.v));
@@ -561,6 +610,9 @@ window.addEventListener('vizz-theme-change', () => {
   reportsBuilt = false;
   if ($('#v-raporlar').classList.contains('on')) {
     buildReports();
+  }
+  if ($('#v-finans').classList.contains('on')) {
+    buildFinans();
   }
 });
 

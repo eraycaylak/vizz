@@ -303,7 +303,7 @@
             <div class="lab"><svg class="ic" viewBox="0 0 24 24" style="width:11px;height:11px;color:var(--y)"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>TESLİMAT ADRESİ</div>
             <div class="val">Cumhuriyet Mah., Yozgat <svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
           </div>
-          <button class="icon-btn" onclick="VZ.go('profil')"><svg class="ic" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="ndot"></span></button>
+          <button class="icon-btn" onclick="VZ.go('kampanyalar')"><svg class="ic" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="ndot"></span></button>
         </div>
         <div class="search" onclick="VZ.toast('Arama — yemek veya restoran ara')">
           <svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -357,7 +357,24 @@
         <div class="pstat"><div class="v num">4.9</div><div class="l">Puanım</div></div>
       </div>
 
-      <div class="plist-t">Kayıtlı Adresler</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding:4px 18px 8px">
+        <button onclick="VZ.go('favoriler')" style="background:var(--s2);border:1px solid var(--line);border-radius:15px;padding:13px 4px;display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--tx-2);position:relative">
+          <svg class="ic" viewBox="0 0 24 24" style="width:21px;height:21px;color:var(--bad);fill:var(--bad);stroke:var(--bad)"><path d="M12 21s-7-4.5-9.5-8.5C.8 9.5 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.5.8-1.3 2-2.5 4-2.5 3.5 0 5.2 4 3.5 7C19 16.5 12 21 12 21Z"/></svg>
+          <span style="font-size:10.5px;font-weight:700">Favoriler</span>
+          <span style="position:absolute;top:7px;right:9px;min-width:16px;height:16px;background:var(--bad);color:#fff;border-radius:9px;font-size:9px;font-weight:800;display:grid;place-items:center;padding:0 4px">8</span></button>
+        <button onclick="VZ.go('gecmis')" style="background:var(--s2);border:1px solid var(--line);border-radius:15px;padding:13px 4px;display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--tx-2)">
+          <svg class="ic" viewBox="0 0 24 24" style="width:21px;height:21px;color:var(--info)"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span style="font-size:10.5px;font-weight:700">Geçmiş</span></button>
+        <button onclick="VZ.go('kampanyalar')" style="background:var(--s2);border:1px solid var(--line);border-radius:15px;padding:13px 4px;display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--tx-2);position:relative">
+          <svg class="ic" viewBox="0 0 24 24" style="width:21px;height:21px;color:var(--y)"><path d="M12 2 9.5 8.5 3 9l5 4.5L6.5 20 12 16.5 17.5 20 16 13.5 21 9l-6.5-.5L12 2Z"/></svg>
+          <span style="font-size:10.5px;font-weight:700">Kampanya</span>
+          <span style="position:absolute;top:7px;right:9px;min-width:16px;height:16px;background:var(--y);color:#15140F;border-radius:9px;font-size:9px;font-weight:800;display:grid;place-items:center;padding:0 4px">5</span></button>
+        <button onclick="VZ.go('adresler')" style="background:var(--s2);border:1px solid var(--line);border-radius:15px;padding:13px 4px;display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--tx-2)">
+          <svg class="ic" viewBox="0 0 24 24" style="width:21px;height:21px;color:var(--ok)"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span style="font-size:10.5px;font-weight:700">Adresler</span></button>
+      </div>
+
+      <div class="plist-t" style="display:flex;align-items:center;justify-content:space-between">Kayıtlı Adresler <button onclick="VZ.go('adresler')" style="background:none;border:none;color:var(--y);font-size:12px;font-weight:700">Yönet</button></div>
       <div class="plist">
         <div class="prow" onclick="VZ.toast('Ev adresi seçildi')">
           <div class="ig"><svg class="ic" viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2v-9Z"/></svg></div>
@@ -410,6 +427,11 @@
       </div>
       <div style="height:14px"></div>
     </section>
+
+    <section class="scr" id="s-favoriler"></section>
+    <section class="scr" id="s-gecmis"></section>
+    <section class="scr" id="s-kampanyalar"></section>
+    <section class="scr" id="s-adresler"></section>
 
   </div>
 
@@ -762,15 +784,78 @@ function syncBars(){
   } else { bar.classList.remove('show'); bar.innerHTML=''; }
 }
 
-const screenId={kesfet:'s-kesfet',menu:'s-menu',sepet:'s-sepet',takip:'s-takip',profil:'s-profil'};
+/* ====== favoriler / geçmiş / kampanyalar / adresler ====== */
+const backHead=(t,sub)=>`<div class="pg-head" style="padding-top:14px"><button class="navbtn" onclick="VZ.go('profil')"><svg class="ic" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><div><h2>${t}</h2>${sub?`<div class="dim" style="font-size:11.5px;margin-top:1px;color:var(--tx-3)">${sub}</div>`:''}</div></div>`;
+const starMini='<svg viewBox="0 0 24 24" style="width:13px;height:13px;display:inline;vertical-align:-2px;color:var(--y);fill:var(--y);stroke:var(--y)"><path d="M12 2 9.2 8.6 2 9.2l5.5 4.7L5.8 21 12 17.3 18.2 21l-1.7-7.1L22 9.2l-7.2-.6L12 2Z"/></svg>';
+const rcardHTML=r=>{const bcls=r.badge==='Yeni'?'b-info':(r.badge==='Premium'||r.badge==='Şehrin En İyisi')?'b-y':'b-mute';
+  return `<div class="rcard" onclick="VZ.openRest(${r.id})"><div class="cover"><img src="img/${r.cover}.jpg" alt="${r.name}" onerror="VIZZ.imgFallback(this,'${r.cover}')"><div class="shade"></div><div class="toprow"><span class="pill">${starSvg}${r.rate}</span><button class="fav" onclick="event.stopPropagation();VZ.toast('${r.name} favorilerden çıkarıldı')"><svg class="ic" viewBox="0 0 24 24" style="fill:var(--bad);stroke:var(--bad)"><path d="M12 21s-7-4.5-9.5-8.5C.8 9.5 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.5.8-1.3 2-2.5 4-2.5 3.5 0 5.2 4 3.5 7C19 16.5 12 21 12 21Z"/></svg></button></div><span class="badge ${bcls} badge-b"><span class="dot"></span>${r.badge}</span></div><div class="info"><div class="nm">${r.name} <span class="cat">${r.cat}</span></div><div class="meta">${restMeta(r)}</div></div></div>`;};
+
+function buildFavoriler(){
+  const favs=[0,2,4,6].map(i=>D.RESTAURANTS[i]).filter(Boolean);
+  const dishes=[[D.RESTAURANTS[0],0],[D.RESTAURANTS[2],0],[D.RESTAURANTS[1],0]].filter(x=>x[0]);
+  $('#s-favoriler').innerHTML=backHead('Favorilerim',favs.length+' restoran · '+dishes.length+' yemek')+
+   `<div class="plist-t">Favori Restoranlar</div><div class="rcards">${favs.map(rcardHTML).join('')}</div>
+    <div class="plist-t">Favori Yemekler</div><div class="plist">${dishes.map(([r,mi])=>{const m=r.menu[mi];return `<div class="prow" onclick="VZ.openRest(${r.id})"><div class="ig" style="width:46px;height:46px;border-radius:12px;overflow:hidden;padding:0;flex:none"><img src="img/${m[2]}.jpg" onerror="VIZZ.imgFallback(this,'${m[2]}')" style="width:100%;height:100%;object-fit:cover"></div><div class="body"><div class="t">${m[0]}</div><div class="s">${r.name} · <b style="color:var(--y)">₺${m[3]}</b></div></div><button class="btn btn-y" style="padding:8px 13px" onclick="event.stopPropagation();VZ.reorder(${r.id})">Ekle</button></div>`;}).join('')}</div><div style="height:16px"></div>`;
+}
+function buildGecmis(){
+  const past=[
+   {r:D.RESTAURANTS[0],date:'Bugün · 13:42',it:"Izgara Köfte (8'li), Ayran",tot:195,st:'Teslim edildi',ok:1,rate:5},
+   {r:D.RESTAURANTS[2],date:'Dün · 20:15',it:'Lahmacun ×4, Şalgam suyu',tot:160,st:'Teslim edildi',ok:1,rate:4},
+   {r:D.RESTAURANTS[1],date:'23 Haz · 12:30',it:'Kıymalı Pide, Su Böreği',tot:180,st:'Teslim edildi',ok:1,rate:0},
+   {r:D.RESTAURANTS[3]||D.RESTAURANTS[0],date:'21 Haz · 19:05',it:'Tavuk Döner Menü',tot:140,st:'İptal edildi',ok:0,rate:0},
+  ];
+  $('#s-gecmis').innerHTML=backHead('Geçmiş Siparişler','47 sipariş · ₺8.940 toplam')+
+   `<div style="padding:2px 0 14px">${past.map(o=>`<div class="card" style="margin:0 18px 11px;padding:13px">
+     <div style="display:flex;align-items:center;gap:11px"><img src="img/${o.r.cover}.jpg" onerror="VIZZ.imgFallback(this,'${o.r.cover}')" style="width:42px;height:42px;border-radius:11px;object-fit:cover;flex:none"><div style="flex:1;min-width:0"><b style="color:var(--tx)">${o.r.name}</b><div class="dim" style="font-size:11px;margin-top:1px">${o.date}</div></div><span class="badge ${o.ok?'b-ok':'b-bad'}"><span class="dot"></span>${o.st}</span></div>
+     <div class="dim" style="font-size:12px;margin:9px 0 10px">${o.it}</div>
+     <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px"><div style="font-size:12px"><span class="dim">Toplam</span> <b class="num" style="color:var(--tx)">₺${o.tot}</b>${o.rate?` <span style="margin-left:7px">${starMini.repeat(o.rate)}</span>`:''}</div>
+       ${o.ok?`<div style="display:flex;gap:7px">${o.rate?'':`<button class="btn" style="padding:7px 11px" onclick="VZ.toast('Değerlendirme ekranı')">Değerlendir</button>`}<button class="btn btn-y" style="padding:7px 12px" onclick="VZ.reorder(${o.r.id})">Tekrar Sipariş</button></div>`:`<button class="btn btn-y" style="padding:7px 12px" onclick="VZ.reorder(${o.r.id})">Tekrar Dene</button>`}</div></div>`).join('')}</div>`;
+}
+function buildKampanyalar(){
+  const camps=[
+   {ttl:'İlk Siparişe %20 İndirim',sub:'Yeni üyelere özel · min. sepet ₺120',code:'VIZZ20',g:'linear-gradient(125deg,#2a1f06,#15140f)',tag:'%20'},
+   {ttl:'₺150 Üstü Ücretsiz Teslimat',sub:'Tüm Yozgat restoranlarında geçerli',code:null,g:'linear-gradient(125deg,#0f1a14,#121617)',tag:'KARGO'},
+   {ttl:'Öğlen Kahvesi +1 Bedava',sub:'Hafta içi 11:00-14:00 · kahvaltıcılar',code:'KAHVE1',g:'linear-gradient(125deg,#1c1320,#141017)',tag:'2:1'},
+   {ttl:'VIZZ Market Açıldı — %15',sub:'Atıştırmalıkta ilk hafta indirimi',code:'MARKET15',g:'linear-gradient(125deg,#211806,#14130d)',tag:'YENİ'},
+  ];
+  $('#s-kampanyalar').innerHTML=backHead('Kampanyalar','5 aktif fırsat · sana özel')+
+   `<div style="padding:2px 18px 16px;display:flex;flex-direction:column;gap:12px">${camps.map(c=>`<div style="background:${c.g};border:1px solid var(--y-line);border-radius:18px;padding:16px;position:relative;overflow:hidden">
+     <div style="position:absolute;right:-30px;top:-30px;width:120px;height:120px;background:radial-gradient(circle,var(--y-glow),transparent 65%);border-radius:50%"></div>
+     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:relative"><div><div style="font-size:16px;font-weight:800;color:var(--tx);line-height:1.2">${c.ttl}</div><div style="font-size:12px;color:var(--tx-2);margin-top:6px;max-width:230px">${c.sub}</div></div>
+       <span class="badge b-y" style="font-size:11px;flex:none">${c.tag}</span></div>
+     <div style="display:flex;align-items:center;gap:9px;margin-top:14px;position:relative">${c.code?`<div style="flex:1;border:1px dashed var(--y-line);border-radius:10px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between"><span class="num" style="font-weight:800;letter-spacing:1px;color:var(--y)">${c.code}</span><button style="background:none;border:none;color:var(--tx-3);font-size:11px;font-weight:700" onclick="VZ.copyCode('${c.code}')">Kopyala</button></div>`:'<div style="flex:1"></div>'}<button class="btn btn-y" style="padding:10px 16px" onclick="VZ.go('kesfet')">Kullan</button></div></div>`).join('')}</div>`;
+}
+function buildAdresler(){
+  const addrs=[
+   {t:'Ev',s:'Cumhuriyet Mah. Lise Cad. No:14 D:3, Yozgat',def:true,ic:'<path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2v-9Z"/>'},
+   {t:'İş Yeri',s:'Çapanoğlu Mah. Sanayi Sitesi B-Blok No:22',def:false,ic:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'},
+   {t:'Annem',s:'Bahçelievler Mah. Gül Sok. No:7, Yozgat',def:false,ic:'<path d="M12 21s-7-4.5-9.5-8.5C.8 9.5 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.5.8-1.3 2-2.5 4-2.5 3.5 0 5.2 4 3.5 7C19 16.5 12 21 12 21Z"/>'},
+  ];
+  $('#s-adresler').innerHTML=backHead('Adreslerim',addrs.length+' kayıtlı adres')+
+   `<div style="padding:2px 18px 12px;display:flex;flex-direction:column;gap:11px">${addrs.map((a,i)=>`<div class="card" style="padding:13px;${a.def?'border-color:var(--y-line)':''}">
+     <div style="display:flex;align-items:flex-start;gap:12px"><div style="width:40px;height:40px;border-radius:12px;background:var(--s3);display:grid;place-items:center;color:var(--y);flex:none"><svg class="ic" viewBox="0 0 24 24">${a.ic}</svg></div>
+       <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px"><b style="color:var(--tx)">${a.t}</b>${a.def?'<span class="badge b-y" style="font-size:9.5px">Varsayılan</span>':''}</div><div class="dim" style="font-size:12px;margin-top:3px;line-height:1.4">${a.s}</div></div></div>
+     <div style="display:flex;gap:7px;margin-top:12px;border-top:1px solid var(--line);padding-top:11px">${a.def?'':`<button class="btn" style="flex:1;padding:7px" onclick="VZ.toast('${a.t} varsayılan yapıldı')">Varsayılan Yap</button>`}<button class="btn" style="${a.def?'flex:1;':''}padding:7px 13px" onclick="VZ.toast('${a.t} düzenleniyor')">Düzenle</button><button class="btn" style="padding:7px 13px;color:var(--bad)" onclick="VZ.toast('${a.t} silindi')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg></button></div></div>`).join('')}
+     <button class="btn btn-y" style="width:100%;padding:13px;margin-top:3px" onclick="VZ.toast('Yeni adres — harita ile konum seç')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Yeni Adres Ekle</button></div>`;
+}
+function reorder(id){ toast('Geçmiş sipariş sepete eklendi'); openRest(+id); }
+function copyCode(code){ toast('Kupon kopyalandı: '+code); }
+
+const screenId={kesfet:'s-kesfet',menu:'s-menu',sepet:'s-sepet',takip:'s-takip',profil:'s-profil',favoriler:'s-favoriler',gecmis:'s-gecmis',kampanyalar:'s-kampanyalar',adresler:'s-adresler'};
+const parentTab={favoriler:'profil',gecmis:'profil',kampanyalar:'kesfet',adresler:'profil'};
 function go(v){
-  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.t===v));
+  const tab=parentTab[v]||v;
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   current=v;
   if(v==='menu' && !$('#s-menu').innerHTML.trim()) buildMenu();
   if(v==='sepet') buildCart();
   if(v==='takip' && !$('#s-takip').innerHTML.trim()) buildTrack();
   if(v==='takip') setTimeout(()=>tmap&&tmap.invalidateSize(),140);
+  if(v==='favoriler') buildFavoriler();
+  if(v==='gecmis') buildGecmis();
+  if(v==='kampanyalar') buildKampanyalar();
+  if(v==='adresler') buildAdresler();
   $('#'+screenId[v]).classList.add('on');
   $('#'+screenId[v]).scrollTop=0;
   syncBars();
@@ -780,7 +865,7 @@ function toggle(el){ el.classList.toggle('on'); toast(el.classList.contains('on'
 
 /* init */
 renderCats(); renderRests('Tümü'); buildMenu();
-window.VZ={ go, openRest, add:addItem, qty:changeQty, cartQty, menuTab, filterCat, applyCoupon, clearCart, checkout, toggle, toast };
+window.VZ={ go, openRest, add:addItem, qty:changeQty, cartQty, menuTab, filterCat, applyCoupon, clearCart, checkout, toggle, toast, reorder, copyCode };
 })();
 </script>
 </body></html>
