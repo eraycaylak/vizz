@@ -143,6 +143,19 @@
     font-size: 70px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.25));
     animation: floatBee 3s infinite ease-in-out alternate;
   }
+  .bee-bot .bee-avatar .buzz {
+    display: inline-block;
+    animation: wingFlap 0.05s infinite alternate linear;
+    transform-origin: center;
+  }
+  @keyframes floatBee {
+    0% { transform: translateY(0) translateX(0) rotate(-2deg); }
+    100% { transform: translateY(-20px) translateX(-6px) rotate(2deg); }
+  }
+  @keyframes wingFlap {
+    0% { transform: rotate(-3deg) scaleX(1) scaleY(1); }
+    100% { transform: rotate(3deg) scaleX(0.82) scaleY(1.08); }
+  }
 </style></head>
 <body>
 <div id="introOverlay">
@@ -216,7 +229,7 @@
 
 <div id="beeBot" class="bee-bot">
   <div class="speech-bubble">Nasıl Yardım Edebilirim zzz ?</div>
-  <div class="bee-avatar">🐝</div>
+  <div class="bee-avatar"><div class="buzz">🐝</div></div>
 </div>
 
 <div class="viewer" id="viewer">
