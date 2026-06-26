@@ -145,8 +145,13 @@
   }
   .bee-bot .bee-avatar .buzz {
     display: inline-block;
-    animation: wingFlap 0.05s infinite alternate linear;
     transform-origin: center;
+  }
+  .bee-bot.show .bee-avatar .buzz {
+    animation: wingFlap 0.05s 80 alternate linear;
+  }
+  .bee-bot:hover .bee-avatar .buzz {
+    animation: wingFlap 0.05s infinite alternate linear;
   }
   @keyframes floatBee {
     0% { transform: translateY(0) translateX(0) rotate(-2deg); }
