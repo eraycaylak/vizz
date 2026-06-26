@@ -1,8 +1,10 @@
 # 🛠️ VIZZ — Geliştirici Brief'i (Final Build Spec)
 
+> **Güncel:** 26 Haz 2026 — canlı prototiple birebir senkron.
 > **Kime:** VIZZ gerçek ürününü yazacak geliştirici(ler)e.
-> **Amaç:** Ne yazacağını, hangi teknolojiyi, hangi modülleri, hangi özellikleri, hangi garantileri **net** anlaman için tek giriş dokümanı. Derinlik için: [MASTER PLAN](VIZZ-URUN-MASTER-PLAN.md) · [MİMARİ KARAR](VIZZ-MIMARI-KARARI.md) · [VIZZ MARKET](VIZZ-MARKET-PLAN.md).
-> **Görsel/akış spec'i = CANLI UI PROTOTİPİ:** https://eraycaylak.github.io/vizz/ — bütün ekranlar, akışlar, tasarım dili burada. **Backend'i bu UI'a göre, bu UI'ı koruyarak hayata geçir.** (Prototip statik+mock; sen gerçeğini yazacaksın.)
+> **Amaç:** Ne yazacağını, hangi teknolojiyi, hangi modülleri, hangi özellikleri, hangi garantileri **net** anlaman için tek giriş dokümanı.
+> **Derinlik için:** [MASTER PLAN](VIZZ-URUN-MASTER-PLAN.md) · [MİMARİ KARAR](VIZZ-MIMARI-KARARI.md) · [VIZZ MARKET](VIZZ-MARKET-PLAN.md) · [ENTEGRASYON STRATEJİSİ](ENTEGRASYON-STRATEJISI.md) · [RAKİP ANALİZİ (Minijett/Maxijett)](MINIJETT-ANALIZ.md).
+> **Görsel/akış spec'i = CANLI UI PROTOTİPİ:** https://eraycaylak.github.io/vizz/ — bütün ekranlar, modüller, akışlar, tasarım dili burada. **Backend'i bu UI'a göre, bu UI'ı koruyarak hayata geçir.** Prototip statik+mock; sen gerçeğini yazacaksın. **§5'teki modül envanteri prototipteki her ekranı listeler.**
 
 ---
 
@@ -72,17 +74,43 @@
 
 ---
 
-## 5. Yüzeyler & Özellik Kapsamı
-> **Görsel + akış referansı = canlı prototip** (her ekran orada). Aşağısı kapsam + öncelik. Detaylı özellik tabloları → MASTER PLAN §3.
-
-| Yüzey | Kapsam | Öncelik |
+## 5. Yüzeyler & Öncelik
+| Yüzey | Dosya (prototip) | Öncelik |
 |------|--------|---------|
-| **Dispatcher / Operasyon** (web) | Canlı komuta haritası (kurye+sipariş+bölge), oto+manuel atama, **operasyon otomasyonu**, SLA, görevler/kuryeler/**dükkanlar (cari)**/bölgeler/finans/**derin raporlama** | MVP çekirdek |
-| **Kurye App** (Flutter) | Çevrimiçi toggle+vardiya, görev kabul/ret, **anlık konum yayını**, navigasyon, durum, **POD foto+GPS**, tahsilat+kasa, kazanç+Cuma sayacı, performans, belge | MVP çekirdek |
-| **Restoran Panel** (web) + Mobil | **KDS kanban**, menü+opsiyon+**stok/86**, kurye çağır, busy-mode, **cari/hakediş**, raporlar | MVP/v1 |
-| **Müşteri App** (Flutter) + Web | Keşfet/arama, sepet/opsiyon, ödeme (kapıda MVP/online v1), **Domino's canlı takip+harita**, adres, favoriler, kampanya | MVP/v1 |
-| **VIZZ Market** Müşteri (mobil+web) + **Depo/Toplama paneli** | Katalog, hızlı sepet, anlık teslimat takibi; depo: toplama listesi+stok+kurye çağır | v1 (mock hazır) |
-| **Admin** | RBAC, audit, kurye/restoran CRUD, komisyon/fiyat config, kanal entegrasyon yönetimi | MVP/v1 |
+| **Dispatcher / Operasyon** (web) | `operasyon.html` | MVP çekirdek |
+| **Kurye App** (Flutter) | `kurye-mobil.html` | MVP çekirdek |
+| **Restoran Panel** (web) + Mobil | `restoran-panel.html` · `restoran-mobil.html` | MVP/v1 |
+| **Müşteri App** (Flutter) + Web | `musteri-mobil.html` · `musteri-web.html` | MVP/v1 |
+| **VIZZ Market** (mobil+web+depo) | `market-mobil.html` · `market-web.html` · `market-depo.html` | v1 (mock hazır) |
+| **Sunum hub'ı** | `index.html` | — |
+
+### 5.1 Prototip Modül Envanteri (ekran ekran — backend bunları beslemeli)
+**Tasarım dili:** koyu NOC (`vizz-pro.css`), sarı `#FFC400` spotlight, çizgi-ikon (emoji-UI yok), ECharts grafik, Leaflet+CARTO koyu harita. Operasyon **ferah** düzen (1260px ortalı kolon) + **her sayfada sabit üst KPI şeridi** + light/dark tema.
+
+**① Dispatcher / Operasyon — 15 modül (sol rail):**
+1. **Komuta** — NOC harita (kurye+restoran+bölge poligonu) + KPI şeridi + **Atama Kuyruğu** (oto/manuel ata) + **Canlı Kanal Akışı** (Getir/Yemeksepeti/Trendyol/VIZZ App marka rozetli sipariş düşüşü). KPI kartları → tıkla → modal (aktif sipariş/saha kurye/SLA/ciro…).
+2. **Siparişler** — tüm sipariş geçmişi: tarih aralığı + filtre + **CSV** + durum pipeline filtresi + **Kaynak** (kanal) + Taşıma Ücr. + Ödeme kolonları.
+3. **Kuryeler** — grid + tıkla→scorecard drawer (7-gün teslimat, performans barları, belgeler).
+4. **Dükkanlar** — işletme tablosu (bugün paket/ciro/komisyon/**net hakediş=cari**/hazırlık/puan) + drawer (ciro chart + en çok satan + cari hesap).
+5. **Atama Ayarları** — 3 sekme: **Genel** (Otomatik Atama, Algoritma [Akıllı Skor/Sıralı/En Yakın], Sıralama Kriteri, Kümeleme, kapasite, mesafe limiti, kurye-restoran sabitleme, manuel transfer/havuzdan çekme) · **Bölgeler** (harita poligon) · **Kısıtlamalar** (kurye×restoran engelle).
+6. **Otomasyon** — ⭐ VIZZ farkı: kural+skor motoru canlı karar feed'i + karar-tipi donut + **Kurye Güven Skoru tablosu** (GPS/kabul/zamanında/şüpheli-iptal → 4 risk katmanı) + **Anomali & Sahtekârlık Radarı** (işi-sallama/geofence-dışı-teslim/hareketsizlik).
+7. **Bölgeler** — mahalle bazlı yoğunluk/fiyat çarpanı.
+8. **Taşıma Ücretleri** — restoran ücreti vs kurye ücreti tablosu (fark = VIZZ marjı).
+9. **Finans & Hakediş** — Cuma ödeme listesi + COD kasa + komisyon (üçlü cari).
+10. **Kontör / Bakiye** — prepaid bakiye opsiyonu (yüklenen/tüketilen/hediye + işlem geçmişi + otomatik yükleme). *(Gelir modeli opsiyonu — bkz. MİMARİ KARAR.)*
+11. **Kullanıcılar** — RBAC: roller (Sahip/Operasyon/Mağaza/Muhasebe) + granüler izinler.
+12. **Raporlar** — 9 ECharts kart (SLA gauge, persentil P50/P90/P95, aşama darboğazı, ısı haritası, iptal pareto, birim ekonomi waterfall, bölge ciro, kurye scatter).
+13. **Duyurular** — ekip/kurye bilgilendirme.
+14. **Ayarlar** — 3 sekme: **Operasyonel** (mola kuralları+yoğun saat, sipariş kuralları: fiş fotoğrafı/telefon/adres) · **Konum** (görünürlük, kurye adresi ne zaman görsün, **geofence teslim doğrulama**) · **Mali** (komisyon, Cuma ödeme, COD limiti, e-Fatura).
+15. **Destek** — canlı destek/telefon/talep + SSS.
+
+**② Kurye App:** durum (çevrimiçi toggle) + görev kabul/ret makinesi + anlık konum yayını + **kazanç + Cuma ödeme sayacı** (ECharts) + performans + profil/belge.
+
+**③ Restoran Panel:** **Sipariş Panosu** (KDS kanban: Yeni/Hazırlanıyor/Hazır/Kuryede/Tamamlandı + kanal rozeti) · **Canlı Takip** (sol sipariş listesi + sağ Leaflet harita: restoran+kurye+teslim rotası) · Menü (opsiyon+**stok/86**) · Kurye · Raporlar · **Finans & Cari** · Ayarlar (+**Entegrasyon & Kanallar:** entegrasyon kodu + Yemeksepeti/Trendyol/Getir eşleme). Üst bar: **cari bakiye** + **Kurye Çağır** (manuel sipariş drawer: müşteri/telefon/adres+haritadan seç/fiyat/ödeme/hazırlık/araç/not + canlı tahmini ücret+en yakın kurye ETA) + **Ödeme Al** (kurye+tutar → **4 haneli onay kodu** nakit mutabakat).
+
+**④ Müşteri App:** Keşfet/arama · Restoran/menü/opsiyon · Sepet/kupon · **Canlı Takip** (Domino's tarzı + harita) · Hesap + alt-ekranlar: **Favoriler · Geçmiş Siparişler (tekrar sipariş) · Kampanyalar (kupon) · Adres Yönetimi**. **Web:** keşfet + koyu Yozgat haritası + menü modal + sepet drawer.
+
+**⑤ VIZZ Market:** Müşteri mobil (katalog+kategori+hızlı sepet+canlı takip) · web · **Depo/Toplama paneli** (toplama listesi + stok + kurye çağır + KPI).
 
 ---
 
@@ -94,8 +122,9 @@
 ### 6.2 Gecikmesiz bildirim
 **FCM yüksek-öncelik push + WS.** Kurye X sn içinde **ack** vermezse → **SMS/çağrı fallback + sıradaki kuryeye yeniden ata.** Sipariş asla havada kalmaz. Gönderim **outbox** ile atomik (kaybolmaz/çift gitmez).
 
-### 6.3 Entegrasyon (Yemeksepeti / Trendyol Yemek / Getir Yemek)
-**`channels` modülü = adapter deseni.** Her platform webhook'u → `orders` tablosuna normalize (`channel` etiketiyle) → direkt dispatcher/restoran ekranına → VIZZ kurye atar → durum platforma geri senkron. *(Resmi partner API + anlaşma gerekir; MVP'de generic webhook + manuel, anlaşmalar geldikçe adapter aktifleşir. `channel` alanı + adapter arayüzü baştan şemada.)*
+### 6.3 Entegrasyon (Yemeksepeti / Trendyol Yemek / Getir Yemek) → tam strateji: [ENTEGRASYON-STRATEJISI.md](ENTEGRASYON-STRATEJISI.md)
+**`channels` modülü = adapter deseni.** Webhook → `orders`'a normalize (`channel` etiketli) → dispatcher/restoran ekranına → VIZZ kurye atar → durum platforma geri senkron. Prototipte canlı: Komuta'da **kanal akışı**, restoran panelinde **entegrasyon kodu + kanal eşleme**.
+**Sıra (araştırma sonucu):** (1) **Aggregator** (Posentegra/API Merkezi) — tek webhook = anında 4 platform, NDA yok, ~$15/ay → MVP. (2) **Trendyol + Getir** self-service credential (ücretsiz, `partner.trendyol.com` / `developers.getir.com`). (3) **Yemeksepeti** direkt partnerlik (NDA+PGP+onay) hacim büyüyünce. (4) **POS köprüsü:** restoran panelindeki entegrasyon kodu → POS'u hazır restoranlar yönlendirir. `channel_orders` eşleştirme + idempotency + outbox + auto-retry **baştan**.
 
 ### 6.4 Operasyon Otomasyonu (`ops_automation`)
 **Katman A — Kural+Skor (MVP, "AI deme — açıklanabilir otomasyon"):**
