@@ -77,6 +77,12 @@ Yazılımcı "para dönüyor, microservice + yedekli sunucu/backend olmalı, sun
 - **restoran-panel Sipariş Panosu: Kanban ↔ Liste(hepsi) toggle** — Eray "100 sipariş alt alta sığmaz, Minijett gibi hepsini gör" dedi → Liste modu = tek kompakt `table.grid` (id/kanal/müşteri/ürün/tutar/durum/SLA/kurye/aksiyon), stage'e göre sıralı, advance çalışır. `RP.panoView('kanban'|'liste')`, `refreshPano()`.
 - **Geliştirici devri:** repo **public kalsın** kararı (Eray). `docs/` + canlı prototip + **`memorybackup/` klasörü repoya konuldu** (github.com/eraycaylak/vizz/tree/main/memorybackup): `vizz-projesi.md` + `MEMORY.md` + `RESTORE-NASIL-KULLANILIR.md` (3 geri-yükleme yolu). Sadece VIZZ hafızası (kişisel/diğer-proje hariç).
 
+## 27 Haz (3) — Atama modeli düzeltmesi (Eray'ın yakaladığı ürün hatası)
+- Eray: "otomasyon yaptık (en yakın/yüksek puan/sıradaki) ama niye her siparişe **Otomatik Ata** tıklıyorum? mantıksız." → **HAKLI.**
+- **Doğru model:** varsayılan **Oto AÇIK** → motor sipariş düştüğü an otomatik atar (en yakın+skor), dispatcher sadece **izler**. **Manuel = istisna** (Hemen/Override butonları + header'da Oto AÇIK/KAPALI anahtarı; KAPALI=tam manuel).
+- **Uygulandı:** `operasyon.js` + `operasyon-mobil.html` → `autoOn=true`, `autoAssignTick()` bekleyenleri tek tek otomatik atar, kart "Otomatik atanıyor… en yakın+skor" gösterir, `toggleAuto()` + ⚡Oto AÇIK toggle. Eski "Otomatik Ata" butonları → "Hemen Ata" (override). Brief §①.1'e kritik kural yazıldı.
+- **Ders:** otomasyon varsa varsayılan otomatik olmalı; insana her olay için tıklatmak otomasyonu boşa çıkarır. [[asistan-tasarim-prensibi]] (modeli akıllı bırak) ile aynı çizgi.
+
 ## Eray'ın merak ettiği (cevaplandı, eklenmedi)
 WhatsApp Business API ile sipariş/onay akışı kurulabilir AMA canlı konum takibi WhatsApp'la olmaz (sadece anlık pin, sürekli stream yok) → kendi app şart. WhatsApp = MVP/yedek bildirim kanalı; operasyon zekası WhatsApp'a sığmaz. Hibrit en iyisi.
 

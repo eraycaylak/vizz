@@ -109,6 +109,9 @@
   .chanbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:9px 13px;border-bottom:1px solid var(--line);font-size:11px;color:var(--tx-3);background:var(--s1)}
   .chanbar .c{display:inline-flex;align-items:center;gap:5px;font-weight:700}
   .chanbar .c i{width:6px;height:6px;border-radius:50%}
+  .autotgl{display:inline-flex;align-items:center;gap:6px;background:var(--s3);border:1px solid var(--line-2);color:var(--tx-3);font-size:11px;font-weight:800;padding:6px 11px;border-radius:30px;cursor:pointer;white-space:nowrap}
+  .autotgl.on{background:var(--y-soft);border-color:var(--y-line);color:var(--y)}
+  .autotgl .ic{width:14px;height:14px}
   /* tıklanabilir KPI kartı */
   .kpi.clk{cursor:pointer;transition:.14s} .kpi.clk:hover{border-color:var(--line-3);transform:translateY(-2px)}
   .kpi .more{position:absolute;top:12px;right:13px;color:var(--tx-4);opacity:0;transition:.14s} .kpi.clk:hover .more{opacity:1}
@@ -182,7 +185,8 @@
           <div class="rcol">
             <div class="panel" style="flex:1;min-height:0">
               <div class="card-h"><div class="t"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Atama Kuyruğu</div>
-                <div class="seg"><button class="on" id="q-all">Tümü</button><button id="q-wait">Bekleyen</button><button id="q-market">Market</button></div></div>
+                <div style="display:flex;align-items:center;gap:8px"><button class="autotgl on" id="autoTgl" onclick="VZ.toggleAuto()" title="AÇIK iken motor otomatik atar; KAPALI'da sen atarsın"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="m13 2-3 7h6l-5 13 2-9H7l4-11Z"/></svg><span>Oto AÇIK</span></button>
+                <div class="seg"><button class="on" id="q-all">Tümü</button><button id="q-wait">Bekleyen</button><button id="q-market">Market</button></div></div></div>
               <div class="chanbar"><span class="dot pulse" style="width:7px;height:7px;border-radius:50%;background:var(--ok)"></span><b style="color:var(--tx-2)">Canlı kanal akışı</b>
                 <span class="c" style="color:#7B5CF0"><i style="background:#7B5CF0"></i>Getir</span>
                 <span class="c" style="color:#FA0050"><i style="background:#FA0050"></i>Yemeksepeti</span>

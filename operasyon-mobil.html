@@ -85,7 +85,7 @@ const $=s=>document.querySelector(s), D=window.VIZZ, Y=D.YOZGAT; $('#logo').src=
 const CHAN={vizz:{n:'VIZZ App',c:'#FFC400',bg:'rgba(255,196,0,.14)'},tel:{n:'Telefon',c:'#4C8DFF',bg:'rgba(76,141,255,.14)'},ys:{n:'Yemeksepeti',c:'#FA0050',bg:'rgba(250,0,80,.14)'},trendyol:{n:'Trendyol',c:'#F27A1A',bg:'rgba(242,122,26,.14)'},getir:{n:'Getir',c:'#7B5CF0',bg:'rgba(123,92,240,.16)'}};
 const FCH=['vizz','tel','ys','trendyol','getir'];
 const CUSTF=['Ahmet Yılmaz','Elif Kaya','Burak Şahin','Zeynep Arslan','Hasan Çelik','Kübra Öz','Emre Demir','Sema Ak'];
-let seq=7760;
+let seq=7760, autoOn=true;
 let orders=D.ORDERS.map((o,i)=>({...o, channel:o.vertical==='market'?'vizz':FCH[i%5], custFull:CUSTF[i%CUSTF.length], phone:'+90 53'+(i%9)+' '+(100+i*7%899)+' '+(10+i%89)}));
 let tt;function toast(m){const e=$('#toast');e.innerHTML='<svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="m9 11 3 3L22 4"/></svg>'+m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2200);}
 const online=D.COURIERS.filter(c=>c.status!=='break').length;
@@ -107,7 +107,9 @@ function renderAkis(){
      <div class="meta"><span>${isM?'🛒':'🍽'} <b>${o.rest}</b></span><span>👤 ${o.custFull}</span><span>📍 ${o.zone}</span><span style="color:${p[1]}">${p[0]}</span></div>
      ${o.courier
        ? `<div class="crow"><svg viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/></svg> ${o.courier} · ${o.min} dk yolda<b style="margin-left:auto;color:var(--y)">₺${o.total}</b></div>`
-       : `<div class="r2"><span class="tot">₺${o.total}</span><button class="ata" onclick="event.stopPropagation();OM.ata('${o.id}')"><svg class="ic ic-sm" viewBox="0 0 24 24" style="stroke:#15140F"><path d="m13 2-3 7h6l-5 13 2-9H7l4-11Z"/></svg>Otomatik Ata</button><button class="ata sec" onclick="event.stopPropagation();OM.toast('Manuel atama')">Manuel</button></div>`}
+       : (autoOn
+         ? `<div class="crow" style="color:var(--y);background:var(--y-soft);border-color:var(--y-line)"><svg viewBox="0 0 24 24" class="pulse" style="stroke:var(--y)"><path d="m13 2-3 7h6l-5 13 2-9H7l4-11Z"/></svg> Otomatik atanıyor… <b style="margin-left:auto;color:var(--y)">₺${o.total}</b><button class="ata sec" style="padding:6px 10px;font-size:11px" onclick="event.stopPropagation();OM.ata('${o.id}')">Hemen</button></div>`
+         : `<div class="r2"><span class="tot">₺${o.total}</span><button class="ata" onclick="event.stopPropagation();OM.ata('${o.id}')"><svg class="ic ic-sm" viewBox="0 0 24 24" style="stroke:#15140F"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Ata</button><button class="ata sec" onclick="event.stopPropagation();OM.toast('Kurye seç')">Kurye Seç</button></div>`)}
    </div>`;}).join('');
 }
 function renderKuryeler(){
@@ -156,6 +158,9 @@ setInterval(()=>{const ch=FCH[Math.floor(Math.random()*5)];const r=D.RESTAURANTS
   const card=$('#s-akis .oc'); if(card){card.style.animation='fade .5s ease';}
   toast(`<b style="color:${CHAN[ch].c}">${CHAN[ch].n}</b> · ${r.name} — yeni sipariş`);
 }, 7000);
+
+/* otomatik atama motoru — bekleyenleri tek tek otomatik atar (dispatcher tıklamaz, izler) */
+setInterval(()=>{ if(!autoOn)return; const pend=orders.filter(o=>!o.courier && o.status==='Atanıyor'); if(!pend.length)return; ata(pend[pend.length-1].id); }, 3000);
 
 renderKpi(); renderAkis(); renderKuryeler(); renderDaha();
 window.OM={ata,detail,kurye,toast};

@@ -91,7 +91,8 @@
 **Tasarım dili:** koyu NOC (`vizz-pro.css`), sarı `#FFC400` spotlight, çizgi-ikon (emoji-UI yok), ECharts grafik, Leaflet+CARTO koyu harita. Operasyon **ferah** düzen (1260px ortalı kolon) + **her sayfada sabit üst KPI şeridi** + light/dark tema.
 
 **① Dispatcher / Operasyon — 15 modül (sol rail):**
-1. **Komuta** — NOC harita (kurye+restoran+bölge poligonu) + KPI şeridi + **Atama Kuyruğu** (oto/manuel ata) + **Canlı Kanal Akışı** (Getir/Yemeksepeti/Trendyol/VIZZ App marka rozetli sipariş düşüşü). KPI kartları → tıkla → modal (aktif sipariş/saha kurye/SLA/ciro…).
+1. **Komuta** — NOC harita (kurye+restoran+bölge poligonu) + KPI şeridi + **Atama Kuyruğu** + **Canlı Kanal Akışı** (Getir/Yemeksepeti/Trendyol/VIZZ App marka rozetli sipariş düşüşü). KPI kartları → tıkla → modal (aktif sipariş/saha kurye/SLA/ciro…).
+   - **⚠️ ATAMA MODELİ (kritik — dispatcher her siparişi TIKLAMAZ):** Varsayılan **Oto AÇIK** → sipariş düştüğü an **motor otomatik atar** (en yakın + skor + sıradaki); dispatcher sadece **izler**. Sipariş kuyrukta kısa süre `Atanıyor → [otomatik]` gösterir, saniyeler içinde kurye atanır. **Manuel = istisna:** "Hemen" (zorla şimdi at) / "Override" (belirli kurye seç) butonları sadece gerektiğinde. Header'da **Oto AÇIK/KAPALI** anahtarı — KAPALI = tam manuel mod (her siparişi dispatcher atar). Prototipte canlı: `autoAssignTick()` motoru bekleyenleri tek tek atıyor, kart "Otomatik atanıyor… en yakın+skor" gösteriyor. *Otomasyon yaptıysak dispatcher'a her sipariş için tıklatmak yanlıştır.*
 2. **Siparişler** — tüm sipariş geçmişi: tarih aralığı + filtre + **CSV** + durum pipeline filtresi + **Kaynak** (kanal) + Taşıma Ücr. + Ödeme kolonları.
 3. **Kuryeler** — grid + tıkla→scorecard drawer (7-gün teslimat, performans barları, belgeler).
 4. **Dükkanlar** — işletme tablosu (bugün paket/ciro/komisyon/**net hakediş=cari**/hazırlık/puan) + drawer (ciro chart + en çok satan + cari hesap).
