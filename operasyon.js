@@ -268,20 +268,28 @@ function buildReports(){
 }
 
 /* ---------- diğer görünümler ---------- */
+const KAYNAK=[['VIZZ App','b-y'],['Telefon','b-info'],['Yemeksepeti','b-bad'],['Web','b-mute'],['Trendyol','b-warn'],['Getir','b-ok']];
 function buildGorevler(){
-  $('#v-gorevler').innerHTML = `<div class="rhead"><div><h2>Tüm Görevler</h2><p>canlı sipariş akışı · filtrele, ata, izle</p></div>
-    <div class="seg"><button class="on">Tümü</button><button>Aktif</button><button>Bekleyen</button><button>Tamamlanan</button></div></div>
-    <div class="card"><div style="overflow:auto;max-height:calc(100vh - 150px)"><table class="grid"><thead><tr>
-    <th>Sipariş</th><th>Dikey</th><th>Restoran</th><th>Müşteri</th><th>Bölge</th><th>Durum</th><th>Kurye</th><th>Tutar</th><th>SLA</th><th></th></tr></thead><tbody>`+
-    orders.concat([
+  const all=orders.concat([
       {id:'VZ-7744',rest:'Honey Burger House',cust:'E. Şahin',zone:'Bahçelievler',items:4,total:295,pay:'Kapıda Kart',status:'Teslim edildi',min:0,courier:'Caner T.'},
       {id:'VZ-7740',rest:'Sarı Kovan Kahvaltı',cust:'K. Öz',zone:'Köseoğlu',items:2,total:430,pay:'Online',status:'Hazırlanıyor',min:14,courier:null},
-    ]).map(o=>`<tr><td><b>${o.id}</b></td><td><span class="badge ${o.vertical==='market'?'b-y':'b-mute'}" style="font-size:10px">${o.vertical==='market'?'Market':'Yemek'}</span></td><td>${o.rest}</td><td>${o.cust||'—'}</td><td>${o.zone}</td>
+      {id:'VZ-7739',rest:'Bozok Lahmacun',cust:'A. Yıldız',zone:'Medrese',items:6,total:185,pay:'Online',status:'İptal',min:0,courier:null,vertical:'market'},
+    ]);
+  const pill=['Tümü','Hazırlanıyor','Atanıyor','Kurye yolda','Teslim edildi','İptal'];
+  $('#v-gorevler').innerHTML = `<div class="rhead"><div><h2>Siparişler</h2><p>geçmiş ve aktif tüm siparişler — filtrele, ata, izle, dışa aktar</p></div>
+    <div style="display:flex;gap:9px;align-items:center">
+      <div class="selbox" style="width:auto;padding:9px 13px" onclick="VZ.toast('Tarih aralığı seç')"><svg class="ic ic-sm" viewBox="0 0 24 24" style="color:var(--tx-3);margin-right:7px"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>26 Haz 2026<svg class="ic ic-sm" viewBox="0 0 24 24" style="color:var(--tx-3)"><path d="M6 9l6 6 6-6"/></svg></div>
+      <button class="btn" onclick="VZ.toast('Filtre paneli')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 4h16l-6 8v6l-4 2v-8L4 4Z"/></svg>Filtreler</button>
+      <button class="btn btn-y" onclick="VZ.toast('CSV indiriliyor — '+${all.length}+' sipariş')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>CSV İndir</button></div></div>
+    <div class="seg" style="margin-bottom:18px;flex-wrap:wrap">${pill.map((p,i)=>`<button class="${i===0?'on':''}" onclick="VZ.gorevFilter(this,'${p}')">${p}</button>`).join('')}</div>
+    <div class="card"><div style="overflow:auto;max-height:calc(100vh - 230px)"><table class="grid"><thead><tr>
+    <th>Sipariş</th><th>Kaynak</th><th>Restoran</th><th>Müşteri</th><th>Bölge</th><th>Durum</th><th>Kurye</th><th>Taşıma Ücr.</th><th>Ödeme</th><th>Tutar</th><th>SLA</th><th></th></tr></thead><tbody id="gorevBody">`+
+    all.map((o,i)=>{const k=KAYNAK[i%KAYNAK.length];const tas=29+(i*7)%20;return `<tr data-st="${o.status}"><td><b>${o.id}</b></td><td><span class="badge ${k[1]}" style="font-size:10px">${k[0]}</span></td><td>${o.rest}</td><td>${o.cust||'—'}</td><td>${o.zone}</td>
       <td><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></td>
-      <td>${o.courier||'<span class="dim">—</span>'}</td><td class="num"><b>₺${o.total}</b></td>
+      <td>${o.courier||'<span class="dim">—</span>'}</td><td class="num">₺${tas}</td><td class="dim">${o.pay}</td><td class="num"><b>₺${o.total}</b></td>
       <td>${o.min?`<span class="num" style="color:${o.min<6?'var(--bad)':'var(--ok)'}">${o.min} dk</span>`:'<span class="dim">—</span>'}</td>
-      <td><button class="btn btn-ghost btn-icon" onclick="VZ.toast('${o.id} detayı')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button></td></tr>`).join('')+
-    `</tbody></table></div></div>`;
+      <td><button class="btn btn-ghost btn-icon" onclick="VZ.toast('${o.id} detayı')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button></td></tr>`;}).join('')+
+    `</tbody></table></div><div style="padding:14px 22px;border-top:1px solid var(--line);font-size:12px;color:var(--tx-3)">${all.length} sipariş gösteriliyor</div></div>`;
 }
 function buildKuryeler(){
   $('#v-kuryeler').innerHTML = `<div class="rhead"><div><h2>Kuryeler</h2><p>${online} aktif · esnaf filo · puantaj + performans</p></div>
@@ -354,15 +362,46 @@ function buildBolgeler(){
     Y.zones.map((z,i)=>{const ord=Math.round(rnd(8,40)),kur=Math.round(rnd(0,4)),sure=Math.round(rnd(22,38)),yog=Math.round(rnd(20,100));return `<tr><td><b>${z.n}</b></td><td class="num">${ord}</td><td class="num">${kur}</td><td class="num">${sure} dk</td><td><div class="bar-mini" style="width:90px"><i style="width:${yog}%;background:${yog>70?'var(--bad)':yog>40?'var(--y)':'var(--ok)'}"></i></div></td><td class="num">×${(1+i%3*0.1).toFixed(1)}</td><td><span class="badge b-ok">Aktif</span></td></tr>`;}).join('')+
     `</tbody></table></div></div>`;
 }
+let ayarTab='operasyonel';
 function buildAyarlar(){
-  $('#v-ayarlar').innerHTML=`<div class="rhead"><div><h2>Atama Motoru Ayarları</h2><p>çok-kriterli skor ağırlıkları · açıklanabilir atama</p></div></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:840px">
-    <div class="card" style="padding:16px"><div class="t" style="margin-bottom:14px">Skor Ağırlıkları</div>
-      ${[['Mesafe / ETA',45],['Anlık kurye yükü',20],['Geçmiş performans',15],['Bölge uyumu',12],['Adalet (gün içi denge)',8]].map(w=>`<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span class="muted">${w[0]}</span><b class="num">%${w[1]}</b></div><div class="bar-mini" style="height:8px"><i style="width:${w[1]*2}%"></i></div></div>`).join('')}</div>
-    <div class="card" style="padding:16px"><div class="t" style="margin-bottom:14px">Atama Modu</div>
-      <div class="seg" style="width:100%"><button class="on" style="flex:1">En yakın</button><button style="flex:1">En az yüklü</button><button style="flex:1">Round-robin</button></div>
-      <div style="margin-top:16px;font-size:12.5px" class="muted">⏱ Teklif zaman aşımı: <b class="hl">45 sn</b><br>🔁 Otomatik yeniden atama: <b style="color:var(--ok)">Açık</b><br>🧠 Açıklanabilir atama (gerekçe logu): <b style="color:var(--ok)">Açık</b><br>🛡 Manuel override: <b style="color:var(--ok)">Her zaman</b></div></div>
-  </div>`;
+  const sw=(lab,desc,on)=>`<div class="setrow"><div><div class="lab">${lab}</div>${desc?`<div class="desc">${desc}</div>`:''}</div><div class="swwrap"><span class="st ${on?'on':''}">${on?'AÇIK':'KAPALI'}</span><div class="sw ${on?'on':''}" onclick="VZX.sw(this)"><i></i></div></div></div>`;
+  const sel=(lab,val,hint)=>`<div class="field"><label>${lab}</label><div class="selbox" onclick="VZX&&VZX.toast('${lab}')">${val}<svg class="ic ic-sm" viewBox="0 0 24 24" style="color:var(--tx-3)"><path d="M6 9l6 6 6-6"/></svg></div>${hint?`<div class="hint">${hint}</div>`:''}</div>`;
+  const inpRow=(lab,desc,val,suf)=>`<div class="setrow"><div><div class="lab">${lab}</div>${desc?`<div class="desc">${desc}</div>`:''}</div><div style="display:flex;align-items:center;gap:8px"><div class="inp" style="width:90px;text-align:center">${val}</div>${suf?`<span class="dim">${suf}</span>`:''}</div></div>`;
+  let body='';
+  if(ayarTab==='operasyonel'){
+    body=`<div class="setcard"><div class="sectitle">Mola Kuralları</div>
+      ${sw('Kuryeler kendileri molaya çıkabilir mi?','Hayır seçilirse kuryeleri ancak kurye şefleri ve yöneticiler molaya çıkarabilir.',true)}
+      ${inpRow('Mola süresi','Bir kuryenin toplam günlük mola hakkı.','30','dk')}
+      ${sw('Yoğun saatte mola talebi yapılabilir mi?','Kapalıyken yoğun saat aralıklarında molaya çıkılamaz.',false)}
+      <div class="setrow"><div style="flex:1"><div class="lab">Yoğun saat aralıkları</div><div class="desc">Mola yasağının uygulanacağı saatler.</div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <span class="badge b-warn" style="padding:8px 14px">Öğle · 11:30 – 14:00</span>
+          <span class="badge b-warn" style="padding:8px 14px">Akşam · 19:00 – 22:00</span></div></div></div></div>
+    <div class="setcard"><div class="sectitle">Sipariş Kuralları</div>
+      ${sw('Teslim alırken fiş fotoğrafı zorunlu','Kurye paketi restorandan alırken fişin fotoğrafını çekmek zorunda.',true)}
+      ${sw('Restoran siparişe telefon eklemek zorunda','Müşteri telefonu olmadan sipariş açılamaz.',false)}
+      ${sw('Kurye almadan adres değiştirilebilsin','Restoran, kurye paketi almadan önce teslim adresini düzeltebilir.',true)}</div>
+    <div class="setcard"><div class="sectitle">Çalışma Aralığı</div>
+      ${sel('Bayi çalışma saatleri','00:00 – 23:59','Operasyonun açık olduğu saat aralığı.')}</div>
+    <button class="btn btn-y" style="width:100%;padding:14px" onclick="VZX&&VZX.save('Operasyonel ayarlar kaydedildi')">Kaydet</button>`;
+  } else if(ayarTab==='konum'){
+    body=`<div class="setcard"><div class="sectitle">Görünürlük</div>
+      ${sw('Firmalar kurye konumunu görebilsin','Restoran paneli canlı kurye konumunu haritada görebilir.',true)}
+      ${sel('Kuryeler adresi ne zaman görsün?','Yola çıktıktan sonra','Müşteri mahremiyeti: adres erken görünmez. (Atandığında · Pakete giderken · Yola çıktıktan sonra)')}
+      ${inpRow('Konum güncelleme sıklığı','Kurye GPS konumunun sunucuya gönderilme aralığı.','5','sn')}
+      ${sw('Geofence teslim doğrulama','Teslim onayı yalnızca kurye müşteri adresine yakınken geçerli — sahte teslimi engeller.',true)}</div>
+    <button class="btn btn-y" style="width:100%;padding:14px" onclick="VZX&&VZX.save('Konum ayarları kaydedildi')">Kaydet</button>`;
+  } else {
+    body=`<div class="setcard"><div class="sectitle">Komisyon & Ödeme</div>
+      ${inpRow('VIZZ komisyon oranı','Yemek dikeyinde restoran cirosundan kesilen oran.','8','%')}
+      ${sel('Kurye ödeme günü','Cuma 18:00','Haftalık hakediş bu gün IBAN’a aktarılır.')}
+      ${inpRow('COD nakit limiti','Kuryenin üzerinde taşıyabileceği max tahsilat.','2.000','₺')}
+      ${sw('Otomatik hakediş hesapla','Hafta sonu paket başı + prim − iade otomatik hesaplanır.',true)}
+      ${sw('e-Fatura entegrasyonu','Komisyon faturaları GİB üzerinden otomatik kesilir.',false)}</div>
+    <button class="btn btn-y" style="width:100%;padding:14px" onclick="VZX&&VZX.save('Mali ayarlar kaydedildi')">Kaydet</button>`;
+  }
+  $('#v-ayarlar').innerHTML=`<div class="rhead"><div><h2>Ayarlar</h2><p>kuryeler ve restoranlar için operasyonel kurallar, konum ve mali parametreler</p></div></div>
+    <div class="tabs">${[['operasyonel','Operasyonel Ayarlar'],['konum','Konum Ayarları'],['mali','Mali Ayarlar']].map(t=>`<button class="${t[0]===ayarTab?'on':''}" onclick="VZ.ayarTab('${t[0]}')">${t[1]}</button>`).join('')}</div>${body}`;
 }
 
 /* ---------- DÜKKANLAR (restoranlar) ---------- */
@@ -569,5 +608,8 @@ window.addEventListener('vizz-theme-change', () => {
   }
 });
 
-window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer,oto:toast};
+function gorevFilter(btn,st){ btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  document.querySelectorAll('#gorevBody tr').forEach(tr=>{ tr.style.display=(st==='Tümü'||tr.dataset.st===st)?'':'none'; }); }
+function ayarTabFn(t){ ayarTab=t; buildAyarlar(); }
+window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer,oto:toast,gorevFilter,ayarTab:ayarTabFn};
 })();
