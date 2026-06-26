@@ -155,16 +155,36 @@ $('#q-market').onclick=()=>{curFilter='market';qseg('q-market');renderQueue('mar
 
 /* ---------- canlı kurye listesi ---------- */
 function renderCouriers(){
-  $('#courierList').innerHTML = D.COURIERS.map(c=>{
+  const isDemoPenalty = localStorage.getItem('vizz_courier_penalty_demo') === 'true';
+  let list = [...D.COURIERS];
+  if(isDemoPenalty) {
+    const c1 = list.find(x=>x.id===1);
+    if(c1) {
+      list = list.filter(x=>x.id!==1);
+      list.push(c1); // Sıra sonuna at
+    }
+  }
+
+  $('#courierList').innerHTML = list.map(c=>{
     const st = c.status==='delivering'?'busy':c.status==='online'?'on':'off';
-    const col = c.status==='delivering'?'b-y':c.status==='online'?'b-ok':'b-mute';
+    let col = c.status==='delivering'?'b-y':c.status==='online'?'b-ok':'b-mute';
+    let tr = c.statusTr;
+    let rankAlert = '';
+
+    if(isDemoPenalty && c.id===1) {
+      col = 'b-bad';
+      tr = 'Cezalı (Sıra Sonu)';
+      rankAlert = '<div style="color:var(--bad);font-size:10px;margin-top:2px;font-weight:600">⚠️ Görev reddetti, sıra sonuna atıldı</div>';
+    }
+
     return `<div style="display:flex;align-items:center;gap:11px;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer" onclick="VZ.courierDrawer(${c.id})">
       <div class="av ${st}">${c.name.split(' ').map(p=>p[0]).join('')}</div>
-      <div style="flex:1;min-width:0"><div style="display:flex;gap:7px;align-items:center"><b style="color:var(--tx);font-size:12.5px">${c.name}</b><span class="badge ${col}" style="font-size:10px;padding:2px 7px">${c.statusTr}</span></div>
-        <div class="dim" style="font-size:11px;margin-top:2px">${c.zone} · ⭐ ${c.rate} · kabul %${c.accept}</div></div>
+      <div style="flex:1;min-width:0"><div style="display:flex;gap:7px;align-items:center"><b style="color:var(--tx);font-size:12.5px">${c.name}</b><span class="badge ${col}" style="font-size:10px;padding:2px 7px">${tr}</span></div>
+        <div class="dim" style="font-size:11px;margin-top:2px">${c.zone} · ⭐ ${c.rate} · kabul %${c.accept}</div>${rankAlert}</div>
       <div style="text-align:right"><div class="num" style="color:var(--y);font-weight:700;font-size:13px">₺${c.earn}</div><div class="dim" style="font-size:10.5px">${c.today} teslimat</div></div>
     </div>`; }).join('');
 }
+window.addEventListener('storage', () => renderCouriers());
 
 /* ---------- RAPORLAR (leapfrog dashboard) ---------- */
 function buildReports(){

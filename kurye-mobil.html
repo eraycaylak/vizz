@@ -397,6 +397,7 @@
         <div class="cdt"><span>Yanıt süresi</span><span class="hl num" id="invSec">15 sn</span></div>
       </div>
       <div class="iact">
+        <div style="text-align:center;font-size:11.5px;color:var(--bad);width:100%;margin-bottom:10px;font-weight:600">⚠️ Reddederseniz sıranın en sonuna atılacaksınız.</div>
         <button class="bigbtn ghost rej" id="invReject">Reddet</button>
         <button class="bigbtn y" id="invAccept"><svg class="ic" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg> Kabul et</button>
       </div>
@@ -489,7 +490,7 @@
   }
   function closeInvite(){$('#invite').classList.remove('on');clearInterval(invTimer);}
   $('#demoInvite').onclick=openInvite;
-  $('#invReject').onclick=()=>{closeInvite();toast('Davet reddedildi · sıradaki kuryeye gidiyor');};
+  $('#invReject').onclick=()=>{closeInvite();localStorage.setItem('vizz_courier_penalty_demo','true');toast('Davet reddedildi · sıra sonuna atıldınız');window.dispatchEvent(new Event('storage'));};
   $('#invAccept').onclick=()=>{closeInvite();toast('Görev kabul edildi → VZ-7743');$('#taskDot').style.display='block';resetTask();go('aktif');};
 
   /* ============ AKTİF GÖREV — durum makinesi ============ */
