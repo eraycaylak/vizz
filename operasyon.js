@@ -11,6 +11,7 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 const charts=[];
 let activeCourierId = null;
 let activeDukkanId = null;
+let reportsBuilt = false;
 
 function getThemeStyles() {
   const isLight = document.body.classList.contains('light-theme');
@@ -140,18 +141,29 @@ const CHAN={
   getir:{n:'Getir Yemek',c:'#7B5CF0',bg:'rgba(123,92,240,.16)'},
 };
 function chanBadge(k){ const c=CHAN[k]; if(!c)return ''; return `<span class="chan" style="color:${c.c};background:${c.bg};border-color:${c.c}55"><span class="dot" style="background:${c.c}"></span>${c.n}</span>`; }
-let orders = D.ORDERS.map((o,i)=>({...o, channel:o.vertical==='market'?'vizz':['vizz','tel','ys','vizz','getir','trendyol'][i%6]}));
+/* sipariş zenginleştirme: müşteri tam ad + telefon + tam adres + ödeme tipi */
+const STREETS=['Lise Cad.','Atatürk Bul.','Gazi Cad.','Şehit Pilot Sok.','Sakarya Cad.','Bağdat Sok.','Çamlık Cad.','Hükümet Cad.','İstasyon Cad.','Yeni Çarşı Sok.'];
+const CUSTF=['Ahmet Yılmaz','Mehmet Demir','Elif Kaya','Selin Çelik','Zeynep Arslan','Burak Şahin','Kerem Doğan','Hülya Aydın','Ali Demir','Sema Kaya','Hasan Çelik','Kübra Öz','Emre Şahin','Zehra Aydın'];
+function payInfo(p){ if(/Nakit/i.test(p||''))return{n:'Nakit',c:'#26C281',ic:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'};
+  if(/Kart|POS/i.test(p||''))return{n:'Kapıda POS',c:'#4C8DFF',ic:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>'};
+  return{n:'Online (ödendi)',c:'#FFC400',ic:'<circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/>'}; }
+function enrichOrder(o,i){ const idn=Math.abs(parseInt(String(o.id).replace(/\D/g,''))||i||0);
+  return {...o, custFull:CUSTF[idn%CUSTF.length],
+    phone:'+90 53'+(idn%9)+' '+(100+idn%899)+' '+(10+idn%89)+' '+(10+(idn*7)%89),
+    addr:o.zone+' Mah. '+STREETS[idn%STREETS.length]+' No:'+(2+idn%88)+' D:'+(1+idn%6)}; }
+let orders = D.ORDERS.map((o,i)=>enrichOrder({...o, channel:o.vertical==='market'?'vizz':['vizz','tel','ys','vizz','getir','trendyol'][i%6]}, i));
 const slaCls=s=>s==='Hazırlanıyor'?'b-warn':s==='Atanıyor'?'b-bad':s==='Kurye yolda'?'b-info':'b-ok';
 function renderQueue(filter){
   const list = filter==='wait' ? orders.filter(o=>!o.courier) : filter==='market' ? orders.filter(o=>o.vertical==='market') : orders;
   $('#queue').innerHTML = list.map(o=>{
     const isM=o.vertical==='market';
-    return `<div class="ord ${o.status==='Atanıyor'?'live':''}">
+    const p=payInfo(o.pay);
+    return `<div class="ord ${o.status==='Atanıyor'?'live':''}" style="cursor:pointer" onclick="VZ.orderDetail('${o.id}')">
     <div class="r1"><span class="id">${o.id}</span><span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${chanBadge(o.channel)}<span class="badge ${isM?'b-y':'b-mute'}" style="font-size:10px"><span class="dot"></span>${isM?'Market':'Yemek'}</span><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></span></div>
-    <div class="meta"><span>${isM?'🛒':'🍽'} <b>${o.rest}</b></span><span>📍 ${o.zone}</span><span>${o.items} ürün · <b class="num">₺${o.total}</b></span><span>${o.pay}</span></div>
+    <div class="meta"><span>${isM?'🛒':'🍽'} <b>${o.rest}</b></span><span>👤 ${o.custFull}</span><span>📍 ${o.zone}</span><span>${o.items} ürün · <b class="num">₺${o.total}</b></span><span style="color:${p.c}">${p.n}</span></div>
     ${o.courier
       ? `<div class="sla" style="color:var(--info)"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/></svg> ${o.courier} · ${o.min} dk · <span class="muted">${isM?'market SLA 15-25 dk':'SLA güvenli'}</span></div>`
-      : `<div class="act"><button class="btn btn-y" onclick="VZ.assign('${o.id}')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="m13 2-3 7h6l-5 13 2-9H7l4-11Z"/></svg>Otomatik Ata</button><button class="btn" onclick="VZ.toast('${isM?'Market':'Yemek'} manuel atama paneli — kurye seç')">Manuel</button></div>`}
+      : `<div class="act"><button class="btn btn-y" onclick="event.stopPropagation();VZ.assign('${o.id}')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="m13 2-3 7h6l-5 13 2-9H7l4-11Z"/></svg>Otomatik Ata</button><button class="btn" onclick="event.stopPropagation();VZ.toast('${isM?'Market':'Yemek'} manuel atama paneli — kurye seç')">Manuel</button></div>`}
   </div>`}).join('') || '<div class="dim" style="text-align:center;padding:28px;font-size:12px">Kuyruk temiz 🐝</div>';
 }
 function assign(id){ const o=orders.find(x=>x.id===id); const free=D.COURIERS.filter(c=>c.status==='online'); const k=free[Math.floor(Math.random()*free.length)]||D.COURIERS[0];
@@ -211,6 +223,9 @@ function buildReports(){
     {id:'r-unit',col:4,t:'Birim Ekonomi (sipariş başı)',s:'katkı payı kırılımı — CFO görünümü',h:230},
     {id:'r-zone',col:6,t:'Mahalle Bazlı Ciro',s:'en çok ciro üreten bölgeler',h:200},
     {id:'r-perf',col:6,t:'Kurye Performansı',s:'teslimat × zamanında % (balon = kazanç)',h:200},
+    {id:'r-peak',col:7,t:'Yoğun Saatler × Restoran',s:'hangi saatte hangi restoran kaç paket atıyor',h:240},
+    {id:'r-dist',col:5,t:'Mesafe Dağılımı (km)',s:'ort. 2.4 km · teslimat başına mesafe',h:240},
+    {id:'r-speed',col:12,t:'Kurye Hız Sıralaması',s:'km/saat · en hızlı kurye üstte (ort. teslimat dk ↓)',h:260},
   ];
   $('#reportGrid').innerHTML = cards.map(c=>`<div class="card col-${c.col}"><div class="card-h"><div class="t">${c.t}</div><span class="dim" style="font-size:11px">${c.s}</span></div><div style="padding:10px 12px 12px;flex:1;display:flex"><div class="chart" id="${c.id}" style="height:${c.h}px"></div></div></div>`).join('');
 
@@ -275,6 +290,26 @@ function buildReports(){
     xAxis:{type:'value',name:'teslimat',...s.axis},yAxis:{type:'value',name:'zamanında %',min:80,max:100,...s.axis},
     series:[{type:'scatter',data:sc,symbolSize:v=>8+v[2]/90,itemStyle:{color:s.y,opacity:.85,borderColor:s.isLight ? '#ffffff' : '#0B0C0E',borderWidth:1}}]});
 
+  // Yoğun saatler × restoran (stacked bar — hangi saatte hangi restoran kaç paket)
+  const PHRS=['11','12','13','14','17','18','19','20','21'], topR=D.RESTAURANTS.slice(0,4);
+  const palette=[s.y,s.info,s.ok,s.purple];
+  const peakSeries=topR.map((r,ri)=>({name:r.name,type:'bar',stack:'p',barWidth:'58%',itemStyle:{color:palette[ri]},
+    data:PHRS.map((h,hi)=>{const base=(hi===1||hi===2||hi>=5)?6:2; return Math.round(base+((r.id*7+hi*3)%6)+(hi>4?3:0));})}));
+  mkChart('r-peak').setOption({tooltip:{trigger:'axis',...s.tip,axisPointer:{type:'shadow'}},legend:{show:true,top:0,textStyle:{color:s.tx3,fontSize:9},itemWidth:9,itemHeight:9,icon:'circle'},
+    grid:{left:6,right:10,top:26,bottom:6,containLabel:true},xAxis:{type:'category',data:PHRS.map(h=>h+':00'),...s.axis,axisLabel:{...s.axis.axisLabel,fontSize:9}},yAxis:{type:'value',name:'paket',...s.axis},series:peakSeries});
+
+  // Mesafe dağılımı (km histogram)
+  const dbins=['0-1','1-2','2-3','3-4','4-5','5+'], dcnt=[9,28,34,19,8,4];
+  mkChart('r-dist').setOption({tooltip:{trigger:'axis',...s.tip,formatter:p=>p[0].name+' km · <b>'+p[0].value+' teslimat</b>'},grid:{left:6,right:12,top:28,bottom:6,containLabel:true},
+    xAxis:{type:'category',data:dbins,...s.axis,name:'km',nameLocation:'end',nameGap:6},yAxis:{type:'value',...s.axis},
+    series:[{type:'bar',data:dcnt.map((v,i)=>({value:v,itemStyle:{color:i<2?s.ok:i<4?s.y:s.bad,borderRadius:[3,3,0,0]}})),barWidth:'62%',markLine:{symbol:'none',label:{color:s.tx2,fontSize:10,formatter:'ort 2.4km'},lineStyle:{color:s.tx3,type:'dashed'},data:[{xAxis:2}]}}]});
+
+  // Kurye hız sıralaması (km/saat, en hızlı üstte)
+  const spd=D.COURIERS.slice(0,10).map(c=>{const ci=c.id,ortTes=22+(ci*3)%16;return {n:c.name,v:+(60/ortTes*(2.4+(ci%5)*0.45)).toFixed(1),tes:ortTes};}).sort((a,b)=>a.v-b.v);
+  mkChart('r-speed').setOption({tooltip:{trigger:'axis',...s.tip,formatter:p=>p[0].name+': <b>'+p[0].value+' km/s</b><br>ort. teslimat '+spd[p[0].dataIndex].tes+' dk'},grid:{left:6,right:30,top:8,bottom:6,containLabel:true},
+    xAxis:{type:'value',name:'km/saat',...s.axis},yAxis:{type:'category',data:spd.map(x=>x.n),...s.axis},
+    series:[{type:'bar',data:spd.map((x,i)=>({value:x.v,itemStyle:{color:i===spd.length-1?s.y:(s.isLight?'#cbd5e1':'#3a4048'),borderRadius:[0,4,4,0]}})),barWidth:'62%',label:{show:true,position:'right',color:s.tx2,fontSize:10,formatter:'{c} km/s'}}]});
+
   setTimeout(()=>charts.forEach(c=>c.resize()),60);
 }
 
@@ -299,7 +334,7 @@ function buildGorevler(){
       <td><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></td>
       <td>${o.courier||'<span class="dim">—</span>'}</td><td class="num">₺${tas}</td><td class="dim">${o.pay}</td><td class="num"><b>₺${o.total}</b></td>
       <td>${o.min?`<span class="num" style="color:${o.min<6?'var(--bad)':'var(--ok)'}">${o.min} dk</span>`:'<span class="dim">—</span>'}</td>
-      <td><button class="btn btn-ghost btn-icon" onclick="VZ.toast('${o.id} detayı')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button></td></tr>`;}).join('')+
+      <td><button class="btn btn-ghost btn-icon" onclick="VZ.orderDetail('${o.id}')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button></td></tr>`;}).join('')+
     `</tbody></table></div><div style="padding:14px 22px;border-top:1px solid var(--line);font-size:12px;color:var(--tx-3)">${all.length} sipariş gösteriliyor</div></div>`;
 }
 function buildKuryeler(){
@@ -324,6 +359,9 @@ function courierDrawer(id){
   activeDukkanId = null;
   const c=D.COURIERS.find(x=>x.id===id); const d=$('#drawer');
   const s=getThemeStyles();
+  const ci=c.id, nakit=250+(ci*173)%1400, posT=300+(ci*97)%900, limit=2000, fill=Math.min(100,Math.round(nakit/limit*100));
+  const kasaDur = nakit>=limit?['Limit doldu — yeni sipariş DURDU','b-bad','var(--bad)'] : nakit>=limit*0.85?['Limite yaklaşıyor','b-warn','var(--warn)'] : ['Normal','b-ok','var(--ok)'];
+  const ortTes=22+(ci*3)%16, km=(1.8+(ci%6)*0.5).toFixed(1), hiz=(60/ortTes*(2.4+(ci%5)*0.45)).toFixed(1);
   d.innerHTML = `<div class="card-h" style="border-radius:0"><div class="t"><div class="av busy" style="width:34px;height:34px">${c.name.split(' ').map(p=>p[0]).join('')}</div> ${c.name}</div>
     <button class="btn btn-ghost btn-icon" onclick="VZ.closeDrawer()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <div style="overflow:auto;padding:16px;flex:1">
@@ -336,6 +374,23 @@ function courierDrawer(id){
       <div class="card" style="margin-bottom:13px"><div class="card-h"><div class="t">Son 7 gün teslimat</div></div><div style="padding:10px"><div class="chart" id="dc1" style="height:140px"></div></div></div>
       <div class="card" style="margin-bottom:13px"><div class="card-h"><div class="t">Performans</div></div><div style="padding:12px 14px">
         ${[['Zamanında teslim',96,'var(--ok)'],['Kabul oranı',c.accept,'var(--y)'],['Müşteri puanı',c.rate*20,'var(--info)']].map(p=>`<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span class="muted">${p[0]}</span><b class="num">${p[0]==='Müşteri puanı'?c.rate:'%'+Math.round(p[1])}</b></div><div class="bar-mini" style="height:7px"><i style="width:${p[1]}%;background:${p[2]}"></i></div></div>`).join('')}
+      </div></div>
+      <div class="card" style="margin-bottom:13px"><div class="card-h"><div class="t">Kasa Mutabakatı</div><span class="badge ${kasaDur[1]}"><span class="dot"></span>${kasaDur[0]}</span></div>
+        <div style="padding:12px 14px">
+          <div style="display:flex;gap:10px;margin-bottom:13px">
+            <div style="flex:1"><div class="dim" style="font-size:10px">CEBİNDEKİ NAKİT</div><div class="num" style="font-size:17px;font-weight:800;color:${kasaDur[2]}">₺${nakit}</div></div>
+            <div style="flex:1"><div class="dim" style="font-size:10px">POS TAHSİLAT</div><div class="num" style="font-size:17px;font-weight:800;color:var(--info)">₺${posT}</div></div>
+            <div style="flex:1"><div class="dim" style="font-size:10px">VIZZ'E TESLİM</div><div class="num" style="font-size:17px;font-weight:800">₺${nakit}</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span class="muted">Kasa limiti · ₺${limit}</span><b class="num" style="color:${kasaDur[2]}">%${fill}</b></div>
+          <div class="bar-mini" style="height:8px"><i style="width:${fill}%;background:${kasaDur[2]}"></i></div>
+          ${nakit>=limit?'<div style="font-size:11px;color:var(--bad);margin-top:8px">⚠️ Limit aşıldı — kurye nakit teslim edene kadar yeni sipariş alamaz</div>':''}
+          <button class="btn btn-y" style="width:100%;padding:9px;margin-top:11px" onclick="VZ.toast('${c.name} kasa teslim alındı · ₺${nakit} (4 haneli kod onayı)')">Nakit Teslim Al</button>
+        </div></div>
+      <div class="card" style="margin-bottom:13px"><div class="card-h"><div class="t">Hız & Mesafe</div></div><div style="padding:12px 14px;display:flex;gap:10px">
+        <div style="flex:1"><div class="dim" style="font-size:10px">ORT. TESLİMAT</div><div class="num" style="font-size:16px;font-weight:800">${ortTes} dk</div></div>
+        <div style="flex:1"><div class="dim" style="font-size:10px">ORT. MESAFE</div><div class="num" style="font-size:16px;font-weight:800">${km} km</div></div>
+        <div style="flex:1"><div class="dim" style="font-size:10px">HIZ</div><div class="num" style="font-size:16px;font-weight:800;color:var(--y)">${hiz} km/s</div></div>
       </div></div>
       <div class="card"><div class="card-h"><div class="t">Belgeler</div><span class="badge b-ok">Geçerli</span></div><div style="padding:12px 14px;font-size:12px" class="muted">Ehliyet ✓ · MYK Seviye-3 ✓ · SRC ✓ · Trafik sigortası ✓ · Vergi levhası ✓</div></div>
     </div>
@@ -607,9 +662,10 @@ function channelFeed(){
     const ch=FEED_CH[Math.floor(Math.random()*FEED_CH.length)];
     const r=D.RESTAURANTS[Math.floor(Math.random()*D.RESTAURANTS.length)];
     const z=Y.zones[Math.floor(Math.random()*Y.zones.length)];
-    const o={id:'VZ-'+(feedSeq++),rest:r.name,cust:NAMES_C[Math.floor(Math.random()*NAMES_C.length)],zone:z.n,
-      items:1+Math.floor(Math.random()*4),total:85+Math.floor(Math.random()*330),pay:Math.random()<.5?'Online':'Kapıda Nakit',
-      status:'Atanıyor',min:1,courier:null,channel:ch};
+    const pays=['Kapıda Nakit','Kapıda Kart','Online'];
+    const o=enrichOrder({id:'VZ-'+(feedSeq++),rest:r.name,cust:NAMES_C[Math.floor(Math.random()*NAMES_C.length)],zone:z.n,
+      items:1+Math.floor(Math.random()*4),total:85+Math.floor(Math.random()*330),pay:pays[Math.floor(Math.random()*3)],
+      status:'Atanıyor',min:1,courier:null,channel:ch}, feedSeq);
     orders.unshift(o); if(orders.length>16) orders.pop();
     renderQueue(curFilter);
     const card=$('#queue .ord'); if(card){ card.classList.add('newdrop'); setTimeout(()=>card.classList.remove('newdrop'),1700); }
@@ -671,8 +727,26 @@ function formModal(kind,editTitle){
   openModal('form',TITLE,fields+note+foot,'<path d="M12 5v14M5 12h14"/>');
 }
 function formSave(t){ closeModal(); toast(`<b>${t||'Kayıt'}</b> tamam · prototip (gerçek üründe API'ye yazılır)`); }
+function orderDetail(id){
+  const o=orders.find(x=>x.id===id); if(!o)return; const p=payInfo(o.pay); const isM=o.vertical==='market';
+  const stages=['Alındı','Hazırlanıyor','Atandı','Yolda','Teslim'];
+  const cur=o.status==='İptal'?-1:o.status==='Teslim edildi'?5:o.courier?3:o.status==='Hazırlanıyor'?1:2;
+  const tl=stages.map((s,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0"><span style="width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:${i<cur?'var(--ok)':i===cur?'var(--y)':'var(--s4)'};color:#0b0c0e;font-size:10px;font-weight:800;flex:none">${i<cur?'✓':''}</span><span style="font-size:12.5px;color:${i<=cur?'var(--tx)':'var(--tx-3)'};font-weight:${i===cur?700:400}">${s}</span><span class="dim num" style="margin-left:auto;font-size:11px">${i<=cur&&cur>=0?('18:'+String((10+i*9)%60).padStart(2,'0')):''}</span></div>`).join('');
+  const row=(lab,val)=>`<div style="display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)"><span class="dim" style="font-size:12px;flex:none">${lab}</span><span style="font-size:13px;color:var(--tx);font-weight:600;text-align:right">${val}</span></div>`;
+  const html=`<div style="display:flex;align-items:center;gap:7px;margin-bottom:14px;flex-wrap:wrap">${chanBadge(o.channel)}<span class="badge ${isM?'b-y':'b-mute'}" style="font-size:10px">${isM?'Market':'Yemek'}</span><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></div>
+    ${row('Müşteri',o.custFull)}
+    ${row('Telefon',`<span style="color:var(--info)">${o.phone}</span>`)}
+    ${row('Adres',`<span style="max-width:280px;display:inline-block">${o.addr}</span>`)}
+    ${row(isM?'Depo':'Restoran',o.rest+' · '+o.zone)}
+    ${row('Ödeme',`<span style="color:${p.c}"><svg class="ic ic-sm" viewBox="0 0 24 24" style="display:inline;vertical-align:-3px">${p.ic}</svg> ${p.n}</span>`)}
+    ${row('Tutar',`<b style="color:var(--y);font-size:15px">₺${o.total}</b> <span class="dim">· ${o.items} ürün</span>`)}
+    ${row('Kurye',o.courier?`${o.courier} · ${o.min} dk yolda`:'<span style="color:var(--bad)">henüz atanmadı</span>')}
+    <div class="sectitle" style="margin:16px 0 4px">Sipariş Akışı</div>${tl}
+    <div style="display:flex;gap:9px;margin-top:16px">${o.courier?`<button class="btn btn-y" style="flex:1" onclick="VZ.toast('${o.courier} aranıyor…')">Kuryeyi Ara</button>`:`<button class="btn btn-y" style="flex:1" onclick="VZ.assign('${o.id}');VZ.orderDetail('${o.id}')">Otomatik Ata</button>`}<button class="btn" style="flex:1" onclick="VZ.toast('Müşteri aranıyor…')">Müşteriyi Ara</button></div>`;
+  openModal('order',o.id+' · Sipariş Detayı',html,'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 13h6"/>');
+}
 function activeOrdersHTML(){ const act=orders.filter(o=>o.status!=='Teslim edildi'&&o.status!=='İptal');
-  return `<div class="dim" style="font-size:12px;margin-bottom:12px">${act.length} aktif sipariş · canlı akış</div>`+act.map(o=>`<div class="mrow"><div style="flex:1"><b style="color:var(--tx)">${o.id}</b> <span class="dim">· ${o.rest}</span><div class="dim" style="font-size:11.5px;margin-top:2px">📍 ${o.zone} · ${o.items} ürün · ₺${o.total}${o.courier?' · '+o.courier:''}</div></div><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></div>`).join(''); }
+  return `<div class="dim" style="font-size:12px;margin-bottom:12px">${act.length} aktif sipariş · tüm restoranlar · tıkla → detay</div>`+act.map(o=>{const p=payInfo(o.pay);return `<div class="mrow" style="cursor:pointer" onclick="VZ.orderDetail('${o.id}')"><div style="flex:1;min-width:0"><div><b style="color:var(--tx)">${o.id}</b> <span class="dim">· ${o.rest}</span></div><div class="dim" style="font-size:11.5px;margin-top:3px">${o.custFull} · 📍 ${o.zone} · <span style="color:${p.c}">${p.n}</span></div></div><div style="text-align:right;flex:none"><div><b class="num" style="color:var(--y)">₺${o.total}</b></div><div style="margin-top:4px"><span class="badge ${slaCls(o.status)}" style="font-size:9.5px"><span class="dot"></span>${o.status}</span></div></div></div>`;}).join(''); }
 function teslimatHTML(){ return `<div class="kstrip" style="grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
   <div class="kpi"><div class="lab">P50</div><div class="val"><span class="num">24</span><small> dk</small></div></div>
   <div class="kpi"><div class="lab">P90</div><div class="val"><span class="num">36</span><small> dk</small></div></div>
@@ -706,5 +780,5 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 function gorevFilter(btn,st){ btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
   document.querySelectorAll('#gorevBody tr').forEach(tr=>{ tr.style.display=(st==='Tümü'||tr.dataset.st===st)?'':'none'; }); }
 function ayarTabFn(t){ ayarTab=t; buildAyarlar(); }
-window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer,oto:toast,gorevFilter,ayarTab:ayarTabFn,kpiModal,closeModal,formModal,formSave};
+window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer,oto:toast,gorevFilter,ayarTab:ayarTabFn,kpiModal,closeModal,formModal,formSave,orderDetail};
 })();
