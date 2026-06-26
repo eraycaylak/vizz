@@ -57,7 +57,7 @@ function clock(){ const d=new Date(); $('#clock').textContent=String(d.getHours(
 clock(); setInterval(clock,15000);
 const online = D.COURIERS.filter(c=>c.status!=='break').length;
 $('#onlineN').textContent=online;
-$('#courierCnt').textContent=online+' aktif';
+(function(){const cc=$('#courierCnt'); if(cc) cc.textContent=online+' aktif';})();
 
 /* ---------- KPI şeridi + sparkline ---------- */
 const KPI=[
@@ -70,7 +70,8 @@ const KPI=[
 ];
 function renderKPIs(){
   const s = getThemeStyles();
-  $('#kpis').innerHTML = KPI.map((k,i)=>`<div class="kpi${k.accent?' accent':''}"><div class="lab">${k.lab}</div><div class="val">${k.val}</div><div class="sub">${k.sub}</div><div class="spark" id="sp${i}"></div></div>`).join('');
+  const KKEYS=['aktif','saha','teslimat','sla','bekleyen','ciro'];
+  $('#kpis').innerHTML = KPI.map((k,i)=>`<div class="kpi clk${k.accent?' accent':''}" onclick="VZ.kpiModal('${KKEYS[i]}')"><div class="more"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M7 7h10v10M7 17 17 7"/></svg></div><div class="lab">${k.lab}</div><div class="val">${k.val}</div><div class="sub">${k.sub}</div><div class="spark" id="sp${i}"></div></div>`).join('');
   KPI.forEach((k,i)=>{ const c=mkChart('sp'+i);
     const col = (k.col === C.y || k.col === '#FFC400') ? s.y : k.col;
     c.setOption({ grid:{left:0,right:0,top:6,bottom:0}, xAxis:{type:'category',show:false,data:k.data.map((_,j)=>j)}, yAxis:{type:'value',show:false,scale:true},
@@ -154,7 +155,7 @@ $('#q-wait').onclick=()=>{curFilter='wait';qseg('q-wait');renderQueue('wait');};
 $('#q-market').onclick=()=>{curFilter='market';qseg('q-market');renderQueue('market');};
 
 /* ---------- canlı kurye listesi ---------- */
-function renderCouriers(){
+function courierListHTML(){
   const isDemoPenalty = localStorage.getItem('vizz_courier_penalty_demo') === 'true';
   let list = [...D.COURIERS];
   if(isDemoPenalty) {
@@ -165,7 +166,7 @@ function renderCouriers(){
     }
   }
 
-  $('#courierList').innerHTML = list.map(c=>{
+  return list.map(c=>{
     const st = c.status==='delivering'?'busy':c.status==='online'?'on':'off';
     let col = c.status==='delivering'?'b-y':c.status==='online'?'b-ok':'b-mute';
     let tr = c.statusTr;
@@ -184,6 +185,7 @@ function renderCouriers(){
       <div style="text-align:right"><div class="num" style="color:var(--y);font-weight:700;font-size:13px">₺${c.earn}</div><div class="dim" style="font-size:10.5px">${c.today} teslimat</div></div>
     </div>`; }).join('');
 }
+function renderCouriers(){ const el=$('#courierList'); if(el) el.innerHTML=courierListHTML(); if($('#modal').classList.contains('on') && $('#modal').dataset.k==='saha'){ const mb=$('#modal .mbody'); if(mb) mb.innerHTML=courierListHTML(); } }
 window.addEventListener('storage', () => renderCouriers());
 
 /* ---------- RAPORLAR (leapfrog dashboard) ---------- */
@@ -308,6 +310,7 @@ function buildKuryeler(){
       </div></div>`;}).join('')+`</div>`;
 }
 function courierDrawer(id){
+  closeModal();
   activeCourierId = id;
   activeDukkanId = null;
   const c=D.COURIERS.find(x=>x.id===id); const d=$('#drawer');
@@ -608,8 +611,46 @@ window.addEventListener('vizz-theme-change', () => {
   }
 });
 
+/* ---------- KPI tıkla → modal ---------- */
+function openModal(key,title,html,icon){ const m=$('#modal'); m.dataset.k=key||'';
+  m.innerHTML=`<div class="mcard"><div class="mhead"><div class="t"><svg class="ic" viewBox="0 0 24 24">${icon||'<circle cx="12" cy="12" r="9"/>'}</svg>${title}</div>
+    <button class="btn btn-ghost btn-icon" onclick="VZ.closeModal()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><div class="mbody">${html}</div></div>`;
+  m.classList.add('on'); m.onclick=e=>{ if(e.target===m) closeModal(); }; }
+function closeModal(){ const m=$('#modal'); m.classList.remove('on'); m.innerHTML=''; m.dataset.k=''; }
+function activeOrdersHTML(){ const act=orders.filter(o=>o.status!=='Teslim edildi'&&o.status!=='İptal');
+  return `<div class="dim" style="font-size:12px;margin-bottom:12px">${act.length} aktif sipariş · canlı akış</div>`+act.map(o=>`<div class="mrow"><div style="flex:1"><b style="color:var(--tx)">${o.id}</b> <span class="dim">· ${o.rest}</span><div class="dim" style="font-size:11.5px;margin-top:2px">📍 ${o.zone} · ${o.items} ürün · ₺${o.total}${o.courier?' · '+o.courier:''}</div></div><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></div>`).join(''); }
+function teslimatHTML(){ return `<div class="kstrip" style="grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+  <div class="kpi"><div class="lab">P50</div><div class="val"><span class="num">24</span><small> dk</small></div></div>
+  <div class="kpi"><div class="lab">P90</div><div class="val"><span class="num">36</span><small> dk</small></div></div>
+  <div class="kpi"><div class="lab">P95</div><div class="val"><span class="num">41</span><small> dk</small></div></div></div>
+  <div class="dim" style="font-size:12.5px;line-height:1.6">Bugünkü ortalama <b class="hl">27 dk</b> — hedefin (30 dk) altında. En büyük darboğaz: <b style="color:var(--bad)">hazırlık 14 dk</b>. Aşama kırılımı için Raporlar → Aşama Darboğazı.</div>`; }
+function slaHTML(){ return `<div style="text-align:center;padding:6px 0 16px"><div style="font-size:46px;font-weight:800;color:var(--ok);line-height:1">%94</div><div class="dim" style="margin-top:6px">zamanında teslim · hedef %90 <span style="color:var(--ok)">✓</span></div></div>
+  <div class="mrow"><span style="flex:1">Zamanında</span><b class="num" style="color:var(--ok)">132 · %94</b></div>
+  <div class="mrow"><span style="flex:1">Geç teslim</span><b class="num" style="color:var(--bad)">8 · %6</b></div>
+  <div class="mrow"><span style="flex:1">Son 1 saat trend</span><b class="num" style="color:var(--ok)">▲ %2</b></div>`; }
+function bekleyenHTML(){ const wait=orders.filter(o=>!o.courier);
+  if(!wait.length)return `<div class="dim" style="text-align:center;padding:34px">Kuyruk temiz 🐝</div>`;
+  return wait.map(o=>`<div class="mrow"><div style="flex:1"><b style="color:var(--tx)">${o.id}</b> <span class="dim">· ${o.rest}</span><div class="dim" style="font-size:11.5px;margin-top:2px">📍 ${o.zone} · bekleme ~38 sn</div></div><button class="btn btn-y" style="padding:7px 12px" onclick="VZ.assign('${o.id}');VZ.kpiModal('bekleyen')">Otomatik Ata</button></div>`).join(''); }
+function ciroHTML(){ return `<div style="text-align:center;padding:4px 0 14px"><div style="font-size:42px;font-weight:800;color:var(--y);line-height:1">₺18.4K</div><div class="dim" style="margin-top:6px">bugün · <span style="color:var(--ok)">▲ %12</span> düne göre</div></div>
+  <div class="sectitle" style="margin-top:4px">Dikey kırılımı</div>
+  <div class="mrow"><span style="flex:1">🍽 Yemek</span><b class="num">₺14.9K · %81</b></div>
+  <div class="mrow"><span style="flex:1">🛒 Market</span><b class="num">₺3.5K · %19</b></div>
+  <div class="sectitle" style="margin-top:14px">En çok ciro · bölge</div>
+  ${[['Çapanoğlu',4200],['Cumhuriyet',3850],['Köseoğlu',3100]].map(z=>`<div class="mrow"><span style="flex:1">${z[0]}</span><b class="num">₺${z[1].toLocaleString('tr')}</b></div>`).join('')}`; }
+function kpiModal(key){
+  const M={
+    aktif:['Aktif Siparişler','<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 13h6"/>',activeOrdersHTML],
+    saha:['Sahadaki Kurye · '+online+'/15','<circle cx="12" cy="7" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',courierListHTML],
+    teslimat:['Teslimat Süresi','<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',teslimatHTML],
+    sla:['SLA — Zamanında Teslim','<path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4Z"/><path d="M9 12l2 2 4-4"/>',slaHTML],
+    bekleyen:['Bekleyen Atama','<path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/>',bekleyenHTML],
+    ciro:['Bugünkü Ciro','<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',ciroHTML],
+  }[key]; if(!M)return; openModal(key,M[0],M[2](),M[1]);
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+
 function gorevFilter(btn,st){ btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
   document.querySelectorAll('#gorevBody tr').forEach(tr=>{ tr.style.display=(st==='Tümü'||tr.dataset.st===st)?'':'none'; }); }
 function ayarTabFn(t){ ayarTab=t; buildAyarlar(); }
-window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer,oto:toast,gorevFilter,ayarTab:ayarTabFn};
+window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer,oto:toast,gorevFilter,ayarTab:ayarTabFn,kpiModal,closeModal};
 })();
