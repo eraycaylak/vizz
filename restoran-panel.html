@@ -2,6 +2,7 @@
 <html lang="tr"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VIZZ — Çapanoğlu Köftecisi · Operasyon</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="vizz-pro.css">
 <style>
   .app{display:grid;grid-template-columns:64px 1fr;height:100vh;overflow:hidden}
@@ -44,6 +45,16 @@
   /* ---------- KDS KANBAN ---------- */
   #v-pano{display:none;grid-template-rows:auto 1fr;gap:13px;padding:16px;position:absolute;inset:0;overflow:hidden}
   #v-pano.on{display:grid}
+  /* CANLI TAKİP (harita + sipariş listesi — Minijett işletme dashboard'u, daha iyisi) */
+  #v-takip{display:none;grid-template-rows:auto 1fr;gap:14px;padding:16px;position:absolute;inset:0;overflow:hidden}
+  #v-takip.on{display:grid}
+  .takip-wrap{display:grid;grid-template-columns:370px 1fr;gap:14px;min-height:0;overflow:hidden}
+  .takip-list{display:flex;flex-direction:column;gap:10px;overflow-y:auto;padding-right:4px}
+  .takip-map{border:1px solid var(--line);border-radius:16px;overflow:hidden;position:relative;background:#0d0f12;min-height:0}
+  #rmap{position:absolute;inset:0}
+  .leaflet-tile{filter:brightness(.92) contrast(1.05)}
+  .tk-card{background:var(--s2);border:1px solid var(--line);border-radius:13px;padding:12px 14px;cursor:pointer;transition:.14s;flex:none}
+  .tk-card:hover{border-color:var(--line-3);transform:translateX(2px)}
   .kstrip{display:grid;grid-template-columns:repeat(5,1fr);gap:11px}
   .kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;min-height:0;overflow:hidden}
   .kcol{background:var(--s1);border:1px solid var(--line);border-radius:var(--r-lg);display:flex;flex-direction:column;overflow:hidden;min-height:0}
@@ -165,6 +176,7 @@
   <aside class="rail">
     <img class="lg" id="logo" alt="VIZZ">
     <button class="ni on" data-v="pano" title="Sipariş Panosu"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Panel<span class="cnt" id="railCnt">5</span></button>
+    <button class="ni" data-v="takip" title="Canlı Takip"><svg class="ic" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Takip</button>
     <button class="ni" data-v="menu" title="Menü"><svg class="ic" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h12"/></svg>Menü</button>
     <button class="ni" data-v="kurye" title="Kurye"><svg class="ic" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8m6.5 6 2-6h2.5"/></svg>Kurye</button>
     <button class="ni" data-v="raporlar" title="Raporlar"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="9" width="3" height="8" rx="1"/><rect x="13" y="5" width="3" height="12" rx="1"/></svg>Rapor</button>
@@ -197,6 +209,9 @@
         <div class="kanban" id="kanban"></div>
       </section>
 
+      <!-- ============ CANLI TAKİP (harita + sipariş listesi) ============ -->
+      <section id="v-takip"></section>
+
       <!-- ============ MENÜ YÖNETİMİ ============ -->
       <section id="v-menu" class="view"></section>
 
@@ -224,6 +239,7 @@
 <div class="drawer" id="drawer"></div>
 <div class="toast" id="toast"></div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script src="vizz-data.js"></script>
 <script>
@@ -618,7 +634,7 @@ function buildFinans(){
 /* ===================================================================
    GÖRÜNÜM YÖNETİMİ
    =================================================================== */
-const names={pano:'Sipariş Panosu',menu:'Menü Yönetimi',kurye:'Kurye',raporlar:'Raporlar',finans:'Finans & Cari',ayarlar:'Ayarlar'};
+const names={pano:'Sipariş Panosu',takip:'Canlı Takip',menu:'Menü Yönetimi',kurye:'Kurye',raporlar:'Raporlar',finans:'Finans & Cari',ayarlar:'Ayarlar'};
 const built={};
 function go(v){
   document.querySelectorAll('.rail .ni').forEach(n=>n.classList.toggle('on',n.dataset.v===v));
@@ -626,6 +642,7 @@ function go(v){
   $('#v-'+v).classList.add('on'); $('#viewName').textContent='· '+names[v];
   if(v==='raporlar') buildReports();
   if(v==='kurye') buildKurye();
+  if(v==='takip') buildTakip();
   if(!built[v]){ built[v]=true; ({menu:buildMenu,ayarlar:buildAyarlar,finans:buildFinans}[v]||(()=>{}))(); }
   setTimeout(()=>charts.forEach(c=>c.resize()),80);
 }
@@ -644,7 +661,51 @@ window.addEventListener('vizz-theme-change', () => {
   if ($('#v-finans').classList.contains('on')) {
     buildFinans();
   }
+  if ($('#v-takip').classList.contains('on')) {
+    buildTakip();
+  }
 });
+
+/* ---------- CANLI TAKİP (harita + sipariş listesi) ---------- */
+let rmap;
+function buildTakip(){
+  const Y=D.YOZGAT;
+  const restZone=Y.zones.find(z=>z.n==='Çapanoğlu')||Y.zones[0];
+  const zoneC=name=>{const z=Y.zones.find(x=>x.n===(name||'').trim());return z?z.c:Y.center;};
+  const stMap={yeni:['Yeni','b-mute'],hazirlaniyor:['Hazırlanıyor','b-warn'],hazir:['Pakette bekliyor','b-info'],kuryede:['Yolda','b-y'],tamamlandi:['Teslim edildi','b-ok']};
+  const active=ORD.filter(o=>o.stage!=='tamamlandi');
+  $('#v-takip').innerHTML=`<div class="rhead" style="margin-bottom:0"><div><h2>Canlı Takip</h2><p>siparişlerin ve kuryelerin haritada · ${active.length} aktif teslimat</p></div>
+      <button class="btn btn-y" onclick="RP.cagir()"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8m6.5 6 2-6h2.5"/></svg>Kurye Çağır</button></div>
+    <div class="takip-wrap">
+      <div class="takip-list">${ORD.map(o=>{const st=stMap[o.stage]||['—','b-mute'];const cm=o.cust.split('·');return `<div class="tk-card" onclick="RP.toast('${o.id} detayı')">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="color:var(--tx);font-size:13px">${o.id}</b><span class="badge ${st[1]}" style="font-size:9.5px"><span class="dot"></span>${st[0]}</span></div>
+        <div style="font-size:12.5px;color:var(--tx-2);margin-top:6px">${cm[0].trim()} <span class="dim">· ${(cm[1]||'').trim()}</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px"><span class="dim" style="font-size:11.5px">${o.courier?`<svg class="ic ic-sm" viewBox="0 0 24 24" style="display:inline;vertical-align:-3px;color:var(--y)"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/></svg> ${o.courier}${o.cmin?' · '+o.cmin+' dk':''}`:'kurye atanmadı'}</span><b class="num" style="color:var(--tx)">₺${o.tot}</b></div></div>`;}).join('')}</div>
+      <div class="takip-map"><div id="rmap"></div>
+        <div style="position:absolute;left:12px;bottom:12px;z-index:500;background:rgba(13,15,18,.85);border:1px solid var(--line-2);border-radius:10px;padding:8px 12px;display:flex;gap:14px;font-size:11px;color:var(--tx-2);backdrop-filter:blur(6px)">
+          <span><i style="background:var(--y);width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px"></i>Restoran</span><span><i style="background:var(--info);width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px"></i>Kurye</span><span><i style="background:var(--ok);width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px"></i>Teslim noktası</span></div></div></div>`;
+  setTimeout(()=>initRmap(restZone,zoneC,active),70);
+}
+function initRmap(restZone,zoneC,active){
+  if(rmap){ rmap.remove(); rmap=null; }
+  rmap=L.map('rmap',{zoomControl:false,attributionControl:false}).setView(restZone.c,14);
+  const isL=document.body.classList.contains('light-theme');
+  L.tileLayer(isL?'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png':'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(rmap);
+  L.marker(restZone.c,{icon:L.divIcon({className:'',html:'<div style="width:32px;height:32px;border-radius:10px;background:var(--y);display:grid;place-items:center;border:2px solid #15140F;box-shadow:0 3px 9px rgba(0,0,0,.55);font-size:16px">🍴</div>',iconSize:[32,32],iconAnchor:[16,16]})}).addTo(rmap).bindTooltip('Çapanoğlu Köftecisi',{direction:'top'});
+  const bike='<div style="width:27px;height:27px;border-radius:50%;background:var(--info);display:grid;place-items:center;border:2px solid var(--bg);box-shadow:0 2px 7px rgba(0,0,0,.5)"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.2"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/></svg></div>';
+  const pts=[restZone.c];
+  active.filter(o=>o.stage==='kuryede').forEach(o=>{ const dz=zoneC((o.cust.split('·')[1]||'').trim());
+    const mid=[(restZone.c[0]+dz[0])/2+0.0018,(restZone.c[1]+dz[1])/2];
+    L.polyline([restZone.c,mid,dz],{color:'#FFC400',weight:3,dashArray:'7 6',opacity:.9}).addTo(rmap);
+    L.circleMarker(dz,{radius:6,color:'#26C281',fillColor:'#26C281',fillOpacity:1,weight:2}).addTo(rmap).bindTooltip(o.id+' · teslim',{direction:'top'});
+    L.marker(mid,{icon:L.divIcon({className:'',html:bike,iconSize:[27,27],iconAnchor:[13,13]})}).addTo(rmap).bindTooltip(o.courier+' · '+o.id,{direction:'top'});
+    pts.push(dz,mid);
+  });
+  D.COURIERS.filter(c=>c.status!=='break').slice(0,5).forEach((c,i)=>{ const p=[c.pos[0]+((i*7)%9-4)*.0012,c.pos[1]+((i*5)%9-4)*.0012];
+    L.marker(p,{icon:L.divIcon({className:'',html:bike,iconSize:[27,27],iconAnchor:[13,13]})}).addTo(rmap).bindTooltip(c.name+' · müsait',{direction:'top'}); pts.push(p); });
+  try{ rmap.fitBounds(L.latLngBounds(pts).pad(0.25)); }catch(e){}
+  setTimeout(()=>rmap&&rmap.invalidateSize(),130);
+}
 
 /* ---------- DRAWER: Kurye Çağır (Sipariş Oluştur) + Ödeme Al ---------- */
 function openDrawer(html){ const d=$('#drawer'); d.innerHTML=html; $('#scrim').classList.add('on'); d.classList.add('on'); }
