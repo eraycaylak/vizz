@@ -78,7 +78,7 @@ function buildAtama(){
 function buildTasima(){
   const rows=D.RESTAURANTS.map((r,i)=>{const rest=39+(i*7)%26, kur=22+(i*5)%18; return {name:r.name,zone:r.zone,tip:i%2?'Sabit':'Mesafeli',rest,kur,gec:'01.06.2026 →',durum:i%5===0?['Pasif','b-mute']:['Aktif','b-ok']};});
   $('#v-tasima').innerHTML=head('Taşıma Ücretleri','restoran ücreti & kurye ücreti — aradaki fark VIZZ marjı',
-    `<button class="btn btn-y" onclick="VZX.toast('Yeni taşıma ücreti tanımı')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Yeni Tanım</button>`)+
+    `<button class="btn btn-y" onclick="VZ.formModal('tarife')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Yeni Tanım</button>`)+
     tabsBar('tasima',[['aktif','Aktif Tanımlar'],['gecmis','Geçmiş']],T.tasima)+
     `<div class="kstrip" style="grid-template-columns:repeat(3,1fr)">
        <div class="kpi"><div class="lab">Ort. restoran ücreti</div><div class="val">₺<span class="num">48</span></div><div class="sub flat">paket başı</div></div>
@@ -88,7 +88,7 @@ function buildTasima(){
      rows.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.zone}</td><td><span class="badge b-mute" style="font-size:10px">${x.tip}</span></td>
        <td class="num">₺${x.rest}</td><td class="num">₺${x.kur}</td><td class="num"><b style="color:var(--ok)">₺${x.rest-x.kur}</b></td>
        <td class="dim">${x.gec}</td><td><span class="badge ${x.durum[1]}"><span class="dot"></span>${x.durum[0]}</span></td>
-       <td><button class="btn btn-ghost btn-icon" onclick="VZX.toast('${x.name} ücret düzenle')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></td></tr>`).join('')+
+       <td><button class="btn btn-ghost btn-icon" onclick="VZ.formModal('tarife','${x.name} — Ücret Düzenle')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></td></tr>`).join('')+
      `</tbody></table></div></div>`;
 }
 
@@ -128,7 +128,7 @@ function buildKullanicilar(){
     {n:'Murat Demir',u:'murat',e:'murat@vizz.com',rol:'Muhasebe',mag:'Tümü',d:['Pasif','b-mute'],son:'12 Haz'},
   ];
   $('#v-kullanicilar').innerHTML=head('Kullanıcılar','rol & izin yönetimi · kim neyi görebilir/yapabilir',
-    `<button class="btn btn-y" onclick="VZX.toast('Yeni kullanıcı + rol/izin editörü')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Yeni Kullanıcı</button>`)+
+    `<button class="btn btn-y" onclick="VZ.formModal('kullanici')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Yeni Kullanıcı</button>`)+
     `<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:20px">
       ${[['Sahip','Tam yetki','b-y'],['Operasyon Müdürü','Atama·kurye·rapor','b-info'],['Mağaza Yöneticisi','Kendi mağazası','b-ok'],['Muhasebe','Finans·fatura·hakediş','b-mute']].map(r=>`<div class="setcard" style="margin:0;padding:16px"><span class="badge ${r[2]}" style="margin-bottom:9px">${r[0]}</span><div class="desc" style="margin-top:8px">${r[1]}</div></div>`).join('')}
     </div>
@@ -138,7 +138,7 @@ function buildKullanicilar(){
       users.map(x=>`<tr><td><div style="display:flex;align-items:center;gap:10px"><div class="av on">${x.n.split(' ').map(p=>p[0]).join('')}</div><b>${x.n}</b></div></td>
         <td class="dim">@${x.u}</td><td class="dim">${x.e}</td><td><span class="badge ${roles[x.rol]}">${x.rol}</span></td><td>${x.mag}</td>
         <td><span class="badge ${x.d[1]}"><span class="dot"></span>${x.d[0]}</span></td><td class="dim">${x.son}</td>
-        <td><div style="display:flex;gap:5px"><button class="btn btn-ghost btn-icon" onclick="VZX.toast('${x.n} izinleri düzenle')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="btn btn-ghost btn-icon" onclick="VZX.toast('${x.n} pasife al')"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5 5l14 14"/></svg></button></div></td></tr>`).join('')+
+        <td><div style="display:flex;gap:5px"><button class="btn btn-ghost btn-icon" onclick="VZ.formModal('kullanici','${x.n} — Düzenle')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="btn btn-ghost btn-icon" onclick="VZX.toast('${x.n} pasife al')"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5 5l14 14"/></svg></button></div></td></tr>`).join('')+
       `</tbody></table></div></div>`;
 }
 
@@ -150,7 +150,7 @@ function buildDuyurular(){
     {t:'Bakım penceresi',d:'20 Haz 2026',b:'Pazar 03:00–04:00 arası kısa bakım yapılacak; atama 60 sn durabilir.',s:['Pasif','b-mute'],to:'Yöneticiler'},
   ];
   $('#v-duyurular').innerHTML=head('Duyurular','ekip & kurye bilgilendirmeleri',
-    `<button class="btn btn-y" onclick="VZX.toast('Yeni duyuru oluştur')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Yeni Duyuru</button>`)+
+    `<button class="btn btn-y" onclick="VZ.formModal('duyuru')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Yeni Duyuru</button>`)+
     `<div style="display:flex;flex-direction:column;gap:14px;max-width:840px">`+
     list.map(x=>`<div class="setcard" style="margin:0">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">

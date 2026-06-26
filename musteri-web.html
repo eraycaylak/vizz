@@ -164,7 +164,7 @@
 
   /* ---------- CART DRAWER ---------- */
   .cart{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:92vw;background:var(--s1);border-left:1px solid var(--line-2);
-    z-index:90;transform:translateX(104%);transition:.28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:var(--shadow-pop)}
+    z-index:110;transform:translateX(104%);transition:.28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:var(--shadow-pop)}
   .cart.on{transform:none}
   .cart-h{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
   .cart-h .t{font-size:15px;font-weight:800;display:flex;align-items:center;gap:9px}
@@ -213,6 +213,7 @@
   </div>
   <div class="nspace"></div>
   <button class="loc"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Yozgat, Merkez</button>
+  <button class="loc" id="acctBtn"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Hesabım</button>
   <button class="btn cartbtn" id="cartBtn"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 13.2A2 2 0 0 0 9.4 18h8.2a2 2 0 0 0 2-1.6L21 7H6"/></svg> Sepet <span class="cnt num" id="cartCnt">0</span></button>
 </div></div></nav>
 
@@ -302,6 +303,7 @@
 <div class="modal-scrim" id="modalScrim"></div>
 <div class="modal" id="modal"></div>
 <div class="cart" id="cart"></div>
+<div class="cart" id="acct"></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -506,6 +508,37 @@
   }
   function openCart(){ renderCart(); $('#modalScrim').classList.add('on'); $('#cart').classList.add('on'); }
   function closeCart(){ $('#cart').classList.remove('on'); if(!$('#modal').classList.contains('on')) $('#modalScrim').classList.remove('on'); }
+  /* ---- HESAP drawer (profil + adresler) ---- */
+  let acctV='home';
+  function buildAcct(){
+    const inS='width:100%;background:var(--s3);border:1px solid var(--line-2);border-radius:10px;padding:11px 12px;font-size:13.5px;color:var(--tx);font-family:inherit';
+    const fld=(lab,inp)=>`<div style="margin-bottom:12px"><label style="display:block;font-size:11.5px;font-weight:600;color:var(--tx-2);margin-bottom:6px">${lab}</label>${inp}</div>`;
+    let inner;
+    if(acctV==='addr'){
+      inner=`<div class="cart-h"><div class="t"><button class="btn btn-ghost btn-icon" onclick="VIZZW.acct('home')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button> Yeni Adres</div>
+        <button class="btn btn-ghost btn-icon" onclick="VIZZW.closeAcct()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+        <div class="cart-body">${fld('Adres etiketi',`<input style="${inS}" placeholder="Ev, İş, Annem…">`)}${fld('Açık adres',`<textarea style="${inS};resize:vertical" rows="3" placeholder="Mahalle, cadde, no, daire"></textarea>`)}${fld('Adres tarifi',`<input style="${inS}" placeholder="Kapı kodu, kat, not">`)}
+          <button onclick="VIZZW.toast2('Haritadan konum seç')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--s2);border:1px dashed var(--line-3);border-radius:10px;padding:11px;color:var(--tx-2);font-size:12.5px;font-weight:600;cursor:pointer"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Haritadan konum seç</button></div>
+        <div class="cart-foot"><button class="btn btn-y" style="width:100%" onclick="VIZZW.acctSave()">Adresi Kaydet</button></div>`;
+    } else {
+      const addrs=[['Ev','Cumhuriyet Mah. Lise Cad. No:14 D:3',true],['İş Yeri','Çapanoğlu Mah. Sanayi Sitesi B-Blok',false]];
+      inner=`<div class="cart-h"><div class="t"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-3.5 3-6 7-6s7 2.5 7 6"/></svg> Hesabım</div>
+        <button class="btn btn-ghost btn-icon" onclick="VIZZW.closeAcct()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+        <div class="cart-body">
+          <div style="display:flex;align-items:center;gap:13px;padding:6px 0 16px;border-bottom:1px solid var(--line);margin-bottom:16px"><div style="width:48px;height:48px;border-radius:14px;background:var(--y);color:#15140F;display:grid;place-items:center;font-weight:800;font-size:18px">E</div><div style="flex:1"><div style="font-weight:800;color:var(--tx)">Eray Çaylak</div><div style="font-size:12px;color:var(--tx-3)">+90 532 *** 14 88 · Yozgat</div></div><button class="btn btn-ghost btn-icon" onclick="VIZZW.toast2('Profil düzenle')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px"><b style="font-size:13px;color:var(--tx)">Kayıtlı Adresler</b><button onclick="VIZZW.acct('addr')" style="background:none;border:none;color:var(--y);font-size:12px;font-weight:700;cursor:pointer">+ Yeni Adres Ekle</button></div>
+          ${addrs.map(a=>`<div style="display:flex;align-items:center;gap:11px;padding:11px;border:1px solid var(--line);border-radius:12px;margin-bottom:9px"><svg class="ic" viewBox="0 0 24 24" style="color:var(--y)"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2v-9Z"/></svg><div style="flex:1"><div style="font-weight:700;font-size:13px;color:var(--tx)">${a[0]} ${a[2]?'<span style="font-size:9.5px;background:var(--y-soft);color:var(--y);padding:2px 7px;border-radius:20px;margin-left:4px">Varsayılan</span>':''}</div><div style="font-size:11.5px;color:var(--tx-3);margin-top:2px">${a[1]}</div></div><button class="btn btn-ghost btn-icon" onclick="VIZZW.toast2('${a[0]} düzenle')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div>`).join('')}
+          <div style="margin:18px 0 11px"><b style="font-size:13px;color:var(--tx)">Geçmiş Siparişler</b></div>
+          ${[['Çapanoğlu Köftecisi','Bugün · ₺195'],['Bozok Lahmacun','Dün · ₺160']].map(o=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><div><div style="font-weight:700;font-size:13px;color:var(--tx)">${o[0]}</div><div style="font-size:11.5px;color:var(--tx-3)">${o[1]}</div></div><button onclick="VIZZW.toast2('Tekrar sipariş sepete eklendi')" style="background:var(--y-soft);color:var(--y);border:none;border-radius:9px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">Tekrar</button></div>`).join('')}
+        </div>
+        <div class="cart-foot"><button class="btn" style="width:100%" onclick="VIZZW.toast2('Çıkış yapıldı')">Çıkış Yap</button></div>`;
+    }
+    $('#acct').innerHTML=inner;
+  }
+  function openAcct(){ acctV='home'; buildAcct(); $('#modalScrim').classList.add('on'); $('#acct').classList.add('on'); }
+  function closeAcct(){ $('#acct').classList.remove('on'); if(!$('#modal').classList.contains('on') && !$('#cart').classList.contains('on')) $('#modalScrim').classList.remove('on'); }
+  function acctNav(v){ acctV=v; buildAcct(); }
+  function acctSave(){ acctV='home'; buildAcct(); toast('Adres kaydedildi'); }
   function checkout(){ const {total}=cartTotals();
     Object.keys(cart).forEach(k=>delete cart[k]); afterCartChange(); closeCart();
     toast(`Siparişin alındı · ₺${total.toFixed(0)} — kurye atanıyor, canlı takip başladı`); }
@@ -524,11 +557,12 @@
 
   /* ---- overlays close ---- */
   $('#cartBtn').onclick=openCart;
-  $('#modalScrim').onclick=()=>{ $('#modal').classList.remove('on'); $('#cart').classList.remove('on'); $('#modalScrim').classList.remove('on'); };
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ $('#modal').classList.remove('on'); $('#cart').classList.remove('on'); $('#modalScrim').classList.remove('on'); } });
+  $('#acctBtn').onclick=openAcct;
+  $('#modalScrim').onclick=()=>{ ['#modal','#cart','#acct','#modalScrim'].forEach(s=>$(s).classList.remove('on')); };
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ ['#modal','#cart','#acct','#modalScrim'].forEach(s=>$(s).classList.remove('on')); } });
 
   const imgFallback = (el,slug)=>D.imgFallback(el,slug);
-  window.VIZZW = { add,inc,dec,closeMenu,closeCart,checkout,search:doSearch,imgFallback };
+  window.VIZZW = { add,inc,dec,closeMenu,closeCart,checkout,search:doSearch,imgFallback, openAcct,closeAcct,acct:acctNav,acctSave,toast2:toast };
 
   /* ---- init ---- */
   renderCats(); renderGrid(); renderCart(); initHeroMap();

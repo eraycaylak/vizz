@@ -304,7 +304,7 @@ function buildGorevler(){
 }
 function buildKuryeler(){
   $('#v-kuryeler').innerHTML = `<div class="rhead"><div><h2>Kuryeler</h2><p>${online} aktif · esnaf filo · puantaj + performans</p></div>
-    <button class="btn btn-y"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Kurye Ekle</button></div>
+    <button class="btn btn-y" onclick="VZ.formModal('kurye')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Kurye Ekle</button></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px">`+
     D.COURIERS.map(c=>{const st=c.status==='delivering'?'busy':c.status==='online'?'on':'off';const col=c.status==='delivering'?'b-y':c.status==='online'?'b-ok':'b-mute';
     return `<div class="card" style="padding:14px;cursor:pointer" onclick="VZ.courierDrawer(${c.id})">
@@ -369,7 +369,7 @@ function buildFinans(){
 }
 function buildBolgeler(){
   $('#v-bolgeler').innerHTML=`<div class="rhead"><div><h2>Bölge Yönetimi</h2><p>${Y.zones.length} mahalle · kapsama · bölge bazlı yoğunluk & fiyat</p></div>
-    <button class="btn btn-y"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 3 4 5v16l5-2 6 2 5-2V3l-5 2-6-2Z"/></svg>Yeni Bölge Çiz</button></div>
+    <button class="btn btn-y" onclick="VZ.formModal('bolge')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 3 4 5v16l5-2 6 2 5-2V3l-5 2-6-2Z"/></svg>Yeni Bölge Çiz</button></div>
     <div class="card"><div style="overflow:auto"><table class="grid"><thead><tr><th>Mahalle</th><th>Bugün sipariş</th><th>Aktif kurye</th><th>Ort. süre</th><th>Yoğunluk</th><th>Fiyat çarpanı</th><th>Durum</th></tr></thead><tbody>`+
     Y.zones.map((z,i)=>{const ord=Math.round(rnd(8,40)),kur=Math.round(rnd(0,4)),sure=Math.round(rnd(22,38)),yog=Math.round(rnd(20,100));return `<tr><td><b>${z.n}</b></td><td class="num">${ord}</td><td class="num">${kur}</td><td class="num">${sure} dk</td><td><div class="bar-mini" style="width:90px"><i style="width:${yog}%;background:${yog>70?'var(--bad)':yog>40?'var(--y)':'var(--ok)'}"></i></div></td><td class="num">×${(1+i%3*0.1).toFixed(1)}</td><td><span class="badge b-ok">Aktif</span></td></tr>`;}).join('')+
     `</tbody></table></div></div>`;
@@ -435,7 +435,7 @@ function buildDukkanlar(){
   const totalCiro=fins.reduce((a,x)=>a+x.f.ciro,0), totalKom=fins.reduce((a,x)=>a+x.f.komisyon,0);
   const totalPaket=fins.reduce((a,x)=>a+x.f.paket,0), aktif=fins.filter(x=>x.f.durum[0]!=='Kapalı').length;
   $('#v-dukkanlar').innerHTML=`<div class="rhead"><div><h2>Dükkanlar</h2><p>${D.RESTAURANTS.length} işletme · Yozgat · paket, ciro, komisyon, cari hakediş</p></div>
-    <button class="btn btn-y"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Dükkan Ekle</button></div>
+    <button class="btn btn-y" onclick="VZ.formModal('dukkan')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Dükkan Ekle</button></div>
    <div class="kstrip" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
      <div class="kpi"><div class="lab">Toplam dükkan</div><div class="val num">${D.RESTAURANTS.length}</div><div class="sub flat">${aktif} aktif</div></div>
      <div class="kpi"><div class="lab">Bugünkü toplam ciro</div><div class="val">₺<span class="num">${(totalCiro/1000).toFixed(1)}K</span></div><div class="sub up">▲ %14 dün</div></div>
@@ -646,6 +646,31 @@ function openModal(key,title,html,icon){ const m=$('#modal'); m.dataset.k=key||'
     <button class="btn btn-ghost btn-icon" onclick="VZ.closeModal()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><div class="mbody">${html}</div></div>`;
   m.classList.add('on'); m.onclick=e=>{ if(e.target===m) closeModal(); }; }
 function closeModal(){ const m=$('#modal'); m.classList.remove('on'); m.innerHTML=''; m.dataset.k=''; }
+/* ---------- genel FORM MODAL (ekle/düzenle) ---------- */
+const RZONE=['Çapanoğlu','Cumhuriyet','Medrese','Köseoğlu','Fatih','Bahçelievler','Aşağınohutlu','Karşıyaka'];
+const RNAMES=D.RESTAURANTS.map(r=>r.name);
+const FORMS={
+  kurye:{t:'Yeni Kurye Ekle',f:[['Ad Soyad','text','Örn. Caner Tunç'],['Telefon','tel','(5__) ___ __ __'],['Bölge','select',RZONE],['Araç','select',['Motosiklet','Bisiklet','Araba']],['Ehliyet / belge no','text','']]},
+  dukkan:{t:'Yeni Dükkan Ekle',f:[['İşletme adı','text',''],['Kategori','select',['Kebap','Pide','Lahmacun','Burger','Kahvaltı','Tatlı','Market']],['Adres','text',''],['Telefon','tel',''],['Ort. hazırlık (dk)','number','15'],['Komisyon (%)','number','8']]},
+  kullanici:{t:'Yeni Kullanıcı',f:[['Ad Soyad','text',''],['E-posta','email',''],['Telefon','tel',''],['Rol','select',['Sahip','Operasyon Müdürü','Mağaza Yöneticisi','Muhasebe']],['Mağaza','select',['Tümü',...RNAMES]]]},
+  tarife:{t:'Yeni Taşıma Ücreti',f:[['Restoran','select',RNAMES],['Ücret tipi','select',['Sabit','Mesafeli']],['Restoran ücreti (₺)','number','48'],['Kurye ücreti (₺)','number','29'],['Geçerlilik başlangıcı','text','01.07.2026']]},
+  duyuru:{t:'Yeni Duyuru',f:[['Başlık','text',''],['Mesaj','textarea','Duyuru metni…'],['Hedef','select',['Tüm ekip','Kuryeler','Yöneticiler']],['Durum','select',['Aktif','Pasif']]]},
+  bolge:{t:'Yeni Bölge',f:[['Bölge adı','text',''],['Fiyat çarpanı','number','1.0'],['Kurye havuzu','select',['Tümü','Sadece sabit kuryeler']]],note:'Gerçek üründe haritada poligon çizilir; burada bölge bilgileri.'},
+};
+function formModal(kind,editTitle){
+  const F=FORMS[kind]; if(!F)return; const TITLE=editTitle||F.t;
+  const fields=F.f.map(([lab,type,opt])=>{
+    let inp;
+    if(type==='select') inp=`<select class="inp">${(opt||[]).map(o=>`<option>${o}</option>`).join('')}</select>`;
+    else if(type==='textarea') inp=`<textarea class="inp" rows="3" placeholder="${opt||''}" style="resize:vertical"></textarea>`;
+    else inp=`<input class="inp" type="${type}" placeholder="${opt||''}">`;
+    return `<div class="field"><label>${lab}</label>${inp}</div>`;
+  }).join('');
+  const note=F.note?`<div class="hint" style="margin:-6px 0 16px">${F.note}</div>`:'';
+  const foot=`<div style="display:flex;gap:9px;margin-top:6px"><button class="btn" style="flex:1" onclick="VZ.closeModal()">İptal</button><button class="btn btn-y" style="flex:1.4" onclick="VZ.formSave('${TITLE}')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Kaydet</button></div>`;
+  openModal('form',TITLE,fields+note+foot,'<path d="M12 5v14M5 12h14"/>');
+}
+function formSave(t){ closeModal(); toast(`<b>${t||'Kayıt'}</b> tamam · prototip (gerçek üründe API'ye yazılır)`); }
 function activeOrdersHTML(){ const act=orders.filter(o=>o.status!=='Teslim edildi'&&o.status!=='İptal');
   return `<div class="dim" style="font-size:12px;margin-bottom:12px">${act.length} aktif sipariş · canlı akış</div>`+act.map(o=>`<div class="mrow"><div style="flex:1"><b style="color:var(--tx)">${o.id}</b> <span class="dim">· ${o.rest}</span><div class="dim" style="font-size:11.5px;margin-top:2px">📍 ${o.zone} · ${o.items} ürün · ₺${o.total}${o.courier?' · '+o.courier:''}</div></div><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></div>`).join(''); }
 function teslimatHTML(){ return `<div class="kstrip" style="grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
@@ -681,5 +706,5 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 function gorevFilter(btn,st){ btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
   document.querySelectorAll('#gorevBody tr').forEach(tr=>{ tr.style.display=(st==='Tümü'||tr.dataset.st===st)?'':'none'; }); }
 function ayarTabFn(t){ ayarTab=t; buildAyarlar(); }
-window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer,oto:toast,gorevFilter,ayarTab:ayarTabFn,kpiModal,closeModal};
+window.VZ={assign,toast,courierDrawer,closeDrawer,dukkanDrawer,oto:toast,gorevFilter,ayarTab:ayarTabFn,kpiModal,closeModal,formModal,formSave};
 })();
