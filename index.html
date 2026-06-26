@@ -21,12 +21,36 @@
   #introOverlay video { width: 100%; height: 100%; object-fit: cover; }
   #introOverlay.hidden { opacity: 0; pointer-events: none; }
   #startIntroBtn {
-    position: absolute; padding: 18px 40px; font-size: 20px; font-weight: 800;
-    border-radius: 40px; background: var(--blue-accent); color: #fff; border: none;
-    cursor: pointer; z-index: 10000; box-shadow: 0 10px 30px rgba(37,99,235,0.4);
-    font-family: inherit; transition: transform 0.2s, opacity 0.3s;
+    position: absolute; padding: 20px 48px 20px 76px; font-size: 26px; font-weight: 900;
+    border-radius: 60px; background: linear-gradient(135deg, #FFC400, #F2A900);
+    color: #14130F; border: 4px solid rgba(255,255,255,0.4);
+    cursor: pointer; z-index: 10000; box-shadow: 0 10px 40px rgba(255,196,0,0.5), inset 0 -4px 10px rgba(0,0,0,0.1);
+    font-family: inherit; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-transform: uppercase; letter-spacing: 1px; overflow: hidden;
   }
-  #startIntroBtn:hover { transform: scale(1.05); }
+  #startIntroBtn::before {
+    content: '🐝'; position: absolute; left: 24px; top: 50%;
+    transform: translateY(-50%); font-size: 34px;
+    animation: fly 2s infinite ease-in-out alternate;
+  }
+  @keyframes fly {
+    0% { transform: translateY(-40%) rotate(-15deg) translateX(-2px); }
+    100% { transform: translateY(-70%) rotate(15deg) translateX(4px); }
+  }
+  #startIntroBtn::after {
+    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 50%);
+    opacity: 0; transform: scale(0.5); transition: opacity 0.4s, transform 0.4s; pointer-events: none;
+  }
+  #startIntroBtn:hover {
+    transform: scale(1.08) translateY(-4px);
+    box-shadow: 0 20px 50px rgba(255,196,0,0.8), inset 0 -4px 10px rgba(0,0,0,0.1);
+    border-color: #fff;
+  }
+  #startIntroBtn:hover::after {
+    opacity: 1; transform: scale(1); animation: pulseGlow 1.5s infinite alternate;
+  }
+  @keyframes pulseGlow { 0% { opacity: 0.2; } 100% { opacity: 0.6; } }
   body{
     background: radial-gradient(circle at 50% -20%, #eff6ff 0%, #f8fafc 100%);
     color: var(--text-main);
@@ -93,7 +117,7 @@
 <body>
 <div id="introOverlay">
   <video id="introVid" src="img/vizzintro2.mp4" playsinline></video>
-  <button id="startIntroBtn">▶ Deneyimi Başlat</button>
+  <button id="startIntroBtn"><span>VIZZ'A GİR.</span></button>
 </div>
 <div class="wrap">
   <header>
