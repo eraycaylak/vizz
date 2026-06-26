@@ -9,9 +9,13 @@
   --font:'Segoe UI',Roboto,system-ui,-apple-system,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased}
-a{text-decoration:none;color:inherit}
-button{font-family:inherit;cursor:pointer}
+body{
+  font-family:var(--font);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' style='font-size:24px'><text y='26'>🐝</text></svg>") 16 16, auto !important;
+}
+a, button, .card, .item, .open, select, input[type="checkbox"], input[type="radio"], .btn {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' style='font-size:24px'><text y='26'>🍯</text></svg>") 16 16, pointer !important;
+}
 ::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#d8d2c2;border-radius:8px}
 
 /* brand */
