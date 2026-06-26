@@ -142,6 +142,23 @@
 
   @media(max-width:1240px){.kanban{grid-template-columns:repeat(3,1fr)}}
   @media(max-width:980px){.menuwrap{grid-template-columns:1fr}.catlist{flex-direction:row;flex-wrap:wrap;position:static}.setgrid{grid-template-columns:1fr}.kstrip{grid-template-columns:repeat(2,1fr)}}
+  /* drawer form (Kurye Çağır / Ödeme Al) */
+  .dr-h{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);flex:none}
+  .dr-h .t{font-size:15px;font-weight:800;display:flex;align-items:center;gap:9px} .dr-h .t .ic{color:var(--y)}
+  .dr-b{overflow:auto;padding:14px 18px;flex:1}
+  .dr-f{display:flex;gap:9px;padding:13px 18px;border-top:1px solid var(--line);flex:none}
+  .dseg{display:flex;background:var(--s1);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:8px}
+  .dseg button{flex:1;border:none;background:transparent;color:var(--tx-2);font-size:12.5px;font-weight:700;padding:9px;border-radius:7px;cursor:pointer}
+  .dseg button.on{background:var(--y);color:#15140F}
+  .dlab{font-size:11px;font-weight:700;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 9px;display:block}
+  .dfld{margin-bottom:11px} .dfld>label{display:block;font-size:11.5px;font-weight:600;color:var(--tx-2);margin-bottom:6px} .dfld>label .req{color:var(--bad)}
+  .di{width:100%;background:var(--s3);border:1px solid var(--line-2);border-radius:10px;padding:11px 12px;font-size:13.5px;color:var(--tx);font-family:inherit}
+  .di::placeholder{color:var(--tx-4)} .di:focus{outline:none;border-color:var(--y-line)}
+  .drow{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .dbtn-map{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--s2);border:1px dashed var(--line-3);border-radius:10px;padding:11px;color:var(--tx-2);font-size:12.5px;font-weight:600;cursor:pointer;margin-top:6px}
+  .dinfo{background:linear-gradient(120deg,var(--y-soft),var(--s2) 60%);border:1px solid var(--y-line);border-radius:12px;padding:13px 14px;margin-top:14px}
+  .dcode{display:flex;gap:8px;justify-content:center;margin:12px 0}
+  .dcode b{width:44px;height:52px;border-radius:11px;background:var(--s3);border:1px solid var(--y-line);display:grid;place-items:center;font-size:24px;font-weight:800;color:var(--y)}
 </style></head><body>
 <div class="app">
   <!-- RAIL -->
@@ -165,8 +182,11 @@
       </div>
       <div class="r">
         <button class="openTgl" id="openTgl"><span id="openLab">Açık</span><span class="sw"><i></i></span></button>
+        <span class="chip" title="Cari bakiye" style="cursor:pointer" onclick="RP.toast('Finans & Cari → bakiye detayı')"><svg class="ic ic-sm" viewBox="0 0 24 24" style="color:var(--y)"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><b class="num">₺47.4K</b></span>
         <span class="chip"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b id="clock">--:--</b></span>
-        <button class="btn btn-y" id="demoBtn"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Yeni Sipariş (demo)</button>
+        <button class="btn" id="odemeBtn" onclick="RP.odemeAl()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M3 7h18v10H3z"/><circle cx="12" cy="12" r="2.5"/></svg>Ödeme Al</button>
+        <button class="btn btn-y" id="cagirBtn" onclick="RP.cagir()"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8m6.5 6 2-6h2.5"/></svg>Kurye Çağır</button>
+        <button class="btn btn-icon" id="demoBtn" title="Demo sipariş ekle"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
     </div>
 
@@ -200,6 +220,8 @@
   </div>
 </div>
 
+<div class="scrim" id="scrim"></div>
+<div class="drawer" id="drawer"></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
@@ -535,6 +557,14 @@ function buildAyarlar(){
       <div class="setrow"><div class="lab">Stok bitince "86" uyarısı<span class="ds">Tükenen ürünü vitrinden gizle</span></div><button class="swp" onclick="RP.flip(this,'86 uyarısı')"><i></i></button></div>
       <div class="setrow"><div class="lab">Yoğun saat modu<span class="ds">+10 dk hazırlık tamponu</span></div><button class="swp off" onclick="RP.flip(this,'Yoğun saat modu')"><i></i></button></div>
     </div>
+    <div class="card" style="padding:6px 16px;grid-column:1/-1"><div class="t" style="margin:12px 0;font-weight:700">Entegrasyon & Kanallar</div>
+      <div class="setrow"><div class="lab">VIZZ Entegrasyon Kodu<span class="ds">Harici POS / sipariş sisteminde mağaza tanımı</span></div>
+        <div style="display:flex;align-items:center;gap:9px"><b class="num" style="color:var(--y);font-size:16px;letter-spacing:2px">790559</b><button class="btn btn-ghost btn-icon" onclick="RP.toast('Kod kopyalandı: 790559')"><svg class="ic ic-sm" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div></div>
+      <div class="setrow"><div class="lab">Yemeksepeti<span class="ds">Sipariş otomatik VIZZ panosuna düşer</span></div><button class="swp" onclick="RP.flip(this,'Yemeksepeti entegrasyonu')"><i></i></button></div>
+      <div class="setrow"><div class="lab">Trendyol Yemek<span class="ds">Çift-yön durum senkronu</span></div><button class="swp" onclick="RP.flip(this,'Trendyol entegrasyonu')"><i></i></button></div>
+      <div class="setrow"><div class="lab">Getir Yemek<span class="ds">Tek panodan tüm kanallar</span></div><button class="swp off" onclick="RP.flip(this,'Getir entegrasyonu')"><i></i></button></div>
+      <div class="setrow"><div class="lab">Harici POS / Sipariş Sistemi<span class="ds">Mağaza ID eşle</span></div><button class="btn btn-ghost" onclick="RP.toast('POS eşleme paneli')">Eşle</button></div>
+    </div>
   </div>`;
 }
 function flip(el,name){ el.classList.toggle('off'); toast(`<b>${name}</b> ${el.classList.contains('off')?'kapatıldı':'açıldı'}`); }
@@ -616,7 +646,52 @@ window.addEventListener('vizz-theme-change', () => {
   }
 });
 
-window.RP={advance,toggle86,cat,callCourier,flip,seg,toast};
+/* ---------- DRAWER: Kurye Çağır (Sipariş Oluştur) + Ödeme Al ---------- */
+function openDrawer(html){ const d=$('#drawer'); d.innerHTML=html; $('#scrim').classList.add('on'); d.classList.add('on'); }
+function closeDrawer(){ $('#scrim').classList.remove('on'); $('#drawer').classList.remove('on'); }
+$('#scrim').onclick=closeDrawer;
+const xBtn=`<button class="btn btn-ghost btn-icon" onclick="RP.closeDrawer()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>`;
+function cagir(){
+  openDrawer(`<div class="dr-h"><div class="t"><svg class="ic" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8m6.5 6 2-6h2.5"/></svg> Kurye Çağır</div>${xBtn}</div>
+   <div class="dr-b">
+     <div class="dseg"><button class="on" onclick="RP.cagirTab(this,'anlik')">Anlık</button><button onclick="RP.cagirTab(this,'ileri')">İleri Tarihli</button></div>
+     <div id="ileriBox" style="display:none"><div class="dfld"><label>Teslim zamanı</label><input class="di" value="Bugün 20:30" readonly></div></div>
+     <span class="dlab">Müşteri</span>
+     <div class="drow"><div class="dfld"><label>Ad <span class="req">*</span></label><input class="di" placeholder="Ad"></div><div class="dfld"><label>Soyad</label><input class="di" placeholder="Soyad"></div></div>
+     <div class="dfld"><label>Telefon <span class="req">*</span></label><input class="di" placeholder="(5__) ___ __ __"></div>
+     <span class="dlab">Adres</span>
+     <div class="dfld"><input class="di" placeholder="Sokak, cadde, mahalle ara…"></div>
+     <button class="dbtn-map" onclick="RP.toast('Haritadan konum seç (demo)')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Haritadan seç</button>
+     <span class="dlab">Sipariş Detayı</span>
+     <div class="drow"><div class="dfld"><label>Fiyat <span class="req">*</span></label><input class="di" placeholder="₺" value="285"></div><div class="dfld"><label>Ödeme Tipi</label><select class="di"><option>Nakit</option><option>Kapıda Kart</option><option>Online (ödendi)</option></select></div></div>
+     <div class="drow"><div class="dfld"><label>Hazırlama (dk)</label><select class="di"><option>10</option><option selected>15</option><option>20</option><option>30</option></select></div><div class="dfld"><label>Araç</label><select class="di"><option>Motosiklet</option><option>Bisiklet</option><option>Araba</option></select></div></div>
+     <div class="dfld"><label>Sipariş Notu</label><textarea class="di" rows="2" placeholder="Kapı kodu, kat, not…"></textarea></div>
+     <div class="dinfo"><div style="display:flex;align-items:center;gap:8px;margin-bottom:9px"><svg class="ic ic-sm" viewBox="0 0 24 24" style="color:var(--y)"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg><b style="font-size:12px">VIZZ canlı tahmin</b></div>
+       <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span class="muted">Tahmini taşıma ücreti</span><b style="color:var(--y)">₺29</b></div>
+       <div style="display:flex;justify-content:space-between;font-size:12.5px"><span class="muted">En yakın kurye</span><b>Caner T. · 4 dk uzakta</b></div></div>
+   </div>
+   <div class="dr-f"><button class="btn" style="flex:1" onclick="RP.closeDrawer()">İptal</button><button class="btn btn-y" style="flex:1.5" onclick="RP.cagirGonder()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="m13 2-3 7h6l-5 13 2-9H7l4-11Z"/></svg>Kuryeyi Gönder</button></div>`);
+}
+function cagirTab(btn,t){ btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); const ib=$('#ileriBox'); if(ib) ib.style.display=(t==='ileri')?'block':'none'; }
+function cagirGonder(){ closeDrawer(); toast('<b>Kurye çağrıldı</b> · Caner T. yola çıkıyor · ETA 4 dk'); }
+function odemeAl(){
+  const opts=D.COURIERS.filter(c=>c.status!=='break').slice(0,6).map(c=>`<option>${c.name}</option>`).join('');
+  openDrawer(`<div class="dr-h"><div class="t"><svg class="ic" viewBox="0 0 24 24"><path d="M3 7h18v10H3z"/><circle cx="12" cy="12" r="2.5"/></svg> Ödeme Al</div>${xBtn}</div>
+   <div class="dr-b">
+     <p class="muted" style="font-size:12.5px;line-height:1.55;margin-bottom:6px">Kuryeyi seç ve tahsil edilecek tutarı gir. <b style="color:var(--tx)">4 haneli onay kodu</b> oluşur; kurye kendi uygulamasında onaylayınca ödeme tamamlanır.</p>
+     <span class="dlab">Kurye</span><div class="dfld"><select class="di" id="odKurye">${opts}</select></div>
+     <div class="dfld"><label>Tahsil Tutarı <span class="req">*</span></label><input class="di" id="odTutar" value="420" placeholder="₺"></div>
+     <div class="dinfo" id="odCodeBox" style="display:none"><div style="text-align:center;font-size:11.5px" class="muted">Onay kodu — kuryeye okut</div><div class="dcode" id="odCode"></div><div style="text-align:center;font-size:11px" class="muted">Kurye app'inde onayladığında tamamlanır</div></div>
+     <span class="dlab">Bugünkü Tahsilatlar</span><div id="odList"><div class="muted" style="font-size:12.5px;text-align:center;padding:18px">Bugün henüz tahsilat yok</div></div>
+   </div>
+   <div class="dr-f"><button class="btn" style="flex:1" onclick="RP.closeDrawer()">İptal</button><button class="btn btn-y" style="flex:1.5" onclick="RP.kodOlustur()"><svg class="ic ic-sm" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><path d="M13 13h7v7"/></svg>Kod Oluştur</button></div>`);
+}
+function kodOlustur(){ const code=String(Math.floor(1000+Math.random()*9000)); const k=($('#odKurye')||{}).value||'Kurye'; const t=($('#odTutar')||{}).value||'0';
+  $('#odCode').innerHTML=code.split('').map(d=>`<b>${d}</b>`).join(''); $('#odCodeBox').style.display='block';
+  $('#odList').innerHTML=`<div class="setrow"><div class="lab">${k}<span class="ds">onay bekliyor · kod ${code}</span></div><b class="num" style="color:var(--warn)">₺${t}</b></div>`;
+  toast('Onay kodu: <b>'+code+'</b> · kuryeye okut'); }
+
+window.RP={advance,toggle86,cat,callCourier,flip,seg,toast,cagir,cagirTab,cagirGonder,odemeAl,kodOlustur,closeDrawer};
 })();
 </script>
 </body></html>

@@ -180,3 +180,35 @@ Kontör Yönetimi · Taşıma Ücretleri · Hakedişler(/invoices) · Duyurular 
 5. **Sekmeli alt-navigasyon** (sarı alt-çizgi aktif) modül içi: Organizasyon(4), Atama(3), Ayarlar(3), Hakediş(3), Raporlar(8).
 6. **Saat-aralığı input** (saat ikonu + canlı aralık ipucu) — operasyon kuralları için.
 7. **VIZZ üstünlüğü netleşti:** onların atama motoru 2 algoritma + manuel toggle = statik kural. Bizim **akıllı kural+skor + kurye güven skoru + anomali/sahtekârlık radarı + çok-kanal entegrasyon + tüketici/market dikeyi** onlarda YOK.
+
+---
+
+# Bölüm 3 — İşletme (Restoran) Paneli · canlı Chrome keşfi (26 Haz)
+Aynı `kokpit.minijett.com.tr` ama **restoran rolüyle** giriş → çok farklı, sade görünüm (light tema). VIZZ karşılığı = **restoran-panel.html**.
+
+## Rail (6 modül): Dashboard · Siparişler · Raporlar · Duyurular · Destek · **Mağaza Ayarları**
+## Üst bar: logo · 0 aktif · **2× bakiye pill (₺0.00 cüzdan + ₺0.00 kart)** · bildirim · **Sipariş Oluştur**(sarı) · **Ödeme Al** · Destek · avatar
+
+## ⭐ Sipariş Oluştur (sağ drawer) — restoranın KURYE ÇAĞIRMA formu (en kritik)
+- Sekme: **Anlık** / **İleri Tarihli**
+- Müşteri: Ad* · Soyad
+- Telefon* (TR bayrak + maske)
+- Adres: arama (sokak/cadde/mahalle) + **"Haritadan seç"**
+- Sipariş Detayı: **Fiyat*** · **Ödeme Tipi**(Nakit) · **Hazırlama Süresi**(15 dk) · **Araç**(Motosiklet)
+- Sipariş Notu (textarea) · İptal / Gönder
+
+## ⭐ Ödeme Al (sağ drawer) — nakit mutabakat
+- "Kuryeyi seç + tahsil tutarı gir → **4 haneli onay kodu**; kurye kendi app'inde onaylayınca ödeme tamamlanır."
+- "Elinde nakit olan kurye bulunmuyor" boş durumu · İptal / **Kod Oluştur**
+- **BUGÜNKÜ TAHSİLATLAR** listesi
+
+## Dashboard: harita (kendi kuryeleri/siparişleri) + canlı sipariş tablosu (#·Firma·Durum·Kurye·Adres·Müşteri·ETA·Tutar·Zaman) + Hazır/İleri T. filtre + arama
+## Raporlar: 3 sekme (Günlük Özet·Saatlik Dağılım·Teslimat Performansı) + renkli stat kartları (operatördeki 8 değil)
+## Mağaza Ayarları: **Entegrasyon Kodu** (790559, kopyala — harici POS/sipariş sistemine mağaza tanımı) + **Harici Sistem Eşlemesi** (Entegrasyon Tipi + Harici Mağaza ID)
+
+## VIZZ restoran-panel'e taşınacak (DAHA İYİSİ):
+1. **Kurye Çağır (Sipariş Oluştur) drawer** — bizde YOK. Ekle + VIZZ farkı: canlı tahmini ücret + en yakın kurye ETA göster.
+2. **Ödeme Al (nakit mutabakat) drawer** — 4 haneli kod akışı. Ekle.
+3. **Bakiye/Kontör pill'leri** üst barda.
+4. **Mağaza Ayarları → Entegrasyon Kodu + POS/kanal eşleme** (Yemeksepeti/Trendyol/Getir). Bizde Ayarlar var, entegrasyon kodu ekle.
+5. Bizde zaten ONLARDA OLMAYAN: **KDS kanban · Menü yönetimi · Finans/Cari · ECharts rapor** → koru, üstüne bunları ekle = net üstünlük.
