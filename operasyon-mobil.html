@@ -37,6 +37,8 @@
   /* kurye satırı */
   .kr{display:flex;align-items:center;gap:11px;background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:9px}
   .kr .body{flex:1;min-width:0}.kr .nm{font-size:13px;font-weight:700;color:var(--tx)}.kr .sub{font-size:10.5px;color:var(--tx-3);margin-top:2px}
+  .av{width:36px;height:36px;border-radius:50%;background:var(--s4);display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--tx);flex:none;border:2px solid transparent}
+  .av.busy{border-color:var(--y)}.av.on{border-color:var(--ok)}.av.off{opacity:.55}
   .kr .right{text-align:right}.kr .right .e{font-size:13px;font-weight:800;color:var(--y)}.kr .right .k{font-size:10px;color:var(--tx-3);margin-top:1px}
   .kasaB{display:inline-block;font-size:9px;font-weight:800;padding:2px 6px;border-radius:20px;margin-top:3px}
   /* harita */
@@ -51,6 +53,25 @@
   .tabbar button{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--tx-3);font-size:10px;font-weight:700;position:relative}
   .tabbar button .ic{width:22px;height:22px}.tabbar button.on{color:var(--y)}
   .tabbar .badge-n{position:absolute;top:2px;right:50%;margin-right:-20px;min-width:15px;height:15px;padding:0 4px;background:var(--bad);color:#fff;border-radius:9px;font-size:9px;font-weight:800;display:grid;place-items:center;border:2px solid #0d0f12}
+  /* alt-sheet (detay) */
+  .sheet-scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:.25s;z-index:40}
+  .sheet-scrim.on{opacity:1;pointer-events:auto}
+  .sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;background:var(--s1);border-top:1px solid var(--line-2);border-radius:24px 24px 0 0;transform:translateY(103%);transition:transform .32s cubic-bezier(.2,.9,.3,1);z-index:50;display:flex;flex-direction:column;overflow:hidden}
+  .sheet.on{transform:translateY(0)}
+  .sheet .grip{width:38px;height:4px;background:var(--line-2);border-radius:3px;margin:9px auto 2px;flex:none}
+  .sheet .sbody{overflow-y:auto;padding:6px 18px 26px}.sheet .sbody::-webkit-scrollbar{width:0}
+  .sheet-h{display:flex;align-items:center;gap:8px;margin:6px 0 14px;flex-wrap:wrap}
+  .sheet-h .id{font-size:16px;font-weight:800;color:var(--tx)}
+  .drow{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+  .drow .l{color:var(--tx-3);flex:none}.drow .v{color:var(--tx);font-weight:600;text-align:right}
+  .sect{font-size:10.5px;font-weight:800;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px;margin:18px 0 7px}
+  .eline{display:flex;justify-content:space-between;font-size:12px;padding:4px 0}.eline b{font-weight:800}
+  .ebox{background:var(--s2);border:1px solid var(--line);border-radius:13px;padding:11px 14px}
+  .sbtns{display:flex;gap:9px;margin-top:17px}
+  .sbtns button{flex:1;padding:12px;border-radius:12px;font-weight:800;font-size:12.5px;border:none;display:flex;align-items:center;justify-content:center;gap:6px}
+  .sbtns .pri{background:var(--y);color:#15140f}.sbtns .sec{background:var(--s3);color:var(--tx);border:1px solid var(--line-2)}
+  .kbar{height:8px;background:var(--s4);border-radius:5px;overflow:hidden;margin-top:8px}.kbar i{display:block;height:100%;border-radius:5px}
+  .tl{display:flex;align-items:center;gap:10px;padding:5px 0}.tl .dot{width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:9px;font-weight:800;flex:none;color:#0b0c0e}
 </style></head><body>
 <div class="device">
   <div class="statusbar"><span class="num">01:29</span><div class="notch"></div><div style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 20 14" style="width:16px;fill:var(--tx)"><path d="M1 13h2v-3H1v3zm4 0h2V7H5v6zm4 0h2V4H9v9zm4 0h2V1h-2v12z"/></svg><div class="batt"><i></i></div></div></div>
@@ -74,6 +95,8 @@
     <button data-t="kuryeler"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Kuryeler</button>
     <button data-t="daha"><svg class="ic" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>Daha</button>
   </nav>
+  <div class="sheet-scrim" id="scrim" onclick="OM.closeSheet()"></div>
+  <div class="sheet" id="sheet"><div class="grip"></div><div class="sbody" id="sbody"></div></div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -121,21 +144,71 @@ function renderKuryeler(){
        <div class="right"><div class="e">₺${c.earn}</div><div class="k">${c.today} teslim</div><span class="badge ${col}" style="font-size:9px;margin-top:3px">${c.statusTr}</span></div></div>`;}).join('');
 }
 function renderDaha(){
-  $('#s-daha').innerHTML=`<div class="sech"><div class="t">Daha Fazla</div></div>`+
-   [['Raporlar','SLA, ciro, yoğun saat, kurye hız','M3 3v18h18M7 14l3-3 4 4 5-6'],
+  const de=D.econDukkan?D.econDukkan():[]; const T=de.reduce((a,r)=>({g:a.g+r.gelir,net:a.net+r.net,ad:a.ad+r.adet}),{g:0,net:0,ad:0});
+  const G=D.GROWTH, kk=n=>'₺'+(n/1000).toFixed(1)+'K';
+  const stat=(l,v,c)=>`<div style="flex:1;background:var(--s2);border:1px solid var(--line);border-radius:13px;padding:11px 10px;text-align:center"><div style="font-size:17px;font-weight:800;color:${c||'var(--tx)'}">${v}</div><div style="font-size:9.5px;color:var(--tx-3);margin-top:2px">${l}</div></div>`;
+  $('#s-daha').innerHTML=`<div class="sech"><div class="t">Bugün — Özet</div><span class="n">tek motordan</span></div>
+    <div style="display:flex;gap:8px;margin-bottom:6px">${stat('VIZZ geliri',kk(T.g),'var(--y)')}${stat('Net kâr',kk(T.net),'var(--ok)')}${stat('Sipariş',T.ad)}</div>
+    <div class="sech"><div class="t">🐝 Büyüme & Ödüller</div><span class="n">Hızır %${G.rakipPay}</span></div>
+    <div style="background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:9px"><span>Bu ay geçen: <b style="color:var(--ok)">${G.gecenDukkanAy} dükkan · ${G.gecenKuryeAy} kurye</b></span><span class="dim">VIZZ %${G.vizzPay}</span></div>
+      ${G.kampanyalar.filter(c=>c.aktif).slice(0,4).map(c=>`<div style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--tx-2);padding:4px 0"><span>${c.ikon}</span><span style="flex:1">${c.ad}</span><span class="dim">%${(c.harcanan/c.butce*100).toFixed(0)} bütçe</span></div>`).join('')}
+    </div>
+    <div class="sech"><div class="t">Modüller</div></div>`+
+   [['Raporlar','SLA · ciro · yoğun saat · kurye hız','M3 3v18h18M7 14l3-3 4 4 5-6'],
     ['Finans & Hakediş','Cuma ödeme · COD kasa · komisyon','M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'],
     ['Atama Ayarları','algoritma · bölge · kısıt','M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6l-8-4ZM9 12l2 2 4-4'],
-    ['Otomasyon & Güven Skoru','kural motoru · anomali radarı','M13 2 3 14h9l-1 8 10-12h-9l1-8Z'],
-    ['Dükkanlar','işletme cari & hakediş','M3 11 4.5 5h15L21 11M4 11v9h16v-9'],
-    ['Ayarlar','mola · görünürlük · mali','M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z']]
-   .map(r=>`<div class="mrow" onclick="OM.toast('${r[0]} — tam görünüm masaüstü panelde')"><div class="ig"><svg viewBox="0 0 24 24"><path d="${r[2]}"/></svg></div><div class="body"><div class="t">${r[0]}</div><div class="s">${r[1]}</div></div><svg class="ic" viewBox="0 0 24 24" style="stroke:var(--tx-4);fill:none;stroke-width:2;width:18px"><path d="M9 18l6-6-6-6"/></svg></div>`).join('')+
-   `<div class="mrow" style="border:none;margin-top:8px"><div class="ig" style="background:var(--y-soft)"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></div><div class="body"><div class="t">Masaüstü panele geç</div><div class="s">Tüm modüller + büyük harita</div></div></div>`;
+    ['Otomasyon & Güven','kural motoru · anomali radarı','M13 2 3 14h9l-1 8 10-12h-9l1-8Z'],
+    ['Dükkanlar','işletme cari & ekonomi','M3 11 4.5 5h15L21 11M4 11v9h16v-9']]
+   .map(r=>`<div class="mrow" onclick="OM.toast('${r[0]} — tam görünüm masaüstü panelde')"><div class="ig"><svg viewBox="0 0 24 24"><path d="${r[2]}"/></svg></div><div class="body"><div class="t">${r[0]}</div><div class="s">${r[1]}</div></div><svg class="ic" viewBox="0 0 24 24" style="stroke:var(--tx-4);fill:none;stroke-width:2;width:18px"><path d="M9 18l6-6-6-6"/></svg></div>`).join('');
 }
+const STREETS=['Atatürk Blv.','Lise Cd.','Çarşı Sk.','İstasyon Cd.','Sakarya Sk.','Bağdat Cd.','Yeni Yol Sk.','Pınar Sk.'];
+function addrOf(o){const n=o.id.charCodeAt(o.id.length-1);return `${o.zone} Mah. ${STREETS[n%STREETS.length]} No:${10+n%80} D:${1+n%6}`;}
+function openSheet(html){$('#sbody').innerHTML=html;$('#sheet').classList.add('on');$('#scrim').classList.add('on');$('#sbody').scrollTop=0;}
+function closeSheet(){$('#sheet').classList.remove('on');$('#scrim').classList.remove('on');}
 function ata(id){const o=orders.find(x=>x.id===id);const free=D.COURIERS.filter(c=>c.status==='online');const k=free[Math.floor(Math.random()*free.length)]||D.COURIERS[1];
   o.courier=k.name;o.status='Kurye yolda';o.min=5+Math.floor(Math.random()*8);renderAkis();renderKpi();toast(`<b>${id}</b> → ${k.name} (en yakın + düşük yük)`);}
-function detail(id){const o=orders.find(x=>x.id===id);if(!o)return;const p=payShort(o.pay);
-  toast(`<b>${o.id}</b> · ${o.custFull} · ${o.phone} · ${o.zone} · ${p[0]} · ₺${o.total}`);}
-function kurye(id){const c=D.COURIERS.find(x=>x.id===id);const nakit=250+(c.id*173)%1400;toast(`<b>${c.name}</b> · bugün ${c.today} teslim · kasa ₺${nakit} · ⭐ ${c.rate}`);}
+function detail(id){const o=orders.find(x=>x.id===id);if(!o)return;const p=payShort(o.pay);const isM=o.vertical==='market';
+  const ec=D.econOrder?D.econOrder(o.rest,o.total):null;
+  const stages=['Alındı','Hazırlanıyor','Atandı','Yolda','Teslim'];
+  const cur=o.status==='Teslim edildi'?5:o.courier?3:o.status==='Hazırlanıyor'?1:2;
+  const tl=stages.map((s,i)=>`<div class="tl"><span class="dot" style="background:${i<cur?'var(--ok)':i===cur?'var(--y)':'var(--s4)'}">${i<cur?'✓':''}</span><span style="font-size:12px;color:${i<=cur?'var(--tx)':'var(--tx-3)'};font-weight:${i===cur?700:400}">${s}</span></div>`).join('');
+  const dr=(l,v)=>`<div class="drow"><span class="l">${l}</span><span class="v">${v}</span></div>`;
+  const econHtml=ec?`<div class="sect">VIZZ Ekonomisi · tek motordan</div><div class="ebox">
+    <div class="eline"><span class="dim">Teslimat tarifesi</span><b style="color:var(--ok)">+₺${ec.tarife}</b></div>
+    <div class="eline"><span class="dim">Yemek komisyonu · %8</span><b style="color:var(--ok)">+₺${ec.komisyon}</b></div>
+    <div class="eline"><span class="dim">Kurye ücreti</span><b style="color:var(--bad)">−₺${ec.kurye}</b></div>
+    <div class="eline"><span class="dim">Sabit gider + vergi</span><b style="color:var(--bad)">−₺${ec.sabit+ec.kdv+ec.kv}</b></div>
+    <div class="eline" style="border-top:1px solid var(--line-2);margin-top:5px;padding-top:8px"><b>NET KÂR</b><b style="color:var(--ok);font-size:15px">₺${ec.net}</b></div></div>`:'';
+  openSheet(`<div class="sheet-h"><span class="id">${o.id}</span>${chanBadge(o.channel)}<span class="badge ${slaCls(o.status)}" style="font-size:9.5px"><span class="dot"></span>${o.status}</span></div>
+    ${dr('Müşteri',o.custFull)}
+    ${dr('Telefon',`<span style="color:var(--info)">•••• ••• •• ${String(o.phone).slice(-2)}</span> <span class="badge b-mute" style="font-size:8.5px">proxy</span>`)}
+    ${dr('Adres',`<span style="max-width:200px;display:inline-block">${addrOf(o)}</span>`)}
+    ${dr(isM?'Depo':'Restoran',o.rest+' · '+o.zone)}
+    ${dr('Ödeme',`<span style="color:${p[1]}">${p[0]}</span>`)}
+    ${dr('Tutar',`<b style="color:var(--y);font-size:14px">₺${o.total}</b> · ${o.items||1} ürün`)}
+    ${dr('Kurye',o.courier?`${o.courier} · ${o.min} dk yolda`:'<span style="color:var(--bad)">atanıyor…</span>')}
+    <div class="sect">Sipariş Akışı</div>${tl}${econHtml}
+    <div class="sbtns">${o.courier?`<button class="pri" onclick="OM.toast('📞 Gizli arama — numaralar maskeli (proxy)')">📞 Gizli Ara</button>`:`<button class="pri" onclick="OM.ata('${o.id}');OM.closeSheet()">⚡ Hemen Ata</button>`}<button class="sec" onclick="OM.toast('Müşteri aranıyor (proxy)')">Müşteri</button></div>`);
+}
+function kurye(id){const c=D.COURIERS.find(x=>x.id===id);if(!c)return;
+  const nakit=250+(c.id*173)%1400, posT=300+(c.id*97)%900, limit=2000, fill=Math.min(100,nakit/limit*100);
+  const ortTes=22+(c.id*3)%16, km=(1.8+(c.id%6)*0.5).toFixed(1), hiz=(60/ortTes*(2.4+(c.id%5)*0.45)).toFixed(1);
+  const guven=Math.max(40,Math.min(98,Math.round(c.accept+(c.rate-4.4)*30)));
+  const kdur=nakit>=limit*0.85?['Kasa limiti doldu — yeni sipariş durur','var(--bad)']:nakit>=limit*0.6?['Limite yaklaşıyor','var(--warn)']:['Normal','var(--ok)'];
+  const av=c.status==='delivering'?'busy':c.status==='online'?'on':'off';
+  openSheet(`<div class="sheet-h"><div class="av ${av}" style="width:38px;height:38px">${c.name.split(' ').map(p=>p[0]).join('')}</div><div><div class="id" style="font-size:15px">${c.name}</div><div class="dim" style="font-size:11px">${c.zone} · ⭐ ${c.rate} · ${c.statusTr}</div></div></div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <div style="flex:1;background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center"><div style="font-size:17px;font-weight:800">${c.today}</div><div style="font-size:9px;color:var(--tx-3)">bugün teslim</div></div>
+      <div style="flex:1;background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center"><div style="font-size:17px;font-weight:800;color:var(--y)">₺${c.earn}</div><div style="font-size:9px;color:var(--tx-3)">bugün kazanç</div></div>
+      <div style="flex:1;background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center"><div style="font-size:17px;font-weight:800;color:${guven>75?'var(--ok)':guven>55?'var(--warn)':'var(--bad)'}">${guven}</div><div style="font-size:9px;color:var(--tx-3)">güven skoru</div></div></div>
+    <div class="sect">💵 Kasa — cebindeki para</div>
+    <div class="ebox"><div class="eline"><span class="dim">Nakit tahsilat</span><b>₺${nakit}</b></div><div class="eline"><span class="dim">POS tahsilat</span><b>₺${posT}</b></div>
+      <div class="kbar"><i style="width:${fill}%;background:${kdur[1]}"></i></div><div style="font-size:10.5px;color:${kdur[1]};margin-top:6px">${kdur[0]} · limit ₺${limit}</div></div>
+    <div class="sect">⚡ Hız & Mesafe</div>
+    <div class="ebox"><div class="eline"><span class="dim">Ort. teslimat süresi</span><b>${ortTes} dk</b></div><div class="eline"><span class="dim">Ort. mesafe</span><b>${km} km</b></div><div class="eline"><span class="dim">Hız</span><b style="color:var(--y)">${hiz} km/sa</b></div></div>
+    <div class="sbtns"><button class="pri" onclick="OM.toast('📞 ${c.name} aranıyor…')">📞 Ara</button><button class="sec" onclick="OM.toast('Nakit teslim alındı — kasa sıfırlandı')">Nakit Teslim Al</button></div>`);
+}
 
 let map;
 function initMap(){ if(map){setTimeout(()=>map.invalidateSize(),60);return;}
@@ -163,6 +236,6 @@ setInterval(()=>{const ch=FCH[Math.floor(Math.random()*5)];const r=D.RESTAURANTS
 setInterval(()=>{ if(!autoOn)return; const pend=orders.filter(o=>!o.courier && o.status==='Atanıyor'); if(!pend.length)return; ata(pend[pend.length-1].id); }, 3000);
 
 renderKpi(); renderAkis(); renderKuryeler(); renderDaha();
-window.OM={ata,detail,kurye,toast};
+window.OM={ata,detail,kurye,toast,openSheet,closeSheet};
 })();
 </script></body></html>

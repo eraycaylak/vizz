@@ -77,6 +77,11 @@ Yazılımcı "para dönüyor, microservice + yedekli sunucu/backend olmalı, sun
 - **restoran-panel Sipariş Panosu: Kanban ↔ Liste(hepsi) toggle** — Eray "100 sipariş alt alta sığmaz, Minijett gibi hepsini gör" dedi → Liste modu = tek kompakt `table.grid` (id/kanal/müşteri/ürün/tutar/durum/SLA/kurye/aksiyon), stage'e göre sıralı, advance çalışır. `RP.panoView('kanban'|'liste')`, `refreshPano()`.
 - **Geliştirici devri:** repo **public kalsın** kararı (Eray). `docs/` + canlı prototip + **`memorybackup/` klasörü repoya konuldu** (github.com/eraycaylak/vizz/tree/main/memorybackup): `vizz-projesi.md` + `MEMORY.md` + `RESTORE-NASIL-KULLANILIR.md` (3 geri-yükleme yolu). Sadece VIZZ hafızası (kişisel/diğer-proje hariç).
 
+## 27 Haz (6) — operasyon-mobil web ile pariteye çekildi (Eray: "mobil taş devri")
+- Eray: "operasyon web tarihin en iyisi ama mobilde hiçbir şeye tıklayamıyorum, detaysız." → haklıydı, iskelet bırakmışım.
+- **Eklendi (`operasyon-mobil.html`):** alt-sheet sistemi (`.sheet`/`.sheet-scrim`, `openSheet/closeSheet`). **Sipariş detay sheet'i** — müşteri, proxy maskeli telefon, adres (synth), restoran, ödeme, tutar, 5-aşama timeline, **VIZZ Ekonomisi kırılımı** (D.econOrder → net), Hemen Ata/Gizli Ara. **Kurye detay sheet'i** — bugün teslim/kazanç/güven skoru + Kasa (nakit/POS/limit bar) + Hız&Mesafe + Ara/Nakit Teslim Al. **Daha sekmesi** artık dolu (bugün ekonomi özeti D.econDukkan + Büyüme/teşvik özeti D.GROWTH + modül linkleri). 0 konsol hatası.
+- Ders: mobil yüzeyleri "minimal" bırakma — Eray web'le aynı derinliği bekliyor.
+
 ## 27 Haz (5) — Büyüme & Ödül motoru (Hızır'dan pay al) + rakip-gap'ler
 - **Bağlam:** Şehirde **Hızır %95** pazar payı. Eray: "ellerinden biraz almalıyız — kurye ödülleri (1 teslimat +30₺), işletmeye günlük şanslı sipariş indirimi, kurye/işletme ekranda görsün, şanslı gün vb. sen karar ver."
 - **Tek kaynak `GROWTH` (vizz-data.js):** kampanyalar {tip:kurye/dükkan, bonus, bütçe, harcanan, aktif}. Teşvik = maliyet → econ peteğine bağlı (Finans gideri + net kârdan düşer).

@@ -81,7 +81,7 @@
 | Yüzey | Dosya (prototip) | Öncelik |
 |------|--------|---------|
 | **Dispatcher / Operasyon** (web) | `operasyon.html` | MVP çekirdek |
-| **Operasyon Mobil** (dispatcher cep) | `operasyon-mobil.html` — canlı atama kuyruğu + tek-tık ata + kurye/kasa + harita + kanal akışı (sahada yönet) | MVP/v1 |
+| **Operasyon Mobil** (dispatcher cep) | `operasyon-mobil.html` — web ile paritede: canlı atama kuyruğu + **sipariş detay alt-sheet** (müşteri/proxy telefon/adres/timeline/**ekonomi kırılımı**/gizli ara) + **kurye detay sheet** (kasa nakit/POS+limit bar, hız/mesafe, güven skoru, ara) + Daha sekmesi (bugün ekonomi özeti + Büyüme/teşvik özeti + modül linkleri) + harita + kanal akışı | MVP/v1 |
 | **Kurye App** (Flutter) | `kurye-mobil.html` | MVP çekirdek |
 | **Restoran Panel** (web) + Mobil | `restoran-panel.html` · `restoran-mobil.html` | MVP/v1 |
 | **Müşteri App** (Flutter) + Web | `musteri-mobil.html` · `musteri-web.html` | MVP/v1 |
