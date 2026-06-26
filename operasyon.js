@@ -131,14 +131,23 @@ function tick(now){ const dt=Math.min(.05,(now-last)/1000); last=now;
   requestAnimationFrame(tick); }
 
 /* ---------- atama kuyruğu ---------- */
-let orders = D.ORDERS.map(o=>({...o}));
+/* ---------- entegrasyon kanalları (çok-kanal) ---------- */
+const CHAN={
+  vizz:{n:'VIZZ App',c:'#FFC400',bg:'rgba(255,196,0,.14)'},
+  tel:{n:'Telefon',c:'#4C8DFF',bg:'rgba(76,141,255,.14)'},
+  ys:{n:'Yemeksepeti',c:'#FA0050',bg:'rgba(250,0,80,.14)'},
+  trendyol:{n:'Trendyol Yemek',c:'#F27A1A',bg:'rgba(242,122,26,.14)'},
+  getir:{n:'Getir Yemek',c:'#7B5CF0',bg:'rgba(123,92,240,.16)'},
+};
+function chanBadge(k){ const c=CHAN[k]; if(!c)return ''; return `<span class="chan" style="color:${c.c};background:${c.bg};border-color:${c.c}55"><span class="dot" style="background:${c.c}"></span>${c.n}</span>`; }
+let orders = D.ORDERS.map((o,i)=>({...o, channel:o.vertical==='market'?'vizz':['vizz','tel','ys','vizz','getir','trendyol'][i%6]}));
 const slaCls=s=>s==='Hazırlanıyor'?'b-warn':s==='Atanıyor'?'b-bad':s==='Kurye yolda'?'b-info':'b-ok';
 function renderQueue(filter){
   const list = filter==='wait' ? orders.filter(o=>!o.courier) : filter==='market' ? orders.filter(o=>o.vertical==='market') : orders;
   $('#queue').innerHTML = list.map(o=>{
     const isM=o.vertical==='market';
     return `<div class="ord ${o.status==='Atanıyor'?'live':''}">
-    <div class="r1"><span class="id">${o.id}</span><span style="display:flex;gap:6px;align-items:center"><span class="badge ${isM?'b-y':'b-mute'}" style="font-size:10px"><span class="dot"></span>${isM?'Market':'Yemek'}</span><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></span></div>
+    <div class="r1"><span class="id">${o.id}</span><span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${chanBadge(o.channel)}<span class="badge ${isM?'b-y':'b-mute'}" style="font-size:10px"><span class="dot"></span>${isM?'Market':'Yemek'}</span><span class="badge ${slaCls(o.status)}"><span class="dot"></span>${o.status}</span></span></div>
     <div class="meta"><span>${isM?'🛒':'🍽'} <b>${o.rest}</b></span><span>📍 ${o.zone}</span><span>${o.items} ürün · <b class="num">₺${o.total}</b></span><span>${o.pay}</span></div>
     ${o.courier
       ? `<div class="sla" style="color:var(--info)"><svg class="ic ic-sm" viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l-2.5-6H8"/></svg> ${o.courier} · ${o.min} dk · <span class="muted">${isM?'market SLA 15-25 dk':'SLA güvenli'}</span></div>`
@@ -590,7 +599,27 @@ function renderKpiBar(){
 }
 
 /* init */
-renderKPIs(); renderQueue('all'); renderCouriers(); renderKpiBar(); initMap();
+/* ---------- CANLI KANAL AKIŞI (entegrasyon demosu) ---------- */
+let feedSeq=7760; const FEED_CH=['getir','ys','trendyol','vizz','tel'];
+const NAMES_C=['A. Yılmaz','M. Demir','E. Kaya','S. Çelik','Z. Arslan','B. Şahin','K. Doğan','H. Aydın'];
+function channelFeed(){
+  setInterval(()=>{
+    const ch=FEED_CH[Math.floor(Math.random()*FEED_CH.length)];
+    const r=D.RESTAURANTS[Math.floor(Math.random()*D.RESTAURANTS.length)];
+    const z=Y.zones[Math.floor(Math.random()*Y.zones.length)];
+    const o={id:'VZ-'+(feedSeq++),rest:r.name,cust:NAMES_C[Math.floor(Math.random()*NAMES_C.length)],zone:z.n,
+      items:1+Math.floor(Math.random()*4),total:85+Math.floor(Math.random()*330),pay:Math.random()<.5?'Online':'Kapıda Nakit',
+      status:'Atanıyor',min:1,courier:null,channel:ch};
+    orders.unshift(o); if(orders.length>16) orders.pop();
+    renderQueue(curFilter);
+    const card=$('#queue .ord'); if(card){ card.classList.add('newdrop'); setTimeout(()=>card.classList.remove('newdrop'),1700); }
+    const an=$('#alertN'); if(an) an.textContent=parseInt(an.textContent||'0')+1;
+    toast(`<b style="color:${CHAN[ch].c}">${CHAN[ch].n}</b> · ${r.name} — yeni sipariş düştü`);
+  }, 6000+Math.floor(Math.random()*3500));
+}
+
+/* init */
+renderKPIs(); renderQueue('all'); renderCouriers(); renderKpiBar(); initMap(); channelFeed();
 
 window.addEventListener('vizz-theme-change', () => {
   charts.forEach(c => c.dispose());

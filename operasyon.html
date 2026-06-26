@@ -101,6 +101,14 @@
   .kpibar .pill .lab{color:var(--tx-3);font-size:11.5px;font-weight:600}
   .kpibar .pill .val{color:var(--tx);font-size:13px;font-weight:700}
   .kpibar .grow{flex:1;border:none}
+  /* çok-kanal entegrasyon */
+  .chan{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:3px 8px;border-radius:30px;border:1px solid;white-space:nowrap}
+  .chan .dot{width:5px;height:5px;border-radius:50%}
+  @keyframes newdrop{0%{transform:translateY(-10px);opacity:0;box-shadow:0 0 0 2px var(--y) inset}60%{opacity:1}100%{transform:none;box-shadow:0 0 0 0 transparent inset}}
+  .ord.newdrop{animation:newdrop .85s cubic-bezier(.16,1,.3,1)}
+  .chanbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:9px 13px;border-bottom:1px solid var(--line);font-size:11px;color:var(--tx-3);background:var(--s1)}
+  .chanbar .c{display:inline-flex;align-items:center;gap:5px;font-weight:700}
+  .chanbar .c i{width:6px;height:6px;border-radius:50%}
   /* tıklanabilir KPI kartı */
   .kpi.clk{cursor:pointer;transition:.14s} .kpi.clk:hover{border-color:var(--line-3);transform:translateY(-2px)}
   .kpi .more{position:absolute;top:12px;right:13px;color:var(--tx-4);opacity:0;transition:.14s} .kpi.clk:hover .more{opacity:1}
@@ -175,6 +183,12 @@
             <div class="panel" style="flex:1;min-height:0">
               <div class="card-h"><div class="t"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Atama Kuyruğu</div>
                 <div class="seg"><button class="on" id="q-all">Tümü</button><button id="q-wait">Bekleyen</button><button id="q-market">Market</button></div></div>
+              <div class="chanbar"><span class="dot pulse" style="width:7px;height:7px;border-radius:50%;background:var(--ok)"></span><b style="color:var(--tx-2)">Canlı kanal akışı</b>
+                <span class="c" style="color:#7B5CF0"><i style="background:#7B5CF0"></i>Getir</span>
+                <span class="c" style="color:#FA0050"><i style="background:#FA0050"></i>Yemeksepeti</span>
+                <span class="c" style="color:#F27A1A"><i style="background:#F27A1A"></i>Trendyol</span>
+                <span class="c" style="color:#FFC400"><i style="background:#FFC400"></i>VIZZ App</span>
+                <span style="margin-left:auto;color:var(--ok);font-weight:700">● bağlı</span></div>
               <div class="scroll" id="queue" style="flex:1"></div>
             </div>
           </div>
@@ -222,6 +236,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script src="vizz-data.js?v=2"></script>
-<script src="operasyon.js?v=ferah3"></script>
-<script src="operasyon-ext.js?v=ferah3"></script>
+<script src="operasyon.js?v=ferah5"></script>
+<script src="operasyon-ext.js?v=ferah5"></script>
 </body></html>
