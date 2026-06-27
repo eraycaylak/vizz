@@ -173,6 +173,20 @@
   .podbox .t{font-size:13px;font-weight:700;color:var(--tx)}
   .podbox .s{font-size:11px;color:var(--tx-3);margin-top:4px}
   .podthumb{width:100%;height:120px;border-radius:var(--r);object-fit:cover;margin-bottom:9px;display:none}
+  /* POD 3-kanıt: GPS + foto + imza */
+  .pod-gps{display:flex;align-items:center;gap:7px;justify-content:center;font-size:11px;font-weight:700;padding:7px 10px;border-radius:10px;margin:10px 0 12px;background:var(--s3);color:var(--tx-2);transition:.3s}
+  .pod-gps.ok{background:var(--ok-bg);color:var(--ok)}
+  .pod-gps.warn{background:rgba(255,176,32,.14);color:var(--warn)}
+  .pod-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .pod-cell{background:var(--s2);border:1px solid var(--line-2);border-radius:13px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--tx-2)}
+  .pod-cell.done{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+  .pod-cell .pc-ic{font-size:24px;line-height:1}.pod-cell .pc-l{font-size:11.5px;font-weight:700}
+  .sign-modal{position:absolute;inset:0;z-index:120;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);border-radius:42px}
+  .sign-modal.on{display:flex}
+  .sm-box{background:var(--s1);border:1px solid var(--line-2);border-radius:18px;padding:16px;width:86%}
+  .sm-h{font-size:13px;font-weight:800;color:var(--tx);margin-bottom:10px}
+  #signCanvas{width:100%;height:170px;background:#fff;border-radius:12px;touch-action:none;cursor:crosshair}
+  .sm-btns{display:flex;gap:9px;margin-top:12px}.sm-btns button{flex:1;padding:11px;border-radius:11px;border:1px solid var(--line-2);background:var(--s3);color:var(--tx);font-weight:800;font-size:12.5px}.sm-btns button.y{background:var(--y);color:#15140f;border:none}
 
   /* ---- GÖREV DAVETI modal ---- */
   .invite{position:absolute;inset:0;z-index:80;background:rgba(5,6,8,.78);backdrop-filter:blur(7px);display:none;flex-direction:column;justify-content:flex-end;padding:14px;opacity:0;transition:.25s}
@@ -318,13 +332,16 @@
       <!-- durum makinesi -->
       <div class="steps" id="taskSteps"></div>
 
-      <!-- POD foto adımı (teslim aşamasında görünür) -->
+      <!-- POD 3-kanıt adımı (teslim aşamasında görünür) -->
       <div class="podbox" id="podBox" style="display:none">
+        <div class="t" id="podTtl">Teslimat Kanıtı (POD)</div>
+        <div class="s" id="podSub">Sahte teslimi önler — 3 kanıt: konum + foto + imza</div>
+        <div class="pod-gps" id="podGps"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> Konum doğrulanıyor…</div>
         <img class="podthumb" id="podThumb" alt="">
-        <svg class="ic" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>
-        <div class="t" id="podTtl">Teslimat kanıtı (POD)</div>
-        <div class="s" id="podSub">Paketi teslim ettiğin yerin fotoğrafını çek.</div>
-        <button class="bigbtn ghost" id="podBtn" style="margin-top:13px"><svg class="ic" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg> Fotoğraf çek</button>
+        <div class="pod-grid">
+          <button class="pod-cell" id="podBtn"><span class="pc-ic">📷</span><span class="pc-l" id="podCellL">Fotoğraf çek</span></button>
+          <button class="pod-cell" id="signBtn"><span class="pc-ic">✍️</span><span class="pc-l" id="signCellL">İmza al</span></button>
+        </div>
       </div>
 
       <button class="bigbtn ghost" id="navBtn" style="margin-bottom:11px"><svg class="ic" viewBox="0 0 24 24"><path d="m3 11 19-9-9 19-2-8-8-2Z"/></svg> Navigasyonu aç (harita)</button>
@@ -438,6 +455,7 @@
     <button data-s="profil"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
   </nav>
   <div class="luckpop" id="luckPop"><div class="box"><div class="em">🍀</div><div class="amt" id="luckAmt">+₺50</div><div class="lbl" id="luckLbl">Şanslı Teslimat! Bonus cüzdanına eklendi 🐝</div></div></div>
+  <div class="sign-modal" id="signModal"><div class="sm-box"><div class="sm-h">Müşteri imzası — S. Kaya</div><canvas id="signCanvas" width="300" height="170"></canvas><div class="sm-btns"><button id="signClear">Temizle</button><button id="signSave" class="y">İmzayı kaydet</button></div></div></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -531,10 +549,11 @@
     {t:'Restorana git',m:'Anadolu Lezzetleri · Köseoğlu Mah.',btn:'Restorana ulaştım',ic:'<path d="M5 7h14M5 7v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7M5 7 7 3h10l2 4"/>'},
     {t:'Paketi al',m:'Sipariş no eşleştir · sıcak çantaya koy',btn:'Paketi aldım',ic:'<path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>'},
     {t:'Müşteriye git',m:'S. Kaya · 2,4 km · navigasyon açık',btn:'Adrese ulaştım',ic:'<path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/>'},
-    {t:'Teslim et',m:'Teslimat kanıtı (POD) fotoğrafı çek',btn:'Teslim ettim',ic:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'},
+    {t:'Teslim et',m:'POD: konum + foto + imza ile teslim kanıtı',btn:'Teslim ettim',ic:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'},
     {t:'Tahsilat',m:'₺420 kapıda ödeme · nakit / kart',btn:'Tahsilat tamam · görevi bitir',ic:'<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'},
   ];
-  let curStep=0, podDone=false;
+  let curStep=0, photoOk=false, signOk=false, gpsOk=false, gpsTimer=null;
+  const podReady=()=>gpsOk&&photoOk&&signOk;
   function renderSteps(){
     $('#taskSteps').innerHTML=STEPS.map((s,i)=>{
       const cls=i<curStep?'done':i===curStep?'cur':'';
@@ -544,6 +563,7 @@
     }).join('');
     const isPOD=curStep===3;
     $('#podBox').style.display=isPOD?'block':'none';
+    if(isPOD)startGeofence();
     const done=curStep>=STEPS.length;
     if(done){
       $('#stepBtn').innerHTML='<svg class="ic" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg> Görev tamamlandı';
@@ -551,39 +571,58 @@
       $('#navBtn').style.display='none';
     }else{
       $('#stepBtnTxt').textContent=STEPS[curStep].btn;
-      $('#stepBtn').disabled=isPOD&&!podDone;
+      $('#stepBtn').disabled=isPOD&&!podReady();
     }
   }
+  // geofence: teslim onayı yalnız müşteri adresine yakınken — sahte teslimi engeller
+  function startGeofence(){
+    if(gpsOk||gpsTimer)return;
+    const g=$('#podGps');g.className='pod-gps';g.innerHTML='<svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> Konum doğrulanıyor…';
+    gpsTimer=setTimeout(()=>{gpsOk=true;g.className='pod-gps ok';g.innerHTML='✓ Konum doğrulandı — adrese 12 m (geofence içinde)';if(curStep===3)$('#stepBtn').disabled=!podReady();},1200);
+  }
   function resetTask(){
-    curStep=0;podDone=false;
+    curStep=0;photoOk=false;signOk=false;gpsOk=false;if(gpsTimer){clearTimeout(gpsTimer);gpsTimer=null;}
     $('#podThumb').style.display='none';$('#podBox').classList.remove('shot');
-    $('#podTtl').textContent='Teslimat kanıtı (POD)';$('#podSub').textContent='Paketi teslim ettiğin yerin fotoğrafını çek.';
+    $('#podBtn').classList.remove('done');$('#signBtn').classList.remove('done');
+    $('#podCellL').textContent='Fotoğraf çek';$('#signCellL').textContent='İmza al';
+    $('#podGps').className='pod-gps';$('#podGps').innerHTML='Konum doğrulanıyor…';
     $('#stepBtn').disabled=false;$('#stepBtn').classList.add('y');$('#stepBtn').classList.remove('ghost');$('#navBtn').style.display='';
     $('#stepBtn').innerHTML='<svg class="ic" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg> <span id="stepBtnTxt">Restorana ulaştım</span>';
     renderSteps();
   }
   $('#stepBtn').onclick=()=>{
     if(curStep>=STEPS.length)return;
-    if(curStep===3&&!podDone){toast('Önce teslimat fotoğrafı çek');return;}
+    if(curStep===3&&!podReady()){toast(!gpsOk?'Konum doğrulanıyor, bekle…':!photoOk?'Önce teslimat fotoğrafı çek':'Önce müşteri imzasını al');return;}
     const label=STEPS[curStep].t;
     curStep++;renderSteps();
     if(curStep>=STEPS.length){
       $('#taskDot').style.display='none';
-      toast('Teslimat tamamlandı · +₺48 kazancına eklendi');
-      setTimeout(()=>{resetTask();go('gorev');},1500);
+      toast('Teslimat tamamlandı · +₺48 · POD kaydedildi (konum+foto+imza)');
+      setTimeout(()=>{resetTask();go('gorev');},1600);
     }else{
       toast(label+' ✓ · sıradaki: '+STEPS[curStep].t);
     }
   };
   $('#navBtn').onclick=()=>toast('Harita uygulaması açılıyor (deep-link)…');
   $('#podBtn').onclick=()=>{
-    podDone=true;
+    photoOk=true;
     const t=$('#podThumb');t.src='img/karisik-izgara.jpg';t.onerror=()=>VIZZ.imgFallback(t,'karisik-izgara');t.style.display='block';
-    $('#podBox').classList.add('shot');
-    $('#podTtl').textContent='Fotoğraf eklendi ✓';$('#podSub').textContent='Teslimat kanıtı kaydedildi. Artık teslim edebilirsin.';
-    $('#stepBtn').disabled=false;
-    toast('POD fotoğrafı kaydedildi');
+    $('#podBtn').classList.add('done');$('#podCellL').textContent='Foto ✓';
+    if(podReady())$('#podBox').classList.add('shot');
+    if(curStep===3)$('#stepBtn').disabled=!podReady();
+    toast('📷 POD fotoğrafı kaydedildi');
   };
+  // imza pad (parmakla/fareyle çiz)
+  (function(){
+    const cv=$('#signCanvas'),m=$('#signModal');if(!cv)return;const ctx=cv.getContext('2d');let drawing=false,has=false;
+    const pos=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*(cv.width/r.width),(e.clientY-r.top)*(cv.height/r.height)];};
+    cv.addEventListener('pointerdown',e=>{drawing=true;has=true;const[x,y]=pos(e);ctx.beginPath();ctx.moveTo(x,y);});
+    cv.addEventListener('pointermove',e=>{if(!drawing)return;const[x,y]=pos(e);ctx.lineTo(x,y);ctx.strokeStyle='#111';ctx.lineWidth=2.4;ctx.lineCap='round';ctx.stroke();});
+    window.addEventListener('pointerup',()=>drawing=false);
+    $('#signBtn').onclick=()=>{ctx.clearRect(0,0,cv.width,cv.height);has=false;m.classList.add('on');};
+    $('#signClear').onclick=()=>{ctx.clearRect(0,0,cv.width,cv.height);has=false;};
+    $('#signSave').onclick=()=>{if(!has){toast('Önce imza al');return;}signOk=true;m.classList.remove('on');$('#signBtn').classList.add('done');$('#signCellL').textContent='İmza ✓';if(podReady())$('#podBox').classList.add('shot');if(curStep===3)$('#stepBtn').disabled=!podReady();toast('✍️ Müşteri imzası kaydedildi');};
+  })();
 
   /* ============ KAZANÇ — haftalık bar ============ */
   const wkDays=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];

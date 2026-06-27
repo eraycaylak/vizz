@@ -77,6 +77,11 @@ Yazılımcı "para dönüyor, microservice + yedekli sunucu/backend olmalı, sun
 - **restoran-panel Sipariş Panosu: Kanban ↔ Liste(hepsi) toggle** — Eray "100 sipariş alt alta sığmaz, Minijett gibi hepsini gör" dedi → Liste modu = tek kompakt `table.grid` (id/kanal/müşteri/ürün/tutar/durum/SLA/kurye/aksiyon), stage'e göre sıralı, advance çalışır. `RP.panoView('kanban'|'liste')`, `refreshPano()`.
 - **Geliştirici devri:** repo **public kalsın** kararı (Eray). `docs/` + canlı prototip + **`memorybackup/` klasörü repoya konuldu** (github.com/eraycaylak/vizz/tree/main/memorybackup): `vizz-projesi.md` + `MEMORY.md` + `RESTORE-NASIL-KULLANILIR.md` (3 geri-yükleme yolu). Sadece VIZZ hafızası (kişisel/diğer-proje hariç).
 
+## 27 Haz (7) — kurye-mobil teslim akışı + POD 3-kanıt (rakip-gap kapandı)
+- **Eklendi (`kurye-mobil.html`):** aktif görev teslim akışındaki POD adımı **3-kanıtlı** yapıldı (sahte teslimi önler): **GPS/geofence** (teslim ekranına gelince otomatik "Konum doğrulanıyor…" → 1.2sn → "✓ adrese 12 m, geofence içinde") + **foto çek** + **imza pad** (canvas pointer çizim, müşteri imzası). Üçü tamamlanmadan "Teslim ettim" butonu kilitli. `podReady()=gpsOk&&photoOk&&signOk`, `startGeofence()`, imza modalı (#signModal/#signCanvas).
+- Doğrulandı: davet→kabul→adımlar→POD; GPS oto-doğrulama, foto+imza cell'leri yeşil, 3 kanıt tamam→buton açık, POD yeşil. 0 konsol hatası.
+- **Rakip-gap "POD foto+imza+GPS" → ✅ kapandı** (brief tablosu güncellendi).
+
 ## 27 Haz (6) — operasyon-mobil web ile pariteye çekildi (Eray: "mobil taş devri")
 - Eray: "operasyon web tarihin en iyisi ama mobilde hiçbir şeye tıklayamıyorum, detaysız." → haklıydı, iskelet bırakmışım.
 - **Eklendi (`operasyon-mobil.html`):** alt-sheet sistemi (`.sheet`/`.sheet-scrim`, `openSheet/closeSheet`). **Sipariş detay sheet'i** — müşteri, proxy maskeli telefon, adres (synth), restoran, ödeme, tutar, 5-aşama timeline, **VIZZ Ekonomisi kırılımı** (D.econOrder → net), Hemen Ata/Gizli Ara. **Kurye detay sheet'i** — bugün teslim/kazanç/güven skoru + Kasa (nakit/POS/limit bar) + Hız&Mesafe + Ara/Nakit Teslim Al. **Daha sekmesi** artık dolu (bugün ekonomi özeti D.econDukkan + Büyüme/teşvik özeti D.GROWTH + modül linkleri). 0 konsol hatası.

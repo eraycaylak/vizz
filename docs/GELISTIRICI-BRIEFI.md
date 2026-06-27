@@ -121,7 +121,7 @@
 | Proxy numara maskeleme (gizli arama) | ✅ prototipte (sipariş detayı: maskeli no + Gizli Ara) |
 | Kurye net kazanç şeffaflığı (önce göster) | ✅ kurye app ödül kartı + econ kırılım |
 | COD kasa mutabakatı · güven skoru · hız/mesafe | ✅ (önceden) |
-| **POD (foto+imza+GPS teslim kanıtı)** | 🟡 planlı — kurye app teslim ekranı (Ayarlar'da geofence doğrulama var) |
+| **POD (foto+imza+GPS teslim kanıtı)** | ✅ kurye app teslim akışı: 3-kanıt zorunlu (geofence GPS otomatik doğrulama "adrese 12 m" + foto + imza pad canvas) → üçü tamamlanmadan "Teslim ettim" kilitli (sahte teslimi önler) |
 | **Order batching (çoklu-pickup)** | 🟡 planlı — atama motoruna kümeleme (Atama Ayarları'nda "Kümeleme" var, algoritma eklenecek) |
 | **Suç atfı (geç pickup kanıtlı)** | 🟡 planlı — sipariş zaman damgalı event-log'dan |
 | **Status page / outage şeffaflığı** | 🟡 planlı — HA altyapısıyla (bkz. MİMARİ §HA) |
