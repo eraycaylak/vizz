@@ -52,27 +52,34 @@ const RESTAURANTS = [
    Her dükkanın kendi teslimat tarifesi var. HER rapor/sipariş bu
    fonksiyonları çağırır → sayılar her yerde birbirini tutar.
    =================================================================== */
-const ECON = { KDV:0.20, STOPAJ:0.01, KV:0.25, SABIT:6, KOMISYON:0.08 };
-//                  [dükkanın VIZZ'e ödediği teslimat ₺, kuryeye giden ₺]
-const TARIFE = {1:[100,62],2:[130,82],3:[90,56],4:[110,70],5:[95,60],6:[105,66],7:[140,88],8:[85,54]};
-const MARKET_TARIFE=[70,44];
-RESTAURANTS.forEach(r=>{ const t=TARIFE[r.id]||[100,62]; r.tarife=t[0]; r.kuryePay=t[1]; r.gunluk=22+(r.id*17)%58; });
+/* MODEL (Eray onayı): VIZZ geliri = SADECE teslimat farkı (yemek komisyonu YOK).
+   Dükkan teslimat ücreti öder (örn 120) → kuryeye (70) → VIZZ brüt marj (50).
+   Yemek parası = pass-through: kurye VIZZ POS/nakit ile toplar → VIZZ havuzu →
+   Pazartesi restorana (toplanan yemek − teslimat ücreti). Bonus 50₺ marjından çıkar. */
+const ECON = { KDV:0.20, KV:0.25, SABIT:4, oduOrt:3.8, kasaLimit:3000 };
+//                  [dükkanın ödediği teslimat ₺, kuryeye giden ₺] · marj = fark
+const TARIFE = {1:[110,65],2:[140,85],3:[100,60],4:[120,70],5:[110,66],6:[115,68],7:[150,90],8:[95,58]};
+const MARKET_TARIFE=[80,48];
+RESTAURANTS.forEach(r=>{ const t=TARIFE[r.id]||[120,70]; r.teslimat=t[0]; r.kuryePay=t[1]; r.marj=t[0]-t[1]; r.gunluk=22+(r.id*17)%58; });
 
-function feeOf(restName){ const r=RESTAURANTS.find(x=>x.name===restName); return r?{tarife:r.tarife,kurye:r.kuryePay}:{tarife:MARKET_TARIFE[0],kurye:MARKET_TARIFE[1]}; }
-/* bir siparişin TAM ekonomi kırılımı — petekteki tek hücre */
+function feeOf(restName){ const r=RESTAURANTS.find(x=>x.name===restName); return r?{teslimat:r.teslimat,kurye:r.kuryePay}:{teslimat:MARKET_TARIFE[0],kurye:MARKET_TARIFE[1]}; }
+/* TEK-LEDGER: bir siparişin TAM ekonomisi. foodTotal = pass-through (restoran hakedişi için). */
 function econOrder(restName, foodTotal){
-  const {tarife,kurye}=feeOf(restName);
-  const komisyon=Math.round((foodTotal||0)*ECON.KOMISYON);   // yemek tutarından VIZZ komisyonu
-  const gelir=tarife+komisyon;                                // VIZZ brüt gelir (teslimat + komisyon)
-  const gelirNet=gelir/(1+ECON.KDV), kdv=gelir-gelirNet;      // KDV ayrıştır
-  const brutKar=gelirNet-kurye-ECON.SABIT;                    // − kurye − sabit gider
+  const {teslimat,kurye}=feeOf(restName);
+  const brutMarj=teslimat-kurye;                              // VIZZ brüt marj (120−70=50)
+  const odul=ECON.oduOrt;                                     // kurye bonusu — marjdan çıkar
+  const teslimatNet=teslimat/(1+ECON.KDV), kdv=teslimat-teslimatNet;
+  const kuryeNet=kurye/(1+ECON.KDV);                          // esnaf kurye faturası (indirilecek KDV)
+  const brutKar=teslimatNet-kuryeNet-ECON.SABIT-odul;         // KDV hariç kâr
   const kv=Math.max(0,brutKar)*ECON.KV;                       // kurumlar vergisi
-  const net=Math.round(brutKar-kv);                           // vergi sonrası net kâr
-  return {tarife,kurye,komisyon,gelir,kdv:Math.round(kdv),sabit:ECON.SABIT,brutKar:Math.round(brutKar),kv:Math.round(kv),net,brutMarj:gelir-kurye};
+  const net=Math.round(brutKar-kv);                           // VIZZ vergi sonrası net
+  const food=foodTotal||0;
+  return {teslimat,kurye,brutMarj,odul,sabit:ECON.SABIT,kdv:Math.round(kdv),kv:Math.round(kv),net,
+    food, restoranHakedis:food-teslimat};                     // pass-through: Pazartesi restorana
 }
-/* dükkan bazlı günlük toplam — Dükkan Ekonomisi raporu bundan beslenir */
-function econDukkan(){ return RESTAURANTS.map(r=>{ const e=econOrder(r.name,260); return {id:r.id,name:r.name,zone:r.zone,tarife:r.tarife,kurye:r.kuryePay,adet:r.gunluk,
-  gelir:e.gelir*r.gunluk, komisyon:e.komisyon*r.gunluk, kuryeGider:r.kuryePay*r.gunluk, net:e.net*r.gunluk}; }); }
+/* dükkan bazlı günlük — Dükkan Ekonomisi + Pazartesi restoran mutabakatı */
+function econDukkan(){ return RESTAURANTS.map(r=>{ const e=econOrder(r.name,0); return {id:r.id,name:r.name,zone:r.zone,teslimat:r.teslimat,kurye:r.kuryePay,marj:r.marj,adet:r.gunluk,
+  gelir:r.teslimat*r.gunluk, kuryeGider:r.kuryePay*r.gunluk, brutMarj:r.marj*r.gunluk, net:e.net*r.gunluk}; }); }
 
 /* ===================================================================
    BÜYÜME & ÖDÜL MOTORU — "Hızır'dan pay al" teşvik sistemi (tek kaynak)
@@ -84,12 +91,12 @@ const GROWTH = {
   gecenDukkanAy:14, gecenKuryeAy:23, hedefDukkanAy:40, hedefKuryeAy:50,
   kampanyalar:[
     {id:'k1',tip:'kurye',ad:'Geçiş Bonusu',ikon:'🎁',desc:"Hızır'dan gelen kuryeye ilk 100 teslimatta teslimat başı +30₺",bonus:30,butce:30000,harcanan:18600,aktif:true},
-    {id:'k2',tip:'kurye',ad:'Günün Primi',ikon:'⚡',desc:'Bugün her teslimat +5₺ ekstra · yoğun saatte ×2',bonus:5,butce:8000,harcanan:5400,aktif:true},
-    {id:'k3',tip:'kurye',ad:'Şanslı Teslimat',ikon:'🍀',desc:"Her ~20 teslimattan 1'i sürpriz +50₺ (ekranda kutlama)",bonus:50,butce:6000,harcanan:3100,aktif:true},
-    {id:'k4',tip:'kurye',ad:'Haftalık Seri',ikon:'🔥',desc:'7 gün üst üste 10+ teslimat → +500₺',bonus:500,butce:7500,harcanan:4000,aktif:true},
+    {id:'k2',tip:'kurye',ad:'Anında Bonus',ikon:'⚡',desc:'Her teslimata +2-4₺ anında bonus (marjdan)',bonus:3,butce:8000,harcanan:5400,aktif:true},
+    {id:'k3',tip:'kurye',ad:'Şanslı Teslimat',ikon:'🍀',desc:'%0.1 ihtimalle sürpriz +30₺ jackpot (ekranda kutlama)',bonus:30,butce:6000,harcanan:3100,aktif:true},
+    {id:'k4',tip:'kurye',ad:'Aylık Hedef',ikon:'🎯',desc:'Aylık: 100 teslimat → +50₺ · 250 → +150₺ (sıfırlanır)',bonus:50,butce:7500,harcanan:4000,aktif:true},
     {id:'k5',tip:'dukkan',ad:'Şanslı Gün',ikon:'🎰',desc:"Her gün rastgele 1 siparişin teslimatı VIZZ'ten — dükkana 0₺ (panelde kutlama)",bonus:0,butce:9000,harcanan:5200,aktif:true},
-    {id:'k6',tip:'dukkan',ad:'Geçiş Paketi',ikon:'🤝',desc:"Hızır'dan gelen dükkana ilk 30 gün komisyon %0",bonus:0,butce:15000,harcanan:9800,aktif:true},
-    {id:'k7',tip:'dukkan',ad:'Hacim Primi',ikon:'📈',desc:'Günde 30+ sipariş → ertesi gün tarifede %15 indirim',bonus:0,butce:6000,harcanan:2600,aktif:false},
+    {id:'k6',tip:'dukkan',ad:'Geçiş Paketi',ikon:'🤝',desc:"Hızır'dan gelen dükkana ilk 30 gün teslimat ücreti %50 indirim",bonus:0,butce:15000,harcanan:9800,aktif:true},
+    {id:'k7',tip:'dukkan',ad:'Hacim Primi',ikon:'📈',desc:'Günde 30+ sipariş → ertesi gün teslimat ücretinde %15 indirim',bonus:0,butce:6000,harcanan:2600,aktif:false},
   ],
 };
 GROWTH.toplamButce = GROWTH.kampanyalar.reduce((a,k)=>a+k.butce,0);
@@ -100,7 +107,7 @@ GROWTH.toplamHarcanan = GROWTH.kampanyalar.filter(k=>k.aktif).reduce((a,k)=>a+k.
    2) %0.1 ihtimalle 30₺ jackpot (sürpriz)
    3) Hedefler: teslimat sayısı → tek seferlik bonus (100 paket → +50₺ gibi) */
 GROWTH.reward = {
-  miniBonus:[2,3,4], jackpotSans:0.001, jackpot:30,
+  miniBonus:[2,3,4], jackpotSans:0.001, jackpot:30, hedefReset:'aylık',
   hedefler:[{n:50,b:25},{n:100,b:50},{n:250,b:150},{n:500,b:350}],
 };
 /* bir teslimat için çekiliş — neredeyse her zaman 2-4₺, çok nadir 30₺ jackpot */
@@ -109,14 +116,14 @@ GROWTH.luckyDraw = function(){
   if(Math.random()<R.jackpotSans) return {amount:R.jackpot, jackpot:true};
   return {amount:R.miniBonus[Math.floor(Math.random()*R.miniBonus.length)], jackpot:false};
 };
-/* sahip görünümü: ödül gideri ekonomisi (kurye'ye gösterilmez) */
+/* sahip görünümü: ödül gideri — VIZZ'in 50₺ MARJINDAN çıkar (kurye'ye gösterilmez) */
 GROWTH.rewardEcon = function(){
-  const de=econDukkan(), totNet=de.reduce((a,r)=>a+r.net,0), totAdet=de.reduce((a,r)=>a+r.adet,0), avgNet=totNet/totAdet, R=GROWTH.reward;
+  const de=econDukkan(), totMarj=de.reduce((a,r)=>a+r.brutMarj,0), totAdet=de.reduce((a,r)=>a+r.adet,0), avgMarj=totMarj/totAdet, R=GROWTH.reward;
   const miniAvg=R.miniBonus.reduce((a,b)=>a+b,0)/R.miniBonus.length;       // ~3₺
   const jackpotEV=R.jackpotSans*R.jackpot;                                  // 0.03₺
-  const hedefEV=R.hedefler.filter(h=>h.n<=100).reduce((a,h)=>a+h.b,0)/100;  // 100 teslimat ufku ~0.75₺
-  const evTeslimat=miniAvg+jackpotEV+hedefEV, netSonra=avgNet-evTeslimat;
-  return { avgNet, miniAvg, jackpotEV, hedefEV, evTeslimat, netPct:netSonra/avgNet, netSonra,
+  const hedefEV=R.hedefler.filter(h=>h.n<=100).reduce((a,h)=>a+h.b,0)/100;  // aylık 100 teslimat ufku ~0.75₺
+  const evTeslimat=miniAvg+jackpotEV+hedefEV, marjSonra=avgMarj-evTeslimat;
+  return { avgMarj, miniAvg, jackpotEV, hedefEV, evTeslimat, marjPct:marjSonra/avgMarj, marjSonra,
     gunlukGider:evTeslimat*totAdet, totAdet };
 };
 
@@ -126,13 +133,16 @@ const CATS = ["Tümü","Kebap","Pide","Lahmacun","Mantı","Burger","Kahvaltı","
 const NAMES = ["Mehmet K.","Ahmet Y.","Mustafa D.","Hüseyin A.","Emre B.","Burak Ş.","Caner T.","Serkan O.","Okan V.","Volkan E.","Tolga K.","Kaan Y.","Yusuf M.","Murat S.","Selim G."];
 const STATUS = [["delivering","Teslimatta","#FFC400"],["online","Müsait","#1FAE5A"],["break","Molada","#9AA0A6"]];
 
-/* 15 esnaf kurye */
+/* 15 esnaf kurye · 10 tanesinde VIZZ POS cihazı (ilk 10) */
 const COURIERS = NAMES.map((n,i)=>{
   const z=YOZGAT.zones[i%YOZGAT.zones.length];
   const st=STATUS[i%3];
+  const today=6+(i*3)%14;                       // 6-19 teslimat/gün
   return {id:i+1,name:n,phone:"+90 5"+(30+i)+" *** ** "+(10+i),
     status:st[0],statusTr:st[1],color:st[2],
-    today:6+(i*3)%14, earn:380+(i*47)%620, rate:(4.4+((i*7)%6)/10).toFixed(1),
+    today, hasPOS:i<10,                          // 10 POS / 15 kurye
+    earn:today*68 + today*3,                     // ~68₺ paket payı + ~3₺ anında bonus (tek motor)
+    rate:(4.4+((i*7)%6)/10).toFixed(1),
     accept:80+(i*5)%19, zone:z.n, pos:z.c.slice()};
 });
 

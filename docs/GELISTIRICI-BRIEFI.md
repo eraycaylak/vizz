@@ -39,8 +39,42 @@
 ## 2. Mimari Prensipler
 - **Modüler monolit** (mikroservis değil). Go `internal/` paketleriyle sınır çiz.
 - **5 yüzey + market + entegrasyonlar = TEK backend / TEK veri modeli**, RBAC paylaşımlı API.
-- **Fiyat/komisyon/ücret hesabı TEK motor** (backend) — müşteri app + restoran panel + dispatcher aynı sonucu vermeli. Client tekrar yazmaz.
-- **⚠️ EKONOMİ TEK-MOTOR = "ARI PETEĞİ" (kritik):** Her dükkanın **kendi teslimat tarifesi** var (`restaurant.tarife` + `restaurant.kuryePay`, dükkana göre farklı: 85–140₺). TEK fonksiyon `econOrder(restoran, yemekTutarı)` her siparişin tam kırılımını üretir → **teslimat tarifesi + komisyon(%8) − kurye ücreti − sabit gider − vergi(KDV+kurumlar) = NET KÂR**. **Tüm raporlar/finans bu motordan okur** — sipariş detayı, Dükkan Ekonomisi tablosu, Finans KPI'ları, birim ekonomi hepsi aynı kaynaktan → sayılar **her yerde birbirini tutar** (prototipte doğrulandı: Dükkan Ekonomisi TOPLAM = Finans net = Σ econOrder.net). **Veri modeli:** `restaurant.tarife → order.delivery_fee + order.commission → ledger(order){gelir, kurye_gider, vergi, net} → reports`. Asla rapor başına ayrı hesap yazma — tek ledger, her hücre komşusuna bağlı.
+- **Fiyat/ücret hesabı TEK motor** (backend) — müşteri app + restoran panel + dispatcher aynı sonucu vermeli. Client tekrar yazmaz.
+
+### 💰 GELİR MODELİ & PARA AKIŞI (Eray tarafından KİLİTLENDİ — kritik)
+**VIZZ geliri = SADECE teslimat farkı. Yemek komisyonu YOK.** Dükkan teslimat ücreti öder (dükkana göre değişir, örn 120₺) → kuryeye (70₺) → **VIZZ brüt marj 50₺**. Müşteri teslimat ücreti ödemez (dükkan yemek fiyatına yedirir).
+
+**Yemek parası = pass-through (VIZZ geliri DEĞİL):** Kurye, müşteriden yemek bedelini **VIZZ POS cihazı** (10 cihaz, kuryelerde) veya **nakit** ile tahsil eder → **tümü VIZZ şirket hesabına** (POS otomatik yatar; nakit kuryede birikir, **3.000₺** limitte yatırmaya gider). VIZZ bu parayı tutar, **Pazartesi restorana öder**.
+
+**İki ödeme takvimi (mutabakat):**
+- **Pazartesi → Restoran hakediş** = `Σ(toplanan yemek bedeli) − Σ(teslimat ücreti)`. (Örn: 255₺ yemek, 120₺ teslimat → restorana **135₺**.)
+- **Cuma → Kurye hakediş** = `Σ(kurye payı, örn 70₺) + bonuslar`. *Kuryenin taşıdığı/yatırdığı nakit AYRIDIR — o VIZZ'in parası, hakediş değil.*
+
+**TEK-LEDGER (arı peteği) — her sipariş tek kayıt, her şey buradan okur:**
+```
+order_ledger {
+  tahsilat: {tutar: yemek_bedeli, tip: POS|nakit, tahsil_eden: kurye_id},   // pass-through
+  pass_through: {restoran_hakedis: yemek − teslimat_ucreti},                 // Pazartesi
+  gelir:  {teslimat_ucreti},                                                 // VIZZ geliri
+  gider:  {kurye_payi, bonus, islem_sistem, kdv, kurumlar_vergisi},
+  net_vizz                                                                   // = teslimat − kurye − bonus − gider − vergi
+}
+```
+`econOrder(restoran)` bu kırılımı üretir; **sipariş detayı + Dükkan Ekonomisi + Finans (Pzt/Cuma) + KPI + raporlar HEPSİ bundan okur** — prototipte doğrulandı: Dükkan TOPLAM = Finans = KPI = Σ econOrder (tutarlı, mock yok). Asla rapor başına ayrı hesap yazma.
+- **POS dağıtımı:** 10 POS / 15 kurye → `courier.hasPOS`. POS'lu kurye nakit+kart; POS'suz nakit-only. (Saha optimizasyonu v1 sonrası.)
+- **AÇIK (v2):** Yemeksepeti/Trendyol/Getir siparişlerinde müşteri parayı platforma öder → kurye **tahsil etmez**; bu siparişlerde sadece teslimat yapılır, teslimat ücreti B2B mutabakatla alınır. v1 = **sadece VIZZ-kendi siparişleri (kapıda POS+nakit)**. *Online/önceden kart ödeme de v2.*
+- **⚠️ Regülasyon notu:** VIZZ müşteri parasını toplayıp restorana dağıttığı için bu **ödeme aracılığı** sayılır → ya **lisanslı PSP** (iyzico/PayTR pazaryeri) üzerinden akıt ya da net **aracı/acente** sözleşmesi. Mali müşavir + ödeme hukuku avukatı teyidi şart.
+
+### 🔄 SİPARİŞ YAŞAM-DÖNGÜSÜ (state machine — backend bunu uygular)
+```
+RESTORAN_ALDI ─► VIZZ'E_DÜŞTÜ (entegre) ─► RESTORAN_HAZIRLIYOR
+   ─► HAZIR/KURYE_ÇAĞRILDI ─► KURYE_ATANDI (oto: en yakın+skor; kasa<limit, kapasite, bölge KISITLARI ENFORCE)
+   ─► KURYE_YOLDA (restorana) ─► PAKET_ALINDI ─► MÜŞTERİYE_YOLDA
+   ─► TAHSİLAT (VIZZ POS/nakit → VIZZ hesabı) ─► POD (geofence+foto+imza) ─► TESLİM_EDİLDİ
+   yan dallar: İPTAL (hazırlandıysa dükkan yemeği faturalar; kurye yola çıktıysa teslimat ücretini HAK EDER),
+               TESLİM_EDİLEMEDİ, RED→sıra sonu.
+```
+Her geçiş **timestamp + aktör** ile event-log'a yazılır (suç atfı, SLA, mutabakat bundan türer). Atama kısıtları (kasa limiti, kapasite, bölge) gerçekten **uygulanmalı** (UI'da göstermek yetmez).
 - **Her sipariş `vertical: food | market` ve `channel: vizz | telefon | yemeksepeti | trendyol | getir`** — tek `orders` çekirdeği iki dikeye + tüm kanallara hizmet eder.
 - **Olay-güdümlü:** her durum geçişi event-log'a yazılır (raporlama + otomasyon bunu okur).
 
@@ -113,7 +147,7 @@
 ### 🐝 Büyüme & Teşvik Motoru — "Hızır'dan pay al" (rakip %95)
 **Veri:** `GROWTH` (vizz-data.js) tek kaynak → kampanyalar {tip:kurye/dükkan, bonus, bütçe, harcanan, aktif}. Teşvik = **maliyet** → Finans gideri + Dükkan Ekonomisi net kârından düşülür (econ peteğine bağlı, ayrı hesap yok).
 - **Kurye ödülleri (kurye app'te görünür — geçiş sebebi):** 🎁 Geçiş Bonusu (Hızır'dan gelene ilk 100 teslimat +30₺ — **CAC/pazarlama yatırımı**, marj değil, kurye ömür-boyu değerinden geri kazanılır) · ⚡ Günün Primi (yoğun saat) · 🍀 Şanslı Teslimat · 🔥 Haftalık Seri. Kurye home'da **VIZZ Ödülleri kartı**.
-- **⚠️ Ödül modeli (basit & sürdürülebilir, `GROWTH.reward`/`rewardEcon`/`luckyDraw`):** **(1)** Her teslimata **+₺2-4 anında bonus** (motivasyon) · **(2)** **%0.1 ihtimalle ₺30 jackpot** (heyecan, ucuz: EV ₺0,03) · **(3)** **Hedefler** (50→₺25, 100→₺50, 250→₺150, 500→₺350 — tek seferlik, bağlılık). Toplam ödül gideri **~₺3,8/teslimat** = net kârın ~%15'i → **net'in ~%85'i bize kalır** (paket net ~₺24,7 → ödül sonrası ~₺20,9). Kurye UI'da **oran/EV gösterilmez** — tek "Şanslı Teslimat" butonu + hedef barları. Üretimde: kazanan seçimi + bonus hesaplama **sunucuda** (client'a güvenme), ledger'da ayrı "ödül" hesabı, idempotent; günlük/aylık tavan opsiyonel güvenlik.
+- **⚠️ Ödül modeli (`GROWTH.reward`/`rewardEcon`/`luckyDraw`):** **(1)** Her teslimata **+₺2-4 anında bonus** · **(2)** **%0.1 ihtimalle ₺30 jackpot** (EV ₺0,03) · **(3)** **AYLIK hedefler** (100→₺50, 250→₺150, 500→₺350 — her ay sıfırlanır, bağlılık). Toplam ödül gideri **~₺3,8/teslimat** → VIZZ'in **50₺ brüt marjından** çıkar (marjın ~%8'i, marjın ~%92'si kalır). Bonuslar **Cuma hakedişine** eklenir, ledger'da gider olarak işlenir (net'e yansır). Kurye UI'da **oran/EV gösterilmez** — tek "Şanslı Teslimat" butonu + aylık hedef barları. **Üretimde: çekiliş teslimat başına 1 kez, SUNUCUDA** (kurye butonla farm edemez — client'a güvenme), idempotent. Geçiş bonusu (+30/teslimat ilk 100) AYRI: marj değil **CAC/pazarlama yatırımı**.
 - **İşletme teşvikleri (restoran panelde görünür):** 🎰 Şanslı Gün (her gün rastgele 1 siparişin teslimatı VIZZ'ten — dükkana ₺0) · 🤝 Geçiş Paketi (Hızır'dan gelene ilk 30 gün komisyon %0) · 📈 Hacim Primi (günde 30+ sipariş → ertesi gün tarife %15 indirim). Panoda **Şanslı Gün banner'ı**.
 
 ### ✅ Rakip-gap özellikleri — durum (pazar analizi sonrası)

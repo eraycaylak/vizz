@@ -9,6 +9,16 @@ metadata:
 
 # VIZZ — proje hafızası (güncel: 27 Haz 2026)
 
+## ⭐ GELİR MODELİ — KİLİTLİ (Eray onayı, en kritik referans)
+- **VIZZ geliri = SADECE teslimat farkı.** Yemek komisyonu YOK. Dükkan teslimat ücreti öder (dükkana göre değişir, örn 120) → kurye (70) → **VIZZ brüt marj 50**. Müşteri teslimat ödemez (dükkan yemeğe yedirir).
+- **Yemek parası = pass-through:** kurye VIZZ POS (10 cihaz) / nakit ile tahsil → **hepsi VIZZ şirket hesabına** (POS otomatik, nakit kuryede birikir → 3000₺ limitte yatırır).
+- **Pazartesi → restoran:** toplanan yemek − teslimat ücretleri (255 yemek, 120 teslimat → 135 restorana). **Cuma → kurye:** Σ kurye payı + bonus. Taşıdığı nakit AYRI (VIZZ'in parası, hakediş değil).
+- **Bonus 50₺ marjından çıkar.** Aylık hedefler sıfırlanır. Geçiş bonusu = ayrı CAC.
+- v1 = sadece VIZZ-kendi siparişleri (kapıda POS+nakit). Aggregator (YS/Trendyol — müşteri platforma öder, kurye tahsil etmez) + online ödeme = **v2 (AÇIK)**.
+- **Tek-ledger:** `econOrder(restoran)` → tahsilat(pass-through)+gelir+gider+net; sipariş detayı/Dükkan Ekonomisi/Finans/KPI/rapor HEPSİ buradan (mock yok, hepsi tutuyor).
+
+
+
 **Ne:** Yozgat merkezde, **kendi esnaf kurye filolu** yerel **yemek sipariş + teslimat platformu** (B2C pazaryeri + B2B teslimat). Rakipler: **Hızır Paket, Paketçiniz, Maxijett** (TR kurye SaaS) + Getir/Yemeksepeti. **%80 operasyon / %20 son kullanıcı** vurgusu. İkinci dikey: **VIZZ Market** (hızlı atıştırmalık q-commerce). Detaylı master spec sohbette (Bölüm 0-11).
 
 **Marka:** **arı (bee) maskotu**, altıgen rozet + "VIZZ" wordmark. Renk **SARI #FFC400 + SİYAH #111 + beyaz** (mavi DEĞİL — Eray sarı-siyah istedi). Arı = hız + "vızz" sesi + yerellik.
@@ -76,6 +86,13 @@ Yazılımcı "para dönüyor, microservice + yedekli sunucu/backend olmalı, sun
 - **`operasyon-mobil.html` (YENİ yüzey):** cepten dispatcher — device frame + 4 KPI + **Atama Kuyruğu** (kanal rozetli sipariş kartları, müşteri/bölge/ödeme + tek-tık Otomatik Ata) + **canlı kanal akışı** (her ~7sn yeni sipariş düşer) + tab'lar: Akış/Harita(Leaflet)/Kuryeler(kasa rozetli)/Daha. `index.html` hub'a kart eklendi. (Eray "mobilde hiç yokuz" dedi.)
 - **restoran-panel Sipariş Panosu: Kanban ↔ Liste(hepsi) toggle** — Eray "100 sipariş alt alta sığmaz, Minijett gibi hepsini gör" dedi → Liste modu = tek kompakt `table.grid` (id/kanal/müşteri/ürün/tutar/durum/SLA/kurye/aksiyon), stage'e göre sıralı, advance çalışır. `RP.panoView('kanban'|'liste')`, `refreshPano()`.
 - **Geliştirici devri:** repo **public kalsın** kararı (Eray). `docs/` + canlı prototip + **`memorybackup/` klasörü repoya konuldu** (github.com/eraycaylak/vizz/tree/main/memorybackup): `vizz-projesi.md` + `MEMORY.md` + `RESTORE-NASIL-KULLANILIR.md` (3 geri-yükleme yolu). Sadece VIZZ hafızası (kişisel/diğer-proje hariç).
+
+## 27 Haz (10) — TEK-LEDGER refaktörü: mantık/senkron/veri-tutarlılığı düzeltildi
+- **Eray algoritmik audit istedi**, ben 12 bulgu çıkardım (kurye ücreti 4 ayrı yerde, ödül net'e işlenmiyor, COD mutabakat yok, gelir modeli belirsiz, KPI 142 vs 382, vb.). Eray modeli netleştirdi → hepsini tek hamlede düzelttim. Bkz üstteki **"GELİR MODELİ — KİLİTLİ"**.
+- **vizz-data.js:** ECON komisyon kaldırıldı; `econOrder` = teslimat−kurye=marj, −bonus−gider−vergi=net, +pass-through restoranHakedis. `econDukkan` marj/net. `rewardEcon` marj-bazlı. COURIERS.earn=today×71 (gerçek), `hasPOS:i<10`. kasaLimit 3000. Kampanya metinleri düzeltildi (komisyon→teslimat indirimi, +5→+2-4).
+- **operasyon.js:** sipariş detayı = Tahsilat(pass-through) + VIZZ marjı 2 blok; Dükkan Ekonomisi kolonları (teslimat/kurye/marj/net, komisyon yok); **Finans baştan yazıldı** → Pazartesi Restoran Hakediş + Cuma Kurye Hakediş (gerçek kurye payı 68, +bonus, taşıdığı nakit ayrı) + COD havuz KPI; reward kartı marj-bazlı; KPI "142"→econDukkan toplam (382, senkron); Mali ayarlar komisyon→teslimat modeli; kasa limit 3000.
+- **operasyon-mobil + kurye-mobil:** sipariş sheet pass-through+marj; kasa 3000/POS-aware; kurye kazanç ₺48→₺72 (gerçek pay). Cache v=6.
+- **Doğrulandı:** order 120/70→marj50→net25, restoran 135; KPI 382 = Dükkan toplam = Finans; 0 konsol hatası. Brief'e Para Akışı + tek-ledger + sipariş state machine + regülasyon(PSP) + v2 açıklar yazıldı.
 
 ## 27 Haz (9) — Ödül modeli sadeleştirildi (Eray'ın final kararı)
 - Eray: "havuz algoritmasını/şeffaflığı geç. **Her teslimata 2-4₺ anında bonus + %0.1 ihtimalle 30₺ jackpot + hedefler (100 paket→50₺)**, kurye'de tek buton, oran gösterme."

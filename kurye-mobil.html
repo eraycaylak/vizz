@@ -312,7 +312,7 @@
     <!-- ============ 3) AKTİF GÖREV ============ -->
     <section class="scr" id="s-aktif">
       <h2 class="h2">Aktif Görev</h2>
-      <p class="sub"><span class="num">VZ-7743</span> · tahmini kazanç <b class="hl">₺48</b></p>
+      <p class="sub"><span class="num">VZ-7743</span> · tahmini kazanç <b class="hl">₺72</b></p>
 
       <div class="task-hdr">
         <div class="cover"><img src="img/adana-kebap.jpg" onerror="VIZZ.imgFallback(this,'adana-kebap')" alt="">
@@ -324,7 +324,7 @@
         <div class="meta">
           <div class="c"><div class="l">Mesafe</div><div class="v num">2,4<small> km</small></div></div>
           <div class="c"><div class="l">Tahmini</div><div class="v num">11<small> dk</small></div></div>
-          <div class="c"><div class="l">Kazanç</div><div class="v g num">₺48</div></div>
+          <div class="c"><div class="l">Kazanç</div><div class="v g num">₺72</div></div>
           <div class="c"><div class="l">Tahsilat</div><div class="v num">₺420</div></div>
         </div>
       </div>
@@ -461,7 +461,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-<script src="vizz-data.js?v=5"></script>
+<script src="vizz-data.js?v=6"></script>
 <script>
 (function(){
   const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
@@ -597,7 +597,7 @@
     curStep++;renderSteps();
     if(curStep>=STEPS.length){
       $('#taskDot').style.display='none';
-      toast('Teslimat tamamlandı · +₺48 · POD kaydedildi (konum+foto+imza)');
+      toast('Teslimat tamamlandı · +₺72 · POD kaydedildi (konum+foto+imza)');
       setTimeout(()=>{resetTask();go('gorev');},1600);
     }else{
       toast(label+' ✓ · sıradaki: '+STEPS[curStep].t);
