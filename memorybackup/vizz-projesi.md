@@ -77,6 +77,12 @@ Yazılımcı "para dönüyor, microservice + yedekli sunucu/backend olmalı, sun
 - **restoran-panel Sipariş Panosu: Kanban ↔ Liste(hepsi) toggle** — Eray "100 sipariş alt alta sığmaz, Minijett gibi hepsini gör" dedi → Liste modu = tek kompakt `table.grid` (id/kanal/müşteri/ürün/tutar/durum/SLA/kurye/aksiyon), stage'e göre sıralı, advance çalışır. `RP.panoView('kanban'|'liste')`, `refreshPano()`.
 - **Geliştirici devri:** repo **public kalsın** kararı (Eray). `docs/` + canlı prototip + **`memorybackup/` klasörü repoya konuldu** (github.com/eraycaylak/vizz/tree/main/memorybackup): `vizz-projesi.md` + `MEMORY.md` + `RESTORE-NASIL-KULLANILIR.md` (3 geri-yükleme yolu). Sadece VIZZ hafızası (kişisel/diğer-proje hariç).
 
+## 27 Haz (8) — Şanslı Teslimat bütçe-farkında ödül havuzu algoritması (Eray: "25₺ kârla 30/50/100 veremeyiz")
+- **Eray'ın uyarısı:** paket başı VIZZ net kârı ~25₺; şanslı teslimat sabit 30/50/100₺ verirse batarız. "10 kuryeden 1'ine, 1 paketten kazandığımızı verebiliriz" → algoritmik hesap iste.
+- **Çözüm (`vizz-data.js` GROWTH.reward + rewardEcon + luckyDraw):** her teslimatın **%10 kazanma şansı**; kazanan **o teslimatın net kârını** alır (≈1 paket kârı, ~25₺). → **EV/teslimat = P×ortNet = net'in %10'u = 2,5₺**; net'in %90'ı (22,2₺) bize kalır. Simülasyon: 10000 çekiliş → %9.9 kazandı, ort ödül ₺25,1, EV ₺2,48. Güvenlik: havuz bakiye + aylık tavan dolunca kazanma durur. **EV=havuz payı → matematiksel olarak zarar imkânsız.**
+- **operasyon Büyüme:** "Ödül Havuzu Ekonomisi" kartı (5 metrik + günlük havuz ₺943/38 kazanan + tavan). **kurye-mobil:** luckyDraw gerçek %10 olasılık, ödül = 1 paket kârı; buton "%10 kazanma şansı".
+- **Ders:** ödül/teşvik = sabit tutar DEĞİL, **gerçekleşen marjın yüzdesi** olmalı (EV ≤ havuz payı). Sabit bonus = batış. Geçiş bonusu (CAC) ayrı: pazarlama yatırımı, kurye ömür-boyu değerinden geri kazanılır.
+
 ## 27 Haz (7) — kurye-mobil teslim akışı + POD 3-kanıt (rakip-gap kapandı)
 - **Eklendi (`kurye-mobil.html`):** aktif görev teslim akışındaki POD adımı **3-kanıtlı** yapıldı (sahte teslimi önler): **GPS/geofence** (teslim ekranına gelince otomatik "Konum doğrulanıyor…" → 1.2sn → "✓ adrese 12 m, geofence içinde") + **foto çek** + **imza pad** (canvas pointer çizim, müşteri imzası). Üçü tamamlanmadan "Teslim ettim" butonu kilitli. `podReady()=gpsOk&&photoOk&&signOk`, `startGeofence()`, imza modalı (#signModal/#signCanvas).
 - Doğrulandı: davet→kabul→adımlar→POD; GPS oto-doğrulama, foto+imza cell'leri yeşil, 3 kanıt tamam→buton açık, POD yeşil. 0 konsol hatası.

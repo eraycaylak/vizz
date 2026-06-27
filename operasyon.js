@@ -452,6 +452,25 @@ function buildBuyume(){
           ${etkiRow('Kazanım başına maliyet (CAC)',f(G.toplamHarcanan/(G.gecenDukkanAy+G.gecenKuryeAy)))}
           ${etkiRow('Sipariş başı ek maliyet','~₺'+(G.toplamHarcanan/30/382).toFixed(1))}
           <div class="hint">Teşvikler Finans'ta gider olarak işlenir, Dükkan Ekonomisi net kârından düşülür — <b>hepsi tek motordan</b>.</div></div></div></div>
+    ${(()=>{const e=G.rewardEcon(),m=n=>'₺'+(Math.round(n*10)/10).toLocaleString('tr-TR');
+      const c=(l,v,s,col)=>`<div style="flex:1;min-width:120px;background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:11px 13px"><div style="font-size:11px;color:var(--tx-3)">${l}</div><div style="font-size:19px;font-weight:800;color:${col||'var(--tx)'};margin-top:3px">${v}</div><div style="font-size:10px;color:var(--tx-3);margin-top:1px">${s}</div></div>`;
+      return `<div class="card" style="margin-bottom:14px"><div class="card-h"><div class="t">🍀 Şanslı Teslimat — Ödül Havuzu Ekonomisi</div><span class="badge b-ok">asla zarar: net'in %${Math.round(e.havuzPct*100)}'i</span></div>
+      <div style="padding:13px 15px">
+        <div style="font-size:12px;color:var(--tx-2);margin-bottom:12px;line-height:1.5">Sabit 30/50/100₺ <b style="color:var(--bad)">verilmez</b> (paket kârımız ~${m(e.avgNet)}). Bunun yerine: her teslimatın <b style="color:var(--y)">%${Math.round(e.P*100)}</b> kazanma şansı; kazanan kurye <b>o teslimatın net kârını</b> alır → 10 teslimatta ~1.</div>
+        <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px">
+          ${c('Ort. net kâr/teslimat',m(e.avgNet),'tek motordan','var(--ok)')}
+          ${c('Kazanma olasılığı','%'+Math.round(e.P*100),'≈ 10 teslimatta 1')}
+          ${c('Ortalama ödül',m(e.ortOdul),'= 1 paket kârı','var(--y)')}
+          ${c('Beklenen maliyet/teslimat',m(e.evTeslimat),'EV = olasılık × ödül','var(--bad)')}
+          ${c('Ödül sonrası net',m(e.netSonra),'%'+Math.round((1-e.havuzPct)*100)+' bize kalır','var(--ok)')}
+        </div>
+        <div class="ebox" style="background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:12px">
+          <div style="display:flex;justify-content:space-between;padding:3px 0"><span class="dim">Günlük ödül havuzu (${e.totAdet} teslimat × EV)</span><b>${m(e.gunlukHavuz)}</b></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0"><span class="dim">Günlük şanslı kazanan (~)</span><b>${e.gunlukKazanan} kurye</b></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0"><span class="dim">Aylık tavan (güvenlik) · havuz bakiye</span><b>₺${G.reward.aylikTavan.toLocaleString('tr-TR')} · ₺${G.reward.havuzBakiye.toLocaleString('tr-TR')}</b></div>
+          <div class="hint" style="margin-top:7px">Havuz gerçekleşen kârdan finanse edilir; bakiye biterse veya aylık tavan dolarsa kazanma otomatik durur. <b>EV = havuz payı → matematiksel olarak zarar imkânsız.</b></div>
+        </div>
+      </div></div>`;})()}
     <div class="card"><div class="card-h"><div class="t">Aktif Kampanyalar</div><span class="badge b-y">${G.kampanyalar.filter(k=>k.aktif).length} aktif</span></div>
       <div style="overflow:auto"><table class="grid"><thead><tr><th>Kampanya</th><th>Hedef</th><th>Açıklama</th><th>Bütçe kullanımı</th><th>Durum</th></tr></thead><tbody>${G.kampanyalar.map(row).join('')}</tbody></table></div></div>`;
 }
