@@ -77,6 +77,12 @@ Yazılımcı "para dönüyor, microservice + yedekli sunucu/backend olmalı, sun
 - **restoran-panel Sipariş Panosu: Kanban ↔ Liste(hepsi) toggle** — Eray "100 sipariş alt alta sığmaz, Minijett gibi hepsini gör" dedi → Liste modu = tek kompakt `table.grid` (id/kanal/müşteri/ürün/tutar/durum/SLA/kurye/aksiyon), stage'e göre sıralı, advance çalışır. `RP.panoView('kanban'|'liste')`, `refreshPano()`.
 - **Geliştirici devri:** repo **public kalsın** kararı (Eray). `docs/` + canlı prototip + **`memorybackup/` klasörü repoya konuldu** (github.com/eraycaylak/vizz/tree/main/memorybackup): `vizz-projesi.md` + `MEMORY.md` + `RESTORE-NASIL-KULLANILIR.md` (3 geri-yükleme yolu). Sadece VIZZ hafızası (kişisel/diğer-proje hariç).
 
+## 27 Haz (9) — Ödül modeli sadeleştirildi (Eray'ın final kararı)
+- Eray: "havuz algoritmasını/şeffaflığı geç. **Her teslimata 2-4₺ anında bonus + %0.1 ihtimalle 30₺ jackpot + hedefler (100 paket→50₺)**, kurye'de tek buton, oran gösterme."
+- **Uygulandı (`GROWTH.reward`):** miniBonus [2,3,4], jackpotSans 0.001 → 30₺, hedefler [50→25, 100→50, 250→150, 500→350]. `luckyDraw` neredeyse hep 2-4₺, nadiren jackpot. `rewardEcon`: gider/teslimat ~3,8₺ (mini 3 + hedef 0.75 + jackpot 0.03), net'in ~%85'i kalır.
+- **kurye-mobil:** kart sadeleşti — "Her teslimat +₺2-4 · +₺38 bugün" + 2 hedef barı (100→50, 250→150) + tek "🍀 Şanslı Teslimat çevir" (oran YOK). **operasyon Büyüme:** sahip maliyet kartı yeni modele göre (gider 3,8₺/net 20,9₺). Cache v=5.
+- Önceki %10/havuz/EV modeli (madde 8) **bununla değiştirildi** — Eray basit+motive edici istedi.
+
 ## 27 Haz (8) — Şanslı Teslimat bütçe-farkında ödül havuzu algoritması (Eray: "25₺ kârla 30/50/100 veremeyiz")
 - **Eray'ın uyarısı:** paket başı VIZZ net kârı ~25₺; şanslı teslimat sabit 30/50/100₺ verirse batarız. "10 kuryeden 1'ine, 1 paketten kazandığımızı verebiliriz" → algoritmik hesap iste.
 - **Çözüm (`vizz-data.js` GROWTH.reward + rewardEcon + luckyDraw):** her teslimatın **%10 kazanma şansı**; kazanan **o teslimatın net kârını** alır (≈1 paket kârı, ~25₺). → **EV/teslimat = P×ortNet = net'in %10'u = 2,5₺**; net'in %90'ı (22,2₺) bize kalır. Simülasyon: 10000 çekiliş → %9.9 kazandı, ort ödül ₺25,1, EV ₺2,48. Güvenlik: havuz bakiye + aylık tavan dolunca kazanma durur. **EV=havuz payı → matematiksel olarak zarar imkânsız.**

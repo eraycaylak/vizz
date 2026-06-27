@@ -275,13 +275,13 @@
 
       <!-- VIZZ Ödül & Teşvik — Hızır'dan geçiş motoru -->
       <div class="rewardcard">
-        <div class="rc-h"><span class="rc-badge">🎁 VIZZ Ödülleri</span><span class="rc-live">● 4 kampanya aktif</span></div>
-        <div class="rc-row"><span>⚡ Günün primi · her teslimat +5₺</span><b style="color:var(--y)">+₺70 bugün</b></div>
-        <div class="rc-row"><span>🎁 Geçiş bonusu · ilk 100 teslimat +30₺</span><b>62 / 100</b></div>
+        <div class="rc-h"><span class="rc-badge">🎁 VIZZ Ödülleri</span><span class="rc-live">● anında bonus</span></div>
+        <div class="rc-row"><span>⚡ Her teslimat +₺2-4 anında bonus</span><b style="color:var(--y)">+₺38 bugün</b></div>
+        <div class="rc-row"><span>🎯 100 teslimat → +₺50</span><b>62 / 100</b></div>
         <div class="rc-bar"><i style="width:62%"></i></div>
-        <div class="rc-row"><span>🔥 Haftalık seri · 7 gün 10+ teslimat → +₺500</span><b>5 / 7</b></div>
-        <div class="rc-bar"><i style="width:71%"></i></div>
-        <button class="rc-luck" id="luckBtn">🍀 Şanslı Teslimat çevir · %10 kazanma şansı</button>
+        <div class="rc-row"><span>🎯 250 teslimat → +₺150</span><b>62 / 250</b></div>
+        <div class="rc-bar"><i style="width:25%"></i></div>
+        <button class="rc-luck" id="luckBtn">🍀 Şanslı Teslimat çevir</button>
       </div>
 
       <!-- haftalık birikim + CUMA sayacı -->
@@ -461,7 +461,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-<script src="vizz-data.js?v=4"></script>
+<script src="vizz-data.js?v=5"></script>
 <script>
 (function(){
   const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
@@ -538,10 +538,10 @@
   $('#invReject').onclick=()=>{closeInvite();localStorage.setItem('vizz_courier_penalty_demo','true');toast('Davet reddedildi · sıra sonuna atıldınız');window.dispatchEvent(new Event('storage'));};
   $('#invAccept').onclick=()=>{closeInvite();toast('Görev kabul edildi → VZ-7743');$('#taskDot').style.display='block';resetTask();go('aktif');};
   // 🍀 Şanslı Teslimat — geçiş motoru ödülü
-  $('#luckBtn').onclick=()=>{const d=(VIZZ.GROWTH&&VIZZ.GROWTH.luckyDraw)?VIZZ.GROWTH.luckyDraw():{win:Math.random()<0.1,amount:24};const p=$('#luckPop');
-    if(!d.win){$('#luckPop .em').textContent='🎲';$('#luckAmt').textContent='Bir dahaki sefere';$('#luckAmt').style.color='var(--tx-2)';$('#luckLbl').textContent='Kazanma şansı %10 · her teslimatta tekrar dene 🍀';}
-    else{$('#luckPop .em').textContent='🍀';$('#luckAmt').textContent='+₺'+d.amount;$('#luckAmt').style.color='var(--y)';$('#luckLbl').textContent='Şanslı Teslimat! Bu teslimatın kârı senin 🐝';}
-    p.classList.add('on');setTimeout(()=>p.classList.remove('on'),2600);};
+  $('#luckBtn').onclick=()=>{const d=(VIZZ.GROWTH&&VIZZ.GROWTH.luckyDraw)?VIZZ.GROWTH.luckyDraw():{amount:[2,3,4][Math.floor(Math.random()*3)],jackpot:false};const p=$('#luckPop');
+    $('#luckPop .em').textContent=d.jackpot?'🎉':'🍀';$('#luckAmt').textContent='+₺'+d.amount;$('#luckAmt').style.color='var(--y)';
+    $('#luckLbl').textContent=d.jackpot?'JACKPOT! Büyük şanslı teslimat 🐝':'Bonus cüzdanına eklendi 🐝';
+    p.classList.add('on');setTimeout(()=>p.classList.remove('on'),2400);};
   $('#luckPop').onclick=()=>$('#luckPop').classList.remove('on');
 
   /* ============ AKTİF GÖREV — durum makinesi ============ */

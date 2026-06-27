@@ -95,24 +95,29 @@ const GROWTH = {
 GROWTH.toplamButce = GROWTH.kampanyalar.reduce((a,k)=>a+k.butce,0);
 GROWTH.toplamHarcanan = GROWTH.kampanyalar.filter(k=>k.aktif).reduce((a,k)=>a+k.harcanan,0);
 
-/* ===== ŞANSLI TESLİMAT — bütçe-farkında ödül havuzu algoritması =====
-   Kural: kazanan kuryeye SABİT 30/50/100₺ verme (paket kârımız ~25₺, batarız).
-   Bunun yerine: her teslimatın %P kazanma şansı; kazanan O TESLİMATIN net kârını alır.
-   → Beklenen maliyet/teslimat (EV) = P × ortNet = net kârın %P'si. P=%10 → net'in %90'ı bize kalır.
-   → Havuz, gerçekleşen kârdan finanse edilir; havuz boşsa/aylık tavan dolduysa kazanma durur. */
-GROWTH.reward = { kazanmaOlasilik:0.10, oduPayi:1.0, aylikTavan:12000, havuzBakiye:8400 };
-GROWTH.rewardEcon = function(){
-  const de=econDukkan(), totNet=de.reduce((a,r)=>a+r.net,0), totAdet=de.reduce((a,r)=>a+r.adet,0);
-  const avgNet=totNet/totAdet, P=GROWTH.reward.kazanmaOlasilik, pay=GROWTH.reward.oduPayi;
-  const ortOdul=avgNet*pay, evTeslimat=P*ortOdul, netSonra=avgNet-evTeslimat;
-  return { avgNet, P, pay, ortOdul, evTeslimat, havuzPct:P*pay, netSonra,
-    gunlukHavuz:evTeslimat*totAdet, gunlukKazanan:Math.round(P*totAdet), totAdet };
+/* ===== ÖDÜL MOTORU — basit & sürdürülebilir =====
+   1) Her teslimata küçük anında bonus (2-4₺)
+   2) %0.1 ihtimalle 30₺ jackpot (sürpriz)
+   3) Hedefler: teslimat sayısı → tek seferlik bonus (100 paket → +50₺ gibi) */
+GROWTH.reward = {
+  miniBonus:[2,3,4], jackpotSans:0.001, jackpot:30,
+  hedefler:[{n:50,b:25},{n:100,b:50},{n:250,b:150},{n:500,b:350}],
 };
-/* bir teslimat için canlı çekiliş — kazanan, rastgele bir paketin net kârını alır */
+/* bir teslimat için çekiliş — neredeyse her zaman 2-4₺, çok nadir 30₺ jackpot */
 GROWTH.luckyDraw = function(){
-  if(Math.random()>=GROWTH.reward.kazanmaOlasilik) return {win:false,amount:0};
-  const de=econDukkan(), r=de[Math.floor(Math.random()*de.length)];
-  return {win:true, amount:Math.round((r.net/r.adet)*GROWTH.reward.oduPayi)};
+  const R=GROWTH.reward;
+  if(Math.random()<R.jackpotSans) return {amount:R.jackpot, jackpot:true};
+  return {amount:R.miniBonus[Math.floor(Math.random()*R.miniBonus.length)], jackpot:false};
+};
+/* sahip görünümü: ödül gideri ekonomisi (kurye'ye gösterilmez) */
+GROWTH.rewardEcon = function(){
+  const de=econDukkan(), totNet=de.reduce((a,r)=>a+r.net,0), totAdet=de.reduce((a,r)=>a+r.adet,0), avgNet=totNet/totAdet, R=GROWTH.reward;
+  const miniAvg=R.miniBonus.reduce((a,b)=>a+b,0)/R.miniBonus.length;       // ~3₺
+  const jackpotEV=R.jackpotSans*R.jackpot;                                  // 0.03₺
+  const hedefEV=R.hedefler.filter(h=>h.n<=100).reduce((a,h)=>a+h.b,0)/100;  // 100 teslimat ufku ~0.75₺
+  const evTeslimat=miniAvg+jackpotEV+hedefEV, netSonra=avgNet-evTeslimat;
+  return { avgNet, miniAvg, jackpotEV, hedefEV, evTeslimat, netPct:netSonra/avgNet, netSonra,
+    gunlukGider:evTeslimat*totAdet, totAdet };
 };
 
 const CAT_EMOJI = {"Tümü":"🔥",Kebap:"🥙",Pide:"🫓",Lahmacun:"🌮",Mantı:"🥟",Burger:"🍔",Kahvaltı:"🍳",Tatlı:"🍰"};
